@@ -76,12 +76,16 @@ const collapsedDrawerWidth = 60;
 
 const filterModels = [
   { name: "Category", path: "/category" },
+  { name: "City", path: "/city" },
   { name: "Color", path: "/color" },
   { name: "Content", path: "/content" },
+  { name: "Country", path: "/country" },
   { name: "Design", path: "/design" },
   { name: "Finish", path: "/finish" },
   { name: "Groupcode", path: "/groupcode" },
+  { name: "Location", path: "/location" },
   { name: "Motif", path: "/motif" },
+  { name: "State", path: "/state" },
   { name: "Structure", path: "/structure" },
   { name: "Subfinish", path: "/subfinish" },
   { name: "Substructure", path: "/substructure" },

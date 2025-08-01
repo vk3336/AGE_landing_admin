@@ -73,14 +73,48 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       // Clone the response so we can read it multiple times if needed
       const responseClone = response.clone();
       
+      // Handle empty responses (204 No Content)
+      if (response.status === 204) {
+        return new Response(JSON.stringify({ status: 'success' }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+      
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
+      const isJson = contentType && contentType.includes('application/json');
+      
+      // For empty responses, return a success response
+      if (response.status === 200 && response.body === null) {
+        return new Response(JSON.stringify({ status: 'success' }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+      
+      // If JSON, return the response as is
+      if (isJson) {
         return response;
       }
       
       // If not JSON, read the response as text to see what we got
       const text = await response.text();
+      
+      // For empty responses, return success
+      if (response.ok && (!text || text.trim() === '')) {
+        return new Response(JSON.stringify({ status: 'success' }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+      
       console.error('Non-JSON response received:', text.substring(0, 500));
       
       // If the response is HTML, it's likely an error page
@@ -88,8 +122,18 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
         throw new Error(`Received HTML response. Check your API endpoint (${url}). The server might be returning an error page.`);
       }
       
-      // For non-JSON responses, return the original response
-      return responseClone;
+      // For non-JSON responses that are successful, return success
+      if (response.ok) {
+        return new Response(JSON.stringify({ status: 'success' }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+      
+      // For non-JSON error responses, throw an error with the response text
+      throw new Error(text || 'Request failed');
     } catch (error) {
       console.error('API Request Failed:', {
         url,

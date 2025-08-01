@@ -510,10 +510,14 @@ export default function ProductPage() {
   }, [deleteId, fetchProducts]);
 
   const filteredProducts = useCallback(() => {
-    return products.filter(product => 
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      (hasName(product.category) && product.category.name.toLowerCase().includes(search.toLowerCase()))
-    );
+    const searchTerm = search?.toLowerCase() || '';
+    return products.filter(product => {
+      const productName = product?.name?.toLowerCase() || '';
+      const categoryName = (hasName(product.category) ? product.category.name : '').toLowerCase();
+      
+      return productName.includes(searchTerm) || 
+             categoryName.includes(searchTerm);
+    });
   }, [products, search]);
 
   const paginatedProducts = useCallback(() => {

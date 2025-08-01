@@ -14,10 +14,16 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@mui/system": "^7.2.0",
+    "cities-list": "^1.0.3",
+    "cities.json": "^1.1.50",
+    "country-data": "^0.0.31",
+    "country-list": "^2.3.0",
     "critters": "^0.0.25",
     "next": "15.3.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "state-list": "^1.0.1",
+    "world-countries": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import {
   Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField,
-  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete
+  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete,
+  Select, MenuItem, Pagination
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import apiFetch from '../../utils/apiFetch';
@@ -247,6 +248,7 @@ export default function LocationPage() {
   const [timezoneSearch, setTimezoneSearch] = useState('');
   const [languageSearch, setLanguageSearch] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   // Debug effect to log state changes
   useEffect(() => {
@@ -265,17 +267,42 @@ export default function LocationPage() {
     console.log('Locations updated:', locations);
   }, [locations]);
 
-  // Fetch locations
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1
+  });
+
+  // Fetch locations with pagination
   const fetchLocations = useCallback(async () => {
     try {
+      setLoading(true);
       console.log('Fetching locations...');
-      const res = await apiFetch('/locations');
+      const queryParams = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        ...(search && { search })
+      });
+      
+      const res = await apiFetch(`/locations?${queryParams}`);
       const response = await res.json();
       console.log('Locations API Response:', response);
       
       let locationsData: Location[] = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.locations)) {
+      if (response && response.status === 'success' && response.data && response.data.locations) {
         locationsData = response.data.locations;
+        
+        // Update pagination info
+        if (response.data.pagination) {
+          setPagination(prev => ({
+            ...prev,
+            total: response.data.pagination.total,
+            totalPages: response.data.pagination.totalPages,
+            currentPage: response.data.pagination.currentPage
+          }));
+        }
       } else if (Array.isArray(response)) {
         locationsData = response;
       } else if (response && response.data && Array.isArray(response.data)) {
@@ -391,6 +418,19 @@ export default function LocationPage() {
     }
   };
 
+  // Helper function to clean form data before submission
+  const cleanFormData = (data: FormState) => {
+    return {
+      ...data,
+      country: data.country || undefined,
+      state: data.state || undefined,
+      city: data.city || undefined,
+      pincode: data.pincode || undefined,
+      timezone: data.timezone || undefined,
+      language: data.language || undefined
+    };
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,6 +438,8 @@ export default function LocationPage() {
     setError(null);
 
     try {
+      const cleanedData = cleanFormData(form);
+      
       if (editId) {
         // Update existing location
         const response = await apiFetch(`/locations/${editId}`, {
@@ -405,16 +447,7 @@ export default function LocationPage() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            name: form.name,
-            slug: form.slug,
-            pincode: form.pincode,
-            country: form.country,
-            state: form.state,
-            city: form.city,
-            timezone: form.timezone,
-            language: form.language
-          })
+          body: JSON.stringify(cleanedData)
         });
         
         if (!response.ok) {
@@ -430,16 +463,7 @@ export default function LocationPage() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            name: form.name,
-            slug: form.slug,
-            pincode: form.pincode,
-            country: form.country,
-            state: form.state,
-            city: form.city,
-            timezone: form.timezone,
-            language: form.language
-          })
+          body: JSON.stringify(cleanedData)
         });
         
         if (!response.ok) {
@@ -459,45 +483,113 @@ export default function LocationPage() {
     }
   };
 
-  // Handle delete
+  // Handle delete button click
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
+  };
+
+  // Handle delete confirmation
   const handleDelete = async () => {
     if (!deleteId) return;
     
     try {
-      const response = await apiFetch(`/locations/${deleteId}`, { 
-        method: 'DELETE' 
+      setDeleteSubmitting(true);
+      setDeleteError(null);
+      
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${deleteId}`, { 
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
+            [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
+          } : {})
+        },
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete location');
+      const data = await res.json();
+      console.log('Delete response:', data);
+      
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: data.message || 'Location deleted successfully',
+          severity: 'success'
+        });
+        
+        setDeleteId(null);
+        fetchLocations();
+        return;
       }
       
-      setSuccess('Location deleted successfully');
-      fetchLocations();
+      // Handle error responses
+      let errorMessage = data?.message || 'Failed to delete location';
+      
+      // Show specific error message for in-use locations
+      if (res.status === 400 && errorMessage.includes('being used by other records')) {
+        errorMessage = 'Cannot delete location because it is being used by one or more SEO records';
+      }
+      
+      setDeleteError(errorMessage);
+      
+      // Also show error in snackbar
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
     } catch (err: any) {
-      setDeleteError(err.message || 'Failed to delete location');
+      console.error('Delete error:', err);
+      const errorMessage = err.message || 'Failed to delete location';
+      
+      // Set error in delete dialog
+      setDeleteError(errorMessage);
+      
+      // Also show error in snackbar
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
     } finally {
-      setDeleteId(null);
+      setDeleteSubmitting(false);
     }
   };
 
   // Handle edit
   const handleEdit = (location: Location) => {
+    // Helper function to safely get ID from a field that could be string or object
+    const getId = (field: string | { _id: string; [key: string]: any } | undefined): string => {
+      if (!field) return '';
+      return typeof field === 'string' ? field : field._id || '';
+    };
+
+    // Helper function to safely get name from a field that could be string or object
+    const getName = (field: string | { name: string; [key: string]: any } | undefined): string => {
+      if (!field) return '';
+      return typeof field === 'string' ? '' : field.name || '';
+    };
+
     setForm({
-      name: location.name,
-      slug: location.slug,
-      pincode: location.pincode,
-      country: typeof location.country === 'string' ? location.country : location.country._id,
-      state: typeof location.state === 'string' ? location.state : location.state?._id || '',
-      city: typeof location.city === 'string' ? location.city : location.city?._id || '',
-      timezone: location.timezone,
-      language: location.language,
-      country_name: typeof location.country === 'object' ? location.country.name : '',
-      state_name: typeof location.state === 'object' ? location.state?.name : '',
-      city_name: typeof location.city === 'object' ? location.city?.name : ''
+      name: location.name || '',
+      slug: location.slug || '',
+      pincode: location.pincode || '',
+      country: getId(location.country),
+      state: getId(location.state),
+      city: getId(location.city),
+      timezone: location.timezone || '',
+      language: location.language || '',
+      country_name: getName(location.country),
+      state_name: getName(location.state),
+      city_name: getName(location.city)
     });
-    setEditId(location._id);
+    
+    if (location._id) {
+      setEditId(location._id);
+    } else {
+      console.error('Cannot edit location: No _id found');
+      return;
+    }
+    
     setOpen(true);
   };
 
@@ -530,7 +622,6 @@ export default function LocationPage() {
     { code: "hi", name: "Hindi" },
     { code: "mr", name: "Marathi" },
     { code: "gu", name: "Gujarati" },
-
     { code: "kn", name: "Kannada" },
     { code: "ml", name: "Malayalam" },
     { code: "pa", name: "Punjabi" },
@@ -547,9 +638,7 @@ export default function LocationPage() {
     { code: "ar", name: "Arabic" },
     { code: "pt", name: "Portuguese" },
     { code: "bn", name: "Bengali" },
-    { code: "pa", name: "Punjabi" },
     { code: "te", name: "Telugu" },
-    { code: "mr", name: "Marathi" },
     { code: "ta", name: "Tamil" },
     { code: "ur", name: "Urdu" },
     { code: "tr", name: "Turkish" },
@@ -658,18 +747,28 @@ export default function LocationPage() {
     fetchCities();
   }, [fetchLocations, fetchCountries, fetchStates, fetchCities]);
 
-  // Filter locations based on search
-  const filteredLocations = useMemo(() => {
-    if (!search) return locations;
-    const searchLower = search.toLowerCase();
-    return locations.filter(location => 
-      location.name.toLowerCase().includes(searchLower) ||
-      location.pincode.includes(search) ||
-      (typeof location.country === 'object' && location.country.name.toLowerCase().includes(searchLower)) ||
-      (typeof location.state === 'object' && location.state?.name?.toLowerCase().includes(searchLower)) ||
-      (typeof location.city === 'object' && location.city?.name?.toLowerCase().includes(searchLower))
-    );
-  }, [locations, search]);
+  // Handle page change
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, newPage: number) => {
+    setPagination(prev => ({
+      ...prev,
+      page: newPage
+    }));
+  };
+
+  // Handle search
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // Reset to first page when searching
+    setPagination(prev => ({
+      ...prev,
+      page: 1
+    }));
+  }, []);
+
+  // Fetch locations when pagination or search changes
+  useEffect(() => {
+    fetchLocations();
+  }, [pagination.page, pagination.limit, search, fetchLocations]);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -685,18 +784,40 @@ export default function LocationPage() {
         </Button>
       </Box>
 
-      {/* Search */}
-      <Box sx={{ mb: 3 }}>
+      {/* Search and Pagination Controls */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2 }}>
         <TextField
           fullWidth
           variant="outlined"
           placeholder="Search locations..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearch}
+          sx={{ maxWidth: 400 }}
           InputProps={{
             startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
           }}
         />
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Rows per page:
+          </Typography>
+          <Select
+            size="small"
+            value={pagination.limit}
+            onChange={(e) => setPagination(prev => ({
+              ...prev,
+              limit: Number(e.target.value),
+              page: 1 // Reset to first page when changing page size
+            }))}
+            sx={{ minWidth: 80 }}
+          >
+            <MenuItem value={5}>5</MenuItem>
+            <MenuItem value={10}>10</MenuItem>
+            <MenuItem value={25}>25</MenuItem>
+            <MenuItem value={50}>50</MenuItem>
+          </Select>
+        </Box>
       </Box>
 
       {/* Loading state */}
@@ -738,8 +859,8 @@ export default function LocationPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredLocations.length > 0 ? (
-                filteredLocations.map((location) => (
+              {locations.length > 0 ? (
+                locations.map((location) => (
                   <TableRow key={location._id}>
                     <TableCell>{location.name}</TableCell>
                     <TableCell>{
@@ -770,14 +891,31 @@ export default function LocationPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    No locations found
+                  <TableCell colSpan={9} align="center">
+                    {search ? 'No matching locations found' : 'No locations available'}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+      
+      {/* Pagination */}
+      {pagination.total > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination
+            count={pagination.totalPages}
+            page={pagination.page}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+            siblingCount={1}
+            boundaryCount={1}
+            sx={{ '& .MuiPagination-ul': { flexWrap: 'nowrap' } }}
+          />
+        </Box>
       )}
 
       {/* Add/Edit Location Dialog */}
@@ -806,7 +944,6 @@ export default function LocationPage() {
                 <TextField
                   {...params}
                   margin="normal"
-                  required
                   fullWidth
                   label="Location Name"
                   name="name"
@@ -827,7 +964,6 @@ export default function LocationPage() {
               name="slug"
               value={form.slug}
               onChange={handleChange}
-              required
               helperText="Auto-generated from name but can be edited"
             />
             
@@ -841,7 +977,6 @@ export default function LocationPage() {
                   {...params}
                   margin="normal"
                   label="Country"
-                  required
                   error={!Array.isArray(countries)}
                   helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
                 />
@@ -858,7 +993,6 @@ export default function LocationPage() {
                   {...params}
                   margin="normal"
                   label="State"
-                  required
                   error={!Array.isArray(states)}
                   helperText={!Array.isArray(states) ? 'Error loading states' : ''}
                 />
@@ -875,7 +1009,6 @@ export default function LocationPage() {
                   {...params}
                   margin="normal"
                   label="City"
-                  required
                   error={!Array.isArray(cities)}
                   helperText={!Array.isArray(cities) ? 'Error loading cities' : ''}
                 />
@@ -889,7 +1022,6 @@ export default function LocationPage() {
               name="pincode"
               value={form.pincode}
               onChange={handlePincodeChange}
-              required
               inputProps={{
                 pattern: '^[0-9]*$',
                 title: 'Please enter a valid pincode (numbers only)'
@@ -911,7 +1043,6 @@ export default function LocationPage() {
                   {...params}
                   margin="normal"
                   label="Timezone"
-                  required
                   onChange={(e) => setTimezoneSearch(e.target.value)}
                   value={timezoneSearch}
                 />
@@ -933,7 +1064,6 @@ export default function LocationPage() {
                   {...params}
                   margin="normal"
                   label="Language"
-                  required
                   onChange={(e) => setLanguageSearch(e.target.value)}
                   value={languageSearch}
                 />
@@ -954,12 +1084,16 @@ export default function LocationPage() {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={!!deleteId}
-        onClose={() => setDeleteId(null)}
+        onClose={() => !deleteSubmitting && setDeleteId(null)}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           {deleteError && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDeleteError(null)}>
+            <Alert 
+              severity="error" 
+              sx={{ mb: 2 }} 
+              onClose={() => setDeleteError(null)}
+            >
               {deleteError}
             </Alert>
           )}
@@ -968,11 +1102,20 @@ export default function LocationPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteId(null)} disabled={!!deleteError}>
+          <Button 
+            onClick={() => setDeleteId(null)} 
+            disabled={deleteSubmitting}
+            color="inherit"
+          >
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error" disabled={!!deleteError}>
-            Delete
+          <Button 
+            onClick={handleDelete} 
+            color="error" 
+            disabled={deleteSubmitting}
+            startIcon={deleteSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {deleteSubmitting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

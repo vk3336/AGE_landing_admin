@@ -19,6 +19,7 @@ const SEO_FIELDS = [
   { key: "product", label: "Product", type: "select" },
   { key: "purchasePrice", label: "Purchase Price", type: "number" },
   { key: "salesPrice", label: "Sales Price", type: "number" },
+  { key: "location", label: "Location", type: "location" },
   { key: "locationCode", label: "Location Code", type: "text" },
   { key: "productIdentifier", label: "Product Identifier", type: "text" },
   { key: "sku", label: "SKU", type: "text" },
@@ -106,9 +107,19 @@ function hasImg(obj: unknown): obj is { img: string } {
   return Boolean(obj && typeof obj === 'object' && 'img' in obj && typeof (obj as { img?: unknown }).img === 'string');
 }
 
+interface Location {
+  _id: string;
+  name: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+}
+
 function SeoPage() {
   const [seoList, setSeoList] = useState<Record<string, unknown>[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -121,11 +132,25 @@ function SeoPage() {
   const [selectedSeo, setSelectedSeo] = useState<Record<string, unknown> | null>(null);
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
 
-  // Fetch products for dropdown
+  // Fetch products and locations for dropdowns
   useEffect(() => {
+    // Fetch products
     apiFetch(`${API_URL}/product?limit=100`)
       .then(res => res.json())
       .then(data => setProducts(data.data || []));
+    
+    // Fetch locations
+    apiFetch(`${API_URL}/locations?limit=1000`)
+      .then(res => res.json())
+      .then(data => {
+        // Handle both response formats: { data: { locations: [...] } } and { data: [...] }
+        const locationsData = data.data?.locations || data.data || [];
+        setLocations(locationsData);
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        setLocations([]);
+      });
   }, []);
 
   // Fetch SEO list
@@ -218,6 +243,14 @@ function SeoPage() {
     } else {
       setForm((prev) => ({ ...prev, product: productId }));
     }
+  };
+
+  const handleLocationChange = (_: React.SyntheticEvent, value: { _id: string; name: string } | null) => {
+    setForm(prev => ({
+      ...prev,
+      location: value?._id || '',
+      locationName: value?.name || ''
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -373,22 +406,28 @@ function SeoPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f8f9fa' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Product</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Slug</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Title</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Popular</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Top Rated</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Rating</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>Actions</TableCell>
+              <TableRow>
+                <TableCell>Product</TableCell>
+                <TableCell>Location</TableCell>
+                <TableCell>Slug</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={7} align="center">Loading...</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={4} align="center">Loading...</TableCell>
+                </TableRow>
               ) : seoList.length === 0 ? (
-                <TableRow><TableCell colSpan={7} align="center">No SEO entries found.</TableCell></TableRow>
-              ) : seoList.map(seo => (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">No SEO entries found</TableCell>
+                </TableRow>
+              ) : seoList.map(seo => {
+                const location = seo.location && typeof seo.location === 'object' && 'name' in seo.location 
+                  ? (seo.location as { name: string }).name 
+                  : locations.find(loc => loc._id === seo.location)?.name || '-';
+                
+                return (
                 <TableRow key={typeof seo._id === 'string' ? seo._id : ''} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -401,18 +440,15 @@ function SeoPage() {
                       {hasName(seo.product) ? seo.product.name : "-"}
                     </Box>
                   </TableCell>
+                  <TableCell>{location}</TableCell>
                   <TableCell>{typeof seo.slug === 'string' ? seo.slug : '-'}</TableCell>
-                  <TableCell>{typeof seo.title === 'string' ? seo.title : '-'}</TableCell>
-                  <TableCell>{seo.popularproduct ? "Yes" : "No"}</TableCell>
-                  <TableCell>{seo.topratedproduct ? "Yes" : "No"}</TableCell>
-                  <TableCell>{typeof seo.rating_value === 'number' ? seo.rating_value : '-'}</TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleOpen(seo)} disabled={pageAccess === 'only view'}><EditIcon /></IconButton>
                     <IconButton color="info" onClick={() => { setSelectedSeo(seo); setViewOpen(true); }}><VisibilityIcon /></IconButton>
                     <IconButton color="error" onClick={() => typeof seo._id === 'string' && handleDelete(seo._id)} disabled={pageAccess === 'only view'}><DeleteIcon /></IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
             </TableBody>
           </Table>
         </TableContainer>
@@ -476,6 +512,33 @@ function SeoPage() {
                     )}
                     disabled={pageAccess === 'only view'}
                     sx={{ minWidth: 220 }}
+                  />
+                );
+              } else if (field.type === "location") {
+                // Location field with Autocomplete
+                return (
+                  <Autocomplete
+                    key={field.key}
+                    options={locations}
+                    getOptionLabel={(option) => {
+                      if (!option) return '';
+                      if (typeof option === 'string') return option;
+                      return option.name || '';
+                    }}
+                    value={locations.find(loc => loc._id === form[field.key]) || null}
+                    onChange={handleLocationChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={field.label}
+                        name={field.key}
+                        variant="outlined"
+                        fullWidth
+                      />
+                    )}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                    disabled={pageAccess === 'only view'}
+                    sx={{ minWidth: 300, mt: 1 }}
                   />
                 );
               } else if (field.type === "checkbox") {
@@ -585,19 +648,35 @@ function SeoPage() {
                     const value = typeof field.key === 'string'
                       ? field.key.split('.').reduce((acc: unknown, k: string) => (acc && typeof acc === 'object' && k in acc) ? (acc as Record<string, unknown>)[k] : undefined, selectedSeo) ?? "-"
                       : "-";
+                    
+                    // Special handling for location field to show name instead of ID
+                    let displayValue;
+                    if (field.key === 'location') {
+                      if (value && typeof value === 'object' && 'name' in value) {
+                        displayValue = (value as { name: string }).name;
+                      } else if (typeof value === 'string') {
+                        const location = locations.find(loc => loc._id === value);
+                        displayValue = location ? location.name : value;
+                      } else {
+                        displayValue = value;
+                      }
+                    } else {
+                      displayValue = value;
+                    }
+                    
                     sectionFields.push(
                       <Box key={field.key} minWidth={180}>
                         <Typography variant="subtitle2" color="textSecondary" fontWeight={600}>{field.label}</Typography>
                         <Typography variant="body1">
-                          {typeof value === "boolean"
-                            ? (value ? "Yes" : "No")
-                            : Array.isArray(value)
-                              ? value.join(", ")
-                              : (typeof value === "object" && value !== null)
-                                ? (hasName(value) ? value.name : JSON.stringify(value))
-                                : typeof value === "string" || typeof value === "number"
-                                  ? value
-                                  : String(value)}
+                          {typeof displayValue === "boolean"
+                            ? (displayValue ? "Yes" : "No")
+                            : Array.isArray(displayValue)
+                              ? displayValue.join(", ")
+                              : (typeof displayValue === "object" && displayValue !== null)
+                                ? (hasName(displayValue) ? displayValue.name : JSON.stringify(displayValue))
+                                : typeof displayValue === "string" || typeof displayValue === "number"
+                                  ? displayValue
+                                  : String(displayValue)}
                         </Typography>
                       </Box>
                     );

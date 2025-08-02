@@ -432,18 +432,18 @@ export default function CountryPage() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          // Add any required authentication headers here
           ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
             [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
           } : {})
         }
       });
       
-      // Handle successful response (including 204 No Content)
+      const data = await res.json();
+      
       if (res.ok) {
         setSnackbar({
           open: true,
-          message: 'Country deleted successfully',
+          message: data.message || 'Country deleted successfully',
           severity: 'success'
         });
         setDeleteId(null);
@@ -452,39 +452,32 @@ export default function CountryPage() {
       }
       
       // Handle error responses
-      let errorMessage = 'Failed to delete country';
-      const contentType = res.headers.get('content-type');
+      let errorMessage = data?.message || 'Failed to delete country';
       
-      // Try to parse error response if it's JSON
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          const data = await res.json();
-          if (data?.message) {
-            errorMessage = data.message.includes('in use') 
-              ? 'Cannot delete: Country is in use by one or more products.' 
-              : data.message;
-          }
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
-      } else {
-        // For non-JSON responses, use status text if available
-        errorMessage = res.statusText || errorMessage;
+      // Show specific error message for in-use countries
+      if (res.status === 400 && errorMessage.includes('being used by other records')) {
+        errorMessage = 'Cannot delete country because it is being used by other records (states, cities, or locations)';
       }
       
       setDeleteError(errorMessage);
-
+      
+      // Also show error in snackbar
       setSnackbar({
         open: true,
-        message: 'Country deleted successfully',
-        severity: 'success'
+        message: errorMessage,
+        severity: 'error'
       });
       
-      setDeleteId(null);
-      fetchCountries();
     } catch (error) {
       console.error('Delete error:', error);
-      setDeleteError('An error occurred while deleting the country');
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while deleting the country';
+      setDeleteError(errorMessage);
+      
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
     } finally {
       setSubmitting(false);
     }

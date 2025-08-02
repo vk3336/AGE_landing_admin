@@ -413,100 +413,67 @@ export default function ProductPage() {
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form.name.trim()) {
-      alert("Name is required");
-      return;
-    }
-    
-    // Check for missing required fields, excluding colors for now
-    const missingFields = dropdownFields.filter(f => {
-      // Skip color field in this check as it's handled separately
-      if (f.key === 'color') return false;
-      return !form[f.key] || form[f.key] === "";
-    });
-    
-    // Check colors separately
-    if (!form.colors || form.colors.length === 0) {
-      alert("Please select at least one color");
-      return;
-    }
-    
-    if (missingFields.length > 0) {
-      alert(`Please select: ${missingFields.map(f => f.label).join(", ")}`);
-      return;
-    }
-    
-    if (!editId && (!form.img || !(form.img instanceof File))) {
-      alert("Please select an image for the product");
-      return;
-    }
-    
     setSubmitting(true);
     try {
       const formData = new FormData();
-      // Append all text fields first
-      Object.keys(form).forEach(key => {
-        if (!["img", "image1", "image2", "video", "colors"].includes(key) && form[key] !== undefined && form[key] !== "") {
-          // Convert numeric fields to numbers before appending
-          if (["gsm", "oz", "cm", "inch", "quantity"].includes(key)) {
-            formData.append(key, String(Number(form[key])));
+      
+      // Append all form fields that have values
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            // Handle array fields like colors
+            value.forEach(v => formData.append(`${key}[]`, v));
+          } else if (value instanceof File) {
+            // Handle file uploads
+            formData.append(key, value);
           } else {
-            formData.append(key, form[key] as string);
+            // Handle all other fields
+            formData.append(key, String(value));
           }
         }
       });
       
-      // Handle colors array separately
-      if (form.colors && form.colors.length > 0) {
-        const colors = Array.isArray(form.colors) ? form.colors : [form.colors];
-        colors.forEach((colorId: string) => {
-          if (colorId) {  // Only append non-empty color IDs
-            formData.append('color[]', colorId);
-          }
-        });
-      }
-      // Then append files
-      if (form.img) formData.append("file", form.img as File);
-      if (form.image1) formData.append("image1", form.image1 as File);
-      if (form.image2) formData.append("image2", form.image2 as File);
-      if (form.video) formData.append("video", form.video as File);
       const url = editId ? `${API_URL}/product/${editId}` : `${API_URL}/product`;
       const method = editId ? "PUT" : "POST";
       const res = await apiFetch(url, {
         method,
         body: formData,
       });
+      
       if (res.ok) {
-        handleClose();
         fetchProducts();
+        handleClose();
       } else {
-        const data = await res.json();
-        alert(data.message || "Failed to save product");
+        const error = await res.json();
+        console.error("Error:", error);
+        alert(error.message || "An error occurred");
       }
-    } catch {} finally {
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while saving the product");
+    } finally {
       setSubmitting(false);
     }
-  }, [form, editId, dropdownFields, handleClose, fetchProducts]);
+  }, [form, editId, fetchProducts, handleClose]);
 
   const handleDelete = useCallback(async () => {
     if (!deleteId) return;
-    setDeleteError(null);
     try {
       const res = await apiFetch(`${API_URL}/product/${deleteId}`, {
         method: "DELETE",
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data && data.message && data.message.includes("in use")) {
-          setDeleteError(data.message);
-        } else {
-          setDeleteError(data.message || "Failed to delete product.");
-        }
-        return;
+      if (res.ok) {
+        fetchProducts();
+        setDeleteId(null);
+      } else {
+        const error = await res.json();
+        console.error("Error:", error);
+        alert(error.message || "An error occurred");
       }
-      setDeleteId(null);
-      fetchProducts();
-    } catch {}
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while deleting the product");
+    }
   }, [deleteId, fetchProducts]);
 
   const filteredProducts = useCallback(() => {
@@ -729,17 +696,9 @@ export default function ProductPage() {
                     Slug
                   </TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
-                    Category
+                    productdescription
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
-                    Vendor
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
-                    Color
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
-                    Quantity
-                  </TableCell>
+                 
                   <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
                     Actions
                   </TableCell>
@@ -750,12 +709,7 @@ export default function ProductPage() {
                   <TableRow key={product._id} sx={{ '&:hover': { bgcolor: '#f8f9fa' } }}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar
-                          src={getImageUrl(product.img) || ""}
-                          sx={{ width: 48, height: 48, bgcolor: '#f8f9fa' }}
-                        >
-                          <ImageIcon />
-                        </Avatar>
+                        
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 600, color: '#2c3e50' }}>
                             {product.name}
@@ -772,56 +726,12 @@ export default function ProductPage() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={hasName(product.category) ? product.category.name : product.category || 'N/A'}
-                        size="small"
-                        sx={{ bgcolor: '#e8f4fd', color: '#3498db', fontWeight: 500 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>
-                        {hasName(product.vendor) ? product.vendor.name : product.vendor || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {Array.isArray(product.color) ? (
-                          product.color.length > 0 ? (
-                            product.color.map((color, index) => {
-                              const colorLabel = hasName(color) ? color.name : typeof color === 'string' ? color : 'N/A';
-                              return (
-                                <Chip
-                                  key={`${colorLabel}-${index}`}
-                                  label={colorLabel}
-                                  size="small"
-                                  sx={{ 
-                                    bgcolor: '#f0f8ff', 
-                                    color: '#2980b9', 
-                                    fontWeight: 500,
-                                    mb: 0.5
-                                  }}
-                                />
-                              );
-                            })
-                          ) : (
-                            <Chip 
-                              label="No colors" 
-                              size="small" 
-                              sx={{ bgcolor: '#f5f5f5', color: '#7f8c8d' }} 
-                            />
-                          )
-                        ) : (
-                          <Chip
-                            label={hasName(product.color) ? product.color.name : product.color || 'N/A'}
-                            size="small"
-                            sx={{ bgcolor: '#f0f8ff', color: '#2980b9', fontWeight: 500 }}
-                          />
-                        )}
+                      <Box sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {product.productdescription || 'N/A'}
                       </Box>
                     </TableCell>
-                    <TableCell>
-                      {product.quantity ?? '-'}
-                    </TableCell>
+                   
+                   
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton

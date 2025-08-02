@@ -47,6 +47,8 @@ interface City {
   pincode: string;
   country: string | { _id: string; name: string };
   state: string | { _id: string; name: string };
+  state_name?: string;
+  country_name?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +94,8 @@ interface City {
   pincode: string;
   country: string | { _id: string; name: string };
   state: string | { _id: string; name: string };
+  state_name?: string;
+  country_name?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -227,11 +231,11 @@ export default function CityPage() {
     const { name, value } = e.target;
     setForm((prev: CityFormData) => ({
       ...prev,
-      [name]: value
+      [name]: value || ''
     }));
     
     // Auto-generate slug from name when creating a new city or when explicitly changing the name
-    if (name === 'name' && (!editId || form.slug === '' || form.slug === prevSlug)) {
+    if (name === 'name' && value && (!editId || form.slug === '' || form.slug === prevSlug)) {
       const slug = value
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -253,7 +257,7 @@ export default function CityPage() {
     }
   }, [editId]);
 
-  // Handle city selection
+  // Handle city selection from autocomplete
   const handleCitySelect = (cityName: string | null) => {
     if (!cityName) return;
     
@@ -265,14 +269,22 @@ export default function CityPage() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
       
+      // Find the state by name to get its ID
+      const matchedState = states.find(s => s.name === selectedCity.state);
+      
       setForm((prev: CityFormData) => ({
         ...prev,
         name: selectedCity.name,
         slug: slug,
         pincode: selectedCity.pincode,
-        state: selectedCity.state,
-        state_name: selectedCity.state
+        state: matchedState?._id || '',
+        state_name: matchedState ? matchedState.name : selectedCity.state
       }));
+
+      // Show warning if state not found in database
+      if (!matchedState) {
+        console.warn(`State "${selectedCity.state}" not found in the database. Please add it first.`);
+      }
     }
   };
 
@@ -280,22 +292,22 @@ export default function CityPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setError(null);
+      setError && setError(null);
       const url = editId ? `/cities/${editId}` : '/cities';
       const method = editId ? 'PUT' : 'POST';
       
-      const formData = {
-        name: form.name.trim(),
-        slug: form.slug.trim(),
-        pincode: form.pincode.trim(),
-        country: form.country,
-        state: form.state
-      };
+      // Only include fields that have values
+      const formData: Partial<CityFormData> = {};
+      if (form.name) formData.name = form.name.trim();
+      if (form.slug) formData.slug = form.slug.trim();
+      if (form.pincode) formData.pincode = form.pincode.trim();
+      if (form.country) formData.country = form.country;
+      if (form.state) formData.state = form.state;
       
       const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
 
       const result = await res.json();
@@ -346,27 +358,63 @@ export default function CityPage() {
     
     try {
       setDeleteSubmitting(true);
-      const res = await apiFetch(`/cities/${deleteId}`, { method: 'DELETE' });
+      setDeleteError(null);
       
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to delete city');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${deleteId}`, { 
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
+            [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
+          } : {})
+        },
+      });
+      
+      const data = await res.json();
+      console.log('Delete response:', data);
+      
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: data.message || 'City deleted successfully',
+          severity: 'success'
+        });
+        
+        setDeleteId(null);
+        fetchCities();
+        return;
       }
+      
+      // Handle error responses
+      let errorMessage = data?.message || 'Failed to delete city';
+      
+      // Show specific error message for in-use cities
+      if (res.status === 400 && errorMessage.includes('being used by other records')) {
+        errorMessage = 'Cannot delete city because it is being used by one or more locations';
+      }
+      
+      setDeleteError(errorMessage);
+      
+      // Also show error in snackbar
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while deleting the city';
+      setDeleteError(errorMessage);
       
       setSnackbar({
         open: true,
-        message: 'City deleted successfully',
-        severity: 'success'
+        message: errorMessage,
+        severity: 'error'
       });
-      
-      setDeleteId(null);
-      fetchCities();
-    } catch (error: any) {
-      setDeleteError(error.message || 'Failed to delete city');
-      console.error('Error deleting city:', error);
     } finally {
       setDeleteSubmitting(false);
-    }
+    }  
   };
 
   // Reset form
@@ -463,18 +511,20 @@ export default function CityPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredCities.length > 0 ? (
-                  filteredCities.map((city) => (
+                {cities.length > 0 ? (
+                  cities.map((city) => (
                     <TableRow key={city._id}>
-                      <TableCell>{city.name}</TableCell>
+                      <TableCell>{city.name || '-'}</TableCell>
                       <TableCell>{
-                        typeof city.state === 'object' ? city.state.name : 'Loading...'
+                        city.state && typeof city.state === 'object' ? city.state.name : 
+                        city.state_name || 'N/A'
                       }</TableCell>
                       <TableCell>{
-                        typeof city.country === 'object' ? city.country.name : 'Loading...'
+                        city.country && typeof city.country === 'object' ? city.country.name : 
+                        city.country_name || 'N/A'
                       }</TableCell>
                       <TableCell>{city.pincode || '-'}</TableCell>
-                      <TableCell>{city.slug}</TableCell>
+                      <TableCell>{city.slug || '-'}</TableCell>
                       <TableCell align="right">
                         <IconButton
                           color="primary"
@@ -533,7 +583,7 @@ export default function CityPage() {
                   <TextField
                     {...params}
                     margin="normal"
-                    required
+                    
                     fullWidth
                     id="name"
                     label="City Name"
@@ -584,7 +634,7 @@ export default function CityPage() {
                   <TextField
                     {...params}
                     margin="normal"
-                    required
+                    
                     fullWidth
                     label="Country"
                     name="country"
@@ -611,7 +661,7 @@ export default function CityPage() {
                   <TextField
                     {...params}
                     margin="normal"
-                    required
+                    
                     fullWidth
                     label="State"
                     name="state"

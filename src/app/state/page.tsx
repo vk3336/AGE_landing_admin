@@ -379,12 +379,28 @@ export default function StatePage() {
       const method = editId ? 'PUT' : 'POST';
       
       // Prepare data for submission
-      const formData = {
+      const formData: any = {
         name: form.name.trim(),
         code: form.code.trim(),
-        country: form.country,
         slug: form.slug?.trim() || form.name.toLowerCase().replace(/\s+/g, '-')
       };
+
+      // Only include country if it's a valid ObjectId
+      if (form.country) {
+        // If country is an ObjectId string, use it directly
+        if (/^[0-9a-fA-F]{24}$/.test(form.country)) {
+          formData.country = form.country;
+        } 
+        // If it's a country name, try to find the corresponding country
+        else if (form.country_name) {
+          const foundCountry = countries.find(c => c.name === form.country_name);
+          if (foundCountry) {
+            formData.country = foundCountry._id;
+          }
+        }
+      }
+      
+      console.log('Submitting form data:', formData);
       
       console.log('Submitting form data:', formData);
       
@@ -437,35 +453,62 @@ export default function StatePage() {
     
     try {
       setDeleteSubmitting(true);
+      setDeleteError(null);
       console.log('Deleting state with ID:', deleteId);
       
-      const res = await apiFetch(`/states/${deleteId}`, { 
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/states/${deleteId}`, { 
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
+            [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
+          } : {})
         },
       });
       
-      // The apiFetch utility now handles non-JSON responses
-      const result = await res.json();
-      console.log('Delete response:', result);
+      const data = await res.json();
+      console.log('Delete response:', data);
       
-      if (!res.ok) {
-        throw new Error(result.message || 'Failed to delete state');
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: data.message || 'State deleted successfully',
+          severity: 'success'
+        });
+        
+        // Refresh the states list
+        await fetchStates();
+        handleCloseDeleteDialog();
+        return;
       }
+      
+      // Handle error responses
+      let errorMessage = data?.message || 'Failed to delete state';
+      
+      // Show specific error message for in-use states
+      if (res.status === 400 && errorMessage.includes('being used by other records')) {
+        errorMessage = 'Cannot delete state because it is being used by one or more cities or locations';
+      }
+      
+      setDeleteError(errorMessage);
+      
+      // Also show error in snackbar
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while deleting the state';
+      setDeleteError(errorMessage);
       
       setSnackbar({
         open: true,
-        message: 'State deleted successfully',
-        severity: 'success'
+        message: errorMessage,
+        severity: 'error'
       });
-      
-      // Refresh the states list
-      await fetchStates();
-      handleCloseDeleteDialog();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete state';
-      setDeleteError(errorMessage);
     } finally {
       setDeleteSubmitting(false);
     }
@@ -606,12 +649,12 @@ export default function StatePage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Select Country"
+                  label="Select Country (Optional)"
                   margin="normal"
-                  required
                   InputProps={{
                     ...params.InputProps,
                   }}
+                  helperText="Leave empty if not applicable"
                 />
               )}
             />

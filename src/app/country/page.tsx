@@ -109,8 +109,15 @@ const CountryForm = React.memo(({
 }) => {
   const [inputValue, setInputValue] = useState('');
   
-  // Find the selected country object
-  const selectedCountry = countriesList.find(country => country.name === form.name) || null;
+  // Find the selected country object - match by name or code to handle both add and edit cases
+  const selectedCountry = countriesList.find(country => 
+    country.name.toLowerCase() === form.name?.toLowerCase() || 
+    country.code.toLowerCase() === form.code?.toLowerCase()
+  ) || null;
+  
+  // Log for debugging
+  console.log('Form data:', form);
+  console.log('Selected country:', selectedCountry);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -125,6 +132,10 @@ const CountryForm = React.memo(({
             options={countriesList}
             autoHighlight
             getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(option, value) => 
+              option.code === value.code || 
+              option.name.toLowerCase() === value.name?.toLowerCase()
+            }
             value={selectedCountry}
             onChange={(event, newValue) => {
               if (newValue) {

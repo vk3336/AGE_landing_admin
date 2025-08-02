@@ -525,8 +525,12 @@ export default function LocationPage() {
       let errorMessage = data?.message || 'Failed to delete location';
       
       // Show specific error message for in-use locations
-      if (res.status === 400 && errorMessage.includes('being used by other records')) {
-        errorMessage = 'Cannot delete location because it is being used by one or more SEO records';
+      if (res.status === 400) {
+        if (errorMessage.includes('being used by one or more SEO entries')) {
+          errorMessage = 'Cannot delete location because it is being used in one or more SEO entries. Please remove the location from all SEO entries before deleting it.';
+        } else if (errorMessage.includes('being used by other records')) {
+          errorMessage = 'Cannot delete location because it is being used by one or more records';
+        }
       }
       
       setDeleteError(errorMessage);
@@ -566,19 +570,32 @@ export default function LocationPage() {
     // Helper function to safely get name from a field that could be string or object
     const getName = (field: string | { name: string; [key: string]: any } | undefined): string => {
       if (!field) return '';
-      return typeof field === 'string' ? '' : field.name || '';
+      if (typeof field === 'string') {
+        // If it's a string ID, find the corresponding name from the countries array
+        if (field === location.country) {
+          const country = countries.find(c => c._id === field);
+          return country ? country.name : '';
+        }
+        return '';
+      }
+      return field.name || '';
     };
+
+    const countryId = getId(location.country);
+    const countryName = typeof location.country === 'object' 
+      ? location.country.name 
+      : countries.find(c => c._id === countryId)?.name || '';
 
     setForm({
       name: location.name || '',
       slug: location.slug || '',
       pincode: location.pincode || '',
-      country: getId(location.country),
+      country: countryId,
       state: getId(location.state),
       city: getId(location.city),
       timezone: location.timezone || '',
       language: location.language || '',
-      country_name: getName(location.country),
+      country_name: countryName,
       state_name: getName(location.state),
       city_name: getName(location.city)
     });

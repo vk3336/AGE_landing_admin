@@ -822,7 +822,7 @@ export default function LocationPage() {
   if (pageAccess === 'no access') {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="error">You don't have permission to access this page.</Alert>
+        <Alert severity="error">You don&apos;t have permission to access this page.</Alert>
       </Container>
     );
   }

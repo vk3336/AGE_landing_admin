@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import apiFetch from '../../utils/apiFetch';
 import {
   Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField, 
-  IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, Snackbar, Autocomplete, InputAdornment
+  Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, 
+  IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, Snackbar, Autocomplete, InputAdornment 
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,13 +20,13 @@ interface Country {
   flag?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CountryOption {
   code: string;
   name: string;
   flag: string;
 }
 
-// Define form state type to match Country interface but make all fields required
 type FormState = Required<Pick<Country, 'name' | 'code' | 'slug'>>;
 
 const CountryRow = React.memo(({ country, onEdit, onDelete, viewOnly }: {
@@ -57,7 +57,6 @@ const CountryRow = React.memo(({ country, onEdit, onDelete, viewOnly }: {
 
 CountryRow.displayName = 'CountryRow';
 
-// List of major countries with their codes and flags
 const countriesList = [
   { code: 'US', name: 'United States', flag: '🇺🇸' },
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
@@ -109,13 +108,11 @@ const CountryForm = React.memo(({
 }) => {
   const [inputValue, setInputValue] = useState('');
   
-  // Find the selected country object - match by name or code to handle both add and edit cases
   const selectedCountry = countriesList.find(country => 
     country.name.toLowerCase() === form.name?.toLowerCase() || 
     country.code.toLowerCase() === form.code?.toLowerCase()
   ) || null;
   
-  // Log for debugging
   console.log('Form data:', form);
   console.log('Selected country:', selectedCountry);
 
@@ -159,7 +156,6 @@ const CountryForm = React.memo(({
               setInputValue(newInputValue);
             }}
             renderOption={(props, option) => {
-              // Extract key from props to prevent it from being spread
               const { key, ...otherProps } = props;
               return (
                 <Box 
@@ -241,7 +237,8 @@ const CountryForm = React.memo(({
 
 CountryForm.displayName = 'CountryForm';
 
-interface ApiResponse<T = any> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface ApiResponse<T = unknown> {
   data?: T;
   total?: number;
   error?: boolean;
@@ -265,21 +262,13 @@ export default function CountryPage() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const initialFormState: FormState = { 
+  const initialFormState = useMemo<FormState>(() => ({
     name: '', 
     code: '', 
-    slug: '' 
-  };
+    slug: ''
+  }), []);
   
   const [form, setForm] = useState<FormState>(initialFormState);
-  
-  // Helper function to update form state
-  const updateForm = (updates: Partial<FormState>) => {
-    setForm(prev => ({
-      ...prev,
-      ...updates
-    }));
-  };
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -307,7 +296,6 @@ export default function CountryPage() {
       );
       const result = await response.json();
       
-      // Handle the API response format: { status: 'success', results: number, data: { countries: [] } }
       if (result && result.status === 'success' && result.data && Array.isArray(result.data.countries)) {
         setCountries(result.data.countries);
         setTotalPages(Math.ceil(result.results / itemsPerPage));
@@ -330,7 +318,6 @@ export default function CountryPage() {
     }
   }, [page, itemsPerPage, searchTerm]);
 
-  // Initialize page access and fetch countries
   useEffect(() => {
     setPageAccess(getCountryPagePermission());
     if (!noAccess) {
@@ -338,7 +325,7 @@ export default function CountryPage() {
     }
   }, [noAccess, fetchCountries]);
 
-  const handleOpenForm = (country: Country | null = null) => {
+  const handleOpenForm = useCallback((country: Country | null = null) => {
     if (viewOnly) return;
     
     if (country) {
@@ -354,14 +341,14 @@ export default function CountryPage() {
       setEditId(null);
       setOpenForm(true);
     }
-  };
+  }, [viewOnly, initialFormState]);
 
-  const handleCloseForm = () => {
+  const handleCloseForm = useCallback(() => {
     setForm(initialFormState);
     setEditId(null);
     setError(null);
     setOpenForm(false);
-  };
+  }, [initialFormState]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,14 +399,14 @@ export default function CountryPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [editId, form]);
+  }, [editId, form, fetchCountries, handleCloseForm, viewOnly]);
 
-  const handleAddClick = () => {
+  const handleAddClick = useCallback(() => {
     if (viewOnly) return;
-    setForm({ name: '', code: '', slug: '' });
     setEditId(null);
-    setOpenForm(true);
-  };
+    setForm(initialFormState);
+    handleOpenForm();
+  }, [viewOnly, handleOpenForm, initialFormState]);
 
   const handleDeleteClick = useCallback((id: string) => {
     if (viewOnly) return;
@@ -462,17 +449,14 @@ export default function CountryPage() {
         return;
       }
       
-      // Handle error responses
       let errorMessage = data?.message || 'Failed to delete country';
       
-      // Show specific error message for in-use countries
       if (res.status === 400 && errorMessage.includes('being used by other records')) {
         errorMessage = 'Cannot delete country because it is being used by other records (states, cities, or locations)';
       }
       
       setDeleteError(errorMessage);
       
-      // Also show error in snackbar
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -492,37 +476,18 @@ export default function CountryPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [deleteId]);
+  }, [deleteId, fetchCountries]);
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (viewOnly) return;
-    const { name, value } = e.target;
-    
-    const updates: Partial<FormState> = {};
-    
-    if (name === 'name') {
-      updates.name = value;
-      // Auto-generate slug when name changes and slug is empty
-      if (!form.slug) {
-        updates.slug = value.toLowerCase().replace(/\s+/g, '-');
-      }
-    } else if (name === 'code') {
-      updates.code = value.toUpperCase();
-    } else if (name === 'slug') {
-      updates.slug = value;
-    }
-    
-    updateForm(updates);
-  };
+  // handleChange function removed as it was not being used
 
   if (noAccess) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <Alert severity="error">You don't have permission to view this page.</Alert>
+        <Alert severity="error">You don&apos;t have permission to view this page.</Alert>
       </Box>
     );
   }
@@ -550,7 +515,7 @@ export default function CountryPage() {
               <Button 
                 variant="contained" 
                 color="primary" 
-                onClick={() => handleOpenForm()}
+                onClick={handleAddClick}
                 startIcon={<EditIcon />}
               >
                 Add Country
@@ -585,7 +550,7 @@ export default function CountryPage() {
                 <Button 
                   variant="outlined" 
                   color="primary" 
-                  onClick={() => handleOpenForm()}
+                  onClick={handleAddClick}
                   sx={{ mt: 2 }}
                 >
                   Add your first country

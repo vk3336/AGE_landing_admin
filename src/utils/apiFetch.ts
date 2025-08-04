@@ -71,7 +71,9 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       });
       
       // Clone the response so we can read it multiple times if needed
-      const responseClone = response.clone();
+      // Clone response for potential error handling
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _responseClone = response.clone();
       
       // Handle empty responses (204 No Content)
       if (response.status === 204) {

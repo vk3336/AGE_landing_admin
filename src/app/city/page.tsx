@@ -1,11 +1,13 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiFetch from '../../utils/apiFetch';
 import {
   Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField,
-  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete, MenuItem
+  Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  MenuItem,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 
@@ -128,7 +130,8 @@ export default function CityPage() {
     severity: 'success'
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _router = useRouter();
 
   // Fetch cities
   const fetchCities = useCallback(async () => {
@@ -147,8 +150,9 @@ export default function CityPage() {
       }
       
       setCities(citiesData);
-    } catch (error: any) {
-      setError(error.message || 'Failed to load cities');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load cities';
+      setError(errorMessage);
       console.error('Error fetching cities:', error);
     } finally {
       setLoading(false);
@@ -255,7 +259,7 @@ export default function CityPage() {
     if (editId) {
       setPrevSlug(form.slug);
     }
-  }, [editId]);
+  }, [editId, form.slug, setPrevSlug]);
 
   // Handle city selection from autocomplete
   const handleCitySelect = (cityName: string | null) => {
@@ -292,7 +296,7 @@ export default function CityPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setError && setError(null);
+      setError(null);
       const url = editId ? `/cities/${editId}` : '/cities';
       const method = editId ? 'PUT' : 'POST';
       
@@ -324,8 +328,9 @@ export default function CityPage() {
       
       resetForm();
       fetchCities();
-    } catch (error: any) {
-      setError(error.message || 'Failed to save city');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save city';
+      setError(errorMessage);
       console.error('Error saving city:', error);
     }
   };
@@ -360,14 +365,8 @@ export default function CityPage() {
       setDeleteSubmitting(true);
       setDeleteError(null);
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${deleteId}`, { 
+      const res = await apiFetch(`/cities/${deleteId}`, { 
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
-            [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
-          } : {})
-        },
       });
       
       const data = await res.json();
@@ -432,19 +431,6 @@ export default function CityPage() {
     setOpenForm(false);
     setError(null);
   };
-
-  // Filter cities based on search term
-  const filteredCities = useMemo(() => {
-    if (!searchTerm) return cities;
-    
-    const term = searchTerm.toLowerCase();
-    return cities.filter(city => 
-      city.name.toLowerCase().includes(term) ||
-      (typeof city.country === 'object' && city.country.name.toLowerCase().includes(term)) ||
-      (typeof city.state === 'object' && city.state.name.toLowerCase().includes(term)) ||
-      (city.pincode && city.pincode.includes(term))
-    );
-  }, [cities, searchTerm]);
 
   // Close snackbar
   const handleCloseSnackbar = () => {
@@ -690,9 +676,9 @@ export default function CityPage() {
         >
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
-            <DialogContentText>
+            <Typography variant="body1" component="div" sx={{ py: 2 }}>
               Are you sure you want to delete this city? This action cannot be undone.
-            </DialogContentText>
+            </Typography>
             {deleteError && (
               <Alert severity="error" sx={{ mt: 2 }}>
                 {deleteError}

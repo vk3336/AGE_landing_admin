@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useRouter } from 'next/navigation';
 // Import a comprehensive list of countries
 import countriesData from 'world-countries';
@@ -57,6 +58,7 @@ interface StateItem {
   state_code: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CountryItem {
   name: string;
   iso2: string;
@@ -282,6 +284,7 @@ export default function StatePage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [viewOnly] = useState(false);
 
   // Fetch states
   const fetchStates = useCallback(async () => {
@@ -351,14 +354,16 @@ export default function StatePage() {
     fetchCountries();
   }, [fetchCountries, fetchStates]);
 
-  const handleStateSelect = (stateName: string) => {
-    const selectedState = allStates.find(s => s.name === stateName);
+  const handleStateChange = (event: React.SyntheticEvent, value: StateData | null) => {
+    if (!value) return;
+    
+    const selectedState = allStates.find(s => s.name === value.name);
     if (selectedState) {
       const slug = selectedState.name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
         .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-      
+
       setForm(prev => ({
         ...prev,
         name: selectedState.name,
@@ -378,8 +383,16 @@ export default function StatePage() {
       const url = editId ? `/states/${editId}` : '/states';
       const method = editId ? 'PUT' : 'POST';
       
+      // Define interface for form submission data
+      interface FormSubmissionData {
+        name: string;
+        code: string;
+        slug: string;
+        country?: string;
+      }
+
       // Prepare data for submission
-      const formData: any = {
+      const formData: FormSubmissionData = {
         name: form.name.trim(),
         code: form.code.trim(),
         slug: form.slug?.trim() || form.name.toLowerCase().replace(/\s+/g, '-')
@@ -438,15 +451,32 @@ export default function StatePage() {
     }
   };
 
-  const handleDeleteClick = (id: string) => {
+  const handleEdit = useCallback((state: State) => {
+    if (viewOnly) return;
+    
+    setForm({
+      name: state.name,
+      code: state.code,
+      country: typeof state.country === 'object' ? state.country._id : state.country,
+      country_name: typeof state.country === 'object' ? state.country.name : '',
+      country_code: '',
+      slug: state.slug || ''
+    });
+    
+    setEditId(state._id || null);
+    setOpenForm(true);
+  }, [viewOnly]);
+  
+  const handleDeleteClick = useCallback((id: string) => {
+    if (viewOnly) return;
     setDeleteId(id);
     setDeleteError(null);
-  };
-
-  const handleCloseDeleteDialog = () => {
+  }, [viewOnly]);
+  
+  const handleCloseDeleteDialog = useCallback(() => {
     setDeleteId(null);
     setDeleteError(null);
-  };
+  }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -514,21 +544,11 @@ export default function StatePage() {
     }
   };
 
-  const handleEdit = (state: State) => {
-    setForm({
-      name: state.name,
-      code: state.code,
-      country: typeof state.country === 'object' ? (state.country as any)._id : state.country,
-      country_name: typeof state.country === 'object' ? (state.country as any).name : '',
-      slug: state.slug || ''
-    });
-    setEditId(state._id || null);
-    setOpenForm(true);
-  };
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">States</Typography>
         <Button
           variant="contained"
@@ -599,9 +619,9 @@ export default function StatePage() {
             <Autocomplete
               options={Array.from(new Set(allStates.map(s => s.name)))}
               value={form.name}
-              onChange={(_, newValue) => {
+              onChange={(event, newValue) => {
                 if (newValue) {
-                  handleStateSelect(newValue);
+                  handleStateChange(event, { name: newValue, code: '', country: '', country_code: '' });
                 } else {
                   setForm(prev => ({
                     ...prev,

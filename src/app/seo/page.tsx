@@ -431,12 +431,12 @@ function SeoPage() {
                 <TableRow key={typeof seo._id === 'string' ? seo._id : ''} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Avatar
+                      {/* <Avatar
                         src={hasImg(seo.product) ? (seo.product.img.startsWith('http') ? seo.product.img : `${API_URL}/images/${seo.product.img}`) : undefined}
                         sx={{ width: 32, height: 32, mr: 1 }}
                       >
                         {hasName(seo.product) ? seo.product.name[0] : '-'}
-                      </Avatar>
+                      </Avatar> */}
                       {hasName(seo.product) ? seo.product.name : "-"}
                     </Box>
                   </TableCell>

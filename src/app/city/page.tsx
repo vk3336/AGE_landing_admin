@@ -102,12 +102,32 @@ interface City {
   updatedAt: string;
 }
 
+function getCityPagePermission() {
+  if (typeof window === 'undefined') return 'no access';
+  const email = localStorage.getItem('admin-email');
+  const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
+  if (email && superAdmin && email === superAdmin) return 'all access';
+  const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
+  if (perms && perms.filter) {
+    return perms.filter;
+  }
+  return 'no access';
+}
+
 export default function CityPage() {
+  const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [cities, setCities] = useState<City[]>([]);
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [states, setStates] = useState<StateOption[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const access = getCityPagePermission();
+    setPageAccess(access);
+  }, []);
+
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState<boolean>(false);
   
@@ -123,7 +143,6 @@ export default function CityPage() {
   
   const [openForm, setOpenForm] = useState<boolean>(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -437,6 +456,22 @@ export default function CityPage() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" my={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (pageAccess === 'no access') {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">You don't have permission to access this page.</Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
@@ -449,6 +484,7 @@ export default function CityPage() {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => setOpenForm(true)}
+            disabled={pageAccess === 'only view'}
           >
             Add City
           </Button>
@@ -467,13 +503,6 @@ export default function CityPage() {
             }}
           />
         </Box>
-
-        {/* Loading state */}
-        {loading && (
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        )}
 
         {/* Error state */}
         {error && (
@@ -513,16 +542,18 @@ export default function CityPage() {
                       <TableCell>{city.slug || '-'}</TableCell>
                       <TableCell align="right">
                         <IconButton
-                          color="primary"
+                          color={pageAccess === 'only view' ? 'default' : 'primary'}
                           onClick={() => handleEdit(city)}
                           size="small"
+                          disabled={pageAccess === 'only view'}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          color="error"
+                          color={pageAccess === 'only view' ? 'default' : 'error'}
                           onClick={() => handleDeleteClick(city._id)}
                           size="small"
+                          disabled={pageAccess === 'only view'}
                         >
                           <DeleteIcon />
                         </IconButton>

@@ -236,10 +236,34 @@ const getAllStates = (): StateData[] => {
   return allStates;
 };
 
+function getStatePagePermission() {
+  if (typeof window === 'undefined') return 'no access';
+  const email = localStorage.getItem('admin-email');
+  const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
+  if (email && superAdmin && email === superAdmin) return 'all access';
+  const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
+  if (perms && perms.filter) {
+    return perms.filter;
+  }
+  return 'no access';
+}
+
 export default function StatePage() {
+  const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [states, setStates] = useState<State[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const access = getStatePagePermission();
+    setPageAccess(access);
+  }, []);
+
+  useEffect(() => {
+    const access = getStatePagePermission();
+    setPageAccess(access);
+  }, []);
+
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
@@ -362,7 +386,8 @@ export default function StatePage() {
       const slug = selectedState.name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-        .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single
+        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 
       setForm(prev => ({
         ...prev,
@@ -544,7 +569,21 @@ export default function StatePage() {
     }
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
+  if (pageAccess === 'no access') {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">You don't have permission to access this page.</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -558,56 +597,56 @@ export default function StatePage() {
             setEditId(null);
             setOpenForm(true);
           }}
+          disabled={pageAccess === 'only view'}
         >
           Add State
         </Button>
       </Box>
 
-      {loading ? (
-        <CircularProgress />
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Code</TableCell>
-                <TableCell>Slug</TableCell>
-                <TableCell>Country</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {states.map((state) => (
-                <TableRow key={state._id}>
-                  <TableCell>{state.name}</TableCell>
-                  <TableCell>{state.code}</TableCell>
-                  <TableCell>{state.slug || '-'}</TableCell>
-                  <TableCell>{
-                    typeof state.country === 'object' 
-                      ? state.country.name 
-                      : (countries.find(c => c._id === state.country)?.name || state.country)
-                  }</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleEdit(state)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Code</TableCell>
+              <TableCell>Slug</TableCell>
+              <TableCell>Country</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {states.map((state) => (
+              <TableRow key={state._id}>
+                <TableCell>{state.name}</TableCell>
+                <TableCell>{state.code}</TableCell>
+                <TableCell>{state.slug || '-'}</TableCell>
+                <TableCell>{
+                  typeof state.country === 'object' 
+                    ? state.country.name 
+                    : (countries.find(c => c._id === state.country)?.name || state.country)
+                }</TableCell>
+                <TableCell>
+                  <IconButton 
+                    onClick={() => handleEdit(state)}
+                    disabled={pageAccess === 'only view'}
+                  >
+                    <EditIcon color={pageAccess === 'only view' ? 'disabled' : 'inherit'} />
+                  </IconButton>
+                  <IconButton 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteClick(state._id || '');
                     }}
-                    disabled={deleteSubmitting}
+                    disabled={pageAccess === 'only view' || deleteSubmitting}
                   >
-                    <DeleteIcon color="error" />
+                    <DeleteIcon color={pageAccess === 'only view' || deleteSubmitting ? 'disabled' : 'error'} />
                   </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* State Form Dialog */}
       <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>

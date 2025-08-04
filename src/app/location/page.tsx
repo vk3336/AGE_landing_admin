@@ -204,7 +204,27 @@ interface FormState {
 }
 
 export default function LocationPage() {
+  const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
+  const [isClient, setIsClient] = useState(false);
   const _router = useRouter(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  
+  useEffect(() => {
+    setIsClient(true);
+    const getLocationPagePermission = () => {
+      const email = localStorage.getItem('admin-email');
+      const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
+      if (email && superAdmin && email === superAdmin) return 'all access';
+      const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
+      if (perms && perms.filter) {
+        return perms.filter;
+      }
+      return 'no access';
+    };
+    
+    const access = getLocationPagePermission();
+    setPageAccess(access);
+  }, []);
+  
   const [locations, setLocations] = useState<Location[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>({
@@ -793,6 +813,20 @@ export default function LocationPage() {
     fetchLocations();
   }, [pagination.page, pagination.limit, search, fetchLocations]);
 
+  const viewOnly = pageAccess === 'only view';
+
+  if (!isClient) {
+    return null; // or a loading spinner
+  }
+  
+  if (pageAccess === 'no access') {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">You don't have permission to access this page.</Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -802,6 +836,8 @@ export default function LocationPage() {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpen}
+          disabled={viewOnly}
+          sx={{ mb: 2 }}
         >
           Add Location
         </Button>
@@ -900,12 +936,17 @@ export default function LocationPage() {
                     <TableCell>{location.language}</TableCell>
                     <TableCell>{location.slug}</TableCell>
                     <TableCell>
-                      <IconButton onClick={() => handleEdit(location)} color="primary">
+                      <IconButton 
+                        onClick={() => handleEdit(location)} 
+                        color={viewOnly ? 'default' : 'primary'}
+                        disabled={viewOnly}
+                      >
                         <EditIcon />
                       </IconButton>
                       <IconButton 
-                        onClick={() => setDeleteId(location._id)} 
-                        color="error"
+                        onClick={() => setDeleteId(location._id)}
+                        color={viewOnly ? 'default' : 'error'}
+                        disabled={viewOnly}
                       >
                         <DeleteIcon />
                       </IconButton>

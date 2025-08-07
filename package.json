@@ -22,6 +22,7 @@
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-quill": "^2.0.0",
     "state-list": "^1.0.1",
     "world-countries": "^5.1.0"
   },

@@ -427,17 +427,32 @@ function SeoPage() {
                   ? (seo.location as { name: string }).name 
                   : locations.find(loc => loc._id === seo.location)?.name || '-';
                 
+                // Get product ID - handle both direct ID and nested product object
+                let productId: string | undefined;
+                if (typeof seo.product === 'string') {
+                  productId = seo.product;
+                } else if (seo.product && typeof seo.product === 'object' && seo.product !== null && '_id' in seo.product) {
+                  productId = (seo.product as { _id: string })._id;
+                }
+                
+                // Find product by ID
+                const product = productId ? products.find(p => p._id === productId) : null;
+                const productName = product?.name || (hasName(seo.product) ? seo.product.name : '-');
+                const productImage = product?.img || (hasImg(seo.product) ? seo.product.img : undefined);
+                
                 return (
                 <TableRow key={typeof seo._id === 'string' ? seo._id : ''} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {/* <Avatar
-                        src={hasImg(seo.product) ? (seo.product.img.startsWith('http') ? seo.product.img : `${API_URL}/images/${seo.product.img}`) : undefined}
-                        sx={{ width: 32, height: 32, mr: 1 }}
-                      >
-                        {hasName(seo.product) ? seo.product.name[0] : '-'}
-                      </Avatar> */}
-                      {hasName(seo.product) ? seo.product.name : "-"}
+                      {productImage && (
+                        <Avatar
+                          src={productImage.startsWith('http') ? productImage : `${API_URL}/images/${productImage}`}
+                          sx={{ width: 32, height: 32, mr: 1 }}
+                        >
+                          {productName[0]}
+                        </Avatar>
+                      )}
+                      {productName}
                     </Box>
                   </TableCell>
                   <TableCell>{location}</TableCell>
@@ -606,21 +621,63 @@ function SeoPage() {
             <Box>
               {/* Product Info at the top */}
               <Box display="flex" alignItems="center" gap={3} mb={4}>
-                <Avatar
-                  variant="rounded"
-                  src={hasImg(selectedSeo.product) ? getProductImageUrl(selectedSeo.product as { img?: string }) : undefined}
-                  sx={{ width: 100, height: 100, mr: 2 }}
-                >
-                  {hasName(selectedSeo.product) ? selectedSeo.product.name[0] : "-"}
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" fontWeight={700} color="primary">
-                    {hasName(selectedSeo.product) ? selectedSeo.product.name : "-"}
-                  </Typography>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Product
-                  </Typography>
-                </Box>
+                {/* Get product info - handle both string ID and nested product object */}
+                {(() => {
+                  // Case 1: product is a string (ID)
+                  if (typeof selectedSeo.product === 'string') {
+                    const product = products.find(p => p._id === selectedSeo.product);
+                    return (
+                      <>
+                        <Avatar
+                          variant="rounded"
+                          src={product?.img ? (product.img.startsWith('http') ? product.img : `${API_URL}/images/${product.img}`) : undefined}
+                          sx={{ width: 100, height: 100, mr: 2 }}
+                        >
+                          {product?.name?.[0] || '?'}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="h5" fontWeight={700} color="primary">
+                            {product?.name || 'Product Not Found'}
+                          </Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Product
+                          </Typography>
+                        </Box>
+                      </>
+                    );
+                  } 
+                  // Case 2: product is an object with _id and name
+                  else if (selectedSeo.product && typeof selectedSeo.product === 'object' && '_id' in selectedSeo.product) {
+                    const product = selectedSeo.product as { _id: string; name?: string; img?: string };
+                    return (
+                      <>
+                        <Avatar
+                          variant="rounded"
+                          src={product?.img ? (product.img.startsWith('http') ? product.img : `${API_URL}/images/${product.img}`) : undefined}
+                          sx={{ width: 100, height: 100, mr: 2 }}
+                        >
+                          {product?.name?.[0] || 'P'}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="h5" fontWeight={700} color="primary">
+                            {product?.name || 'Unnamed Product'}
+                          </Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Product
+                          </Typography>
+                        </Box>
+                      </>
+                    );
+                  }
+                  // Case 3: No product data
+                  return (
+                    <Box>
+                      <Typography variant="h5" fontWeight={700} color="primary">
+                        No Product Selected
+                      </Typography>
+                    </Box>
+                  );
+                })()}
               </Box>
               {/* Group fields by section for display */}
               {(() => {
@@ -649,14 +706,27 @@ function SeoPage() {
                       ? field.key.split('.').reduce((acc: unknown, k: string) => (acc && typeof acc === 'object' && k in acc) ? (acc as Record<string, unknown>)[k] : undefined, selectedSeo) ?? "-"
                       : "-";
                     
-                    // Special handling for location field to show name instead of ID
+                    // Special handling for specific fields
                     let displayValue;
                     if (field.key === 'location') {
+                      // Handle location field
                       if (value && typeof value === 'object' && 'name' in value) {
                         displayValue = (value as { name: string }).name;
                       } else if (typeof value === 'string') {
                         const location = locations.find(loc => loc._id === value);
                         displayValue = location ? location.name : value;
+                      } else {
+                        displayValue = value;
+                      }
+                    } else if (field.key === 'product') {
+                      // Handle product field - show product name instead of ID
+                      if (value && typeof value === 'object' && 'name' in value) {
+                        // If it's already a product object with name
+                        displayValue = (value as { name: string }).name;
+                      } else if (typeof value === 'string') {
+                        // If it's a product ID, find the product
+                        const product = products.find(p => p._id === value);
+                        displayValue = product ? product.name : value;
                       } else {
                         displayValue = value;
                       }

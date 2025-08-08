@@ -294,13 +294,6 @@ function SeoPage() {
     setLoading(false);
   };
 
-  // Helper to get product image URL
-  function getProductImageUrl(product: { img?: string } | undefined): string | undefined {
-    if (!product) return undefined;
-    if (product.img && (product.img.startsWith('http://') || product.img.startsWith('https://'))) return product.img;
-    if (product.img) return `${API_URL}/images/${product.img}`;
-    return undefined;
-  }
 
   // Render
   if (pageAccess === 'no access') {

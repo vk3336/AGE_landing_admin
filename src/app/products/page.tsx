@@ -709,7 +709,25 @@ export default function ProductPage() {
                   <TableRow key={product._id} sx={{ '&:hover': { bgcolor: '#f8f9fa' } }}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        
+                        {product.img && (
+                          <Box sx={{ 
+                            width: 50, 
+                            height: 50, 
+                            position: 'relative',
+                            flexShrink: 0,
+                            bgcolor: '#f8f9fa',
+                            borderRadius: '4px',
+                            overflow: 'hidden'
+                          }}>
+                            <Image
+                              src={getImageUrl(product.img) || ''}
+                              alt={product.name}
+                              fill
+                              style={{ objectFit: 'contain' }}
+                              unoptimized
+                            />
+                          </Box>
+                        )}
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 600, color: '#2c3e50' }}>
                             <span dangerouslySetInnerHTML={{ __html: product.name }} />

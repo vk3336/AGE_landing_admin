@@ -419,17 +419,29 @@ export default function ProductPage() {
       
       // Append all form fields that have values
       Object.entries(form).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          if (Array.isArray(value)) {
-            // Handle array fields like colors
-            value.forEach(v => formData.append(`${key}[]`, v));
-          } else if (value instanceof File) {
-            // Handle file uploads
+        if (value === undefined || value === null || value === '') return;
+        
+        if (key === 'colors' && Array.isArray(value)) {
+          // Handle colors array
+          value.forEach(v => formData.append('color[]', v));
+        } else if (value instanceof File) {
+          // Handle new file uploads
+          formData.append(key, value);
+        } else if (key === 'img' || key === 'image1' || key === 'image2' || key === 'video') {
+          // Only append image fields if they're files
+          // Skip if it's just a string URL (existing image)
+          if (value instanceof File) {
             formData.append(key, value);
-          } else {
-            // Handle all other fields
-            formData.append(key, String(value));
+          } else if (typeof value === 'string' && value.startsWith('blob:')) {
+            // Skip blob URLs (they're just for preview)
+            return;
+          } else if (typeof value === 'string' && value) {
+            // If it's a non-empty string URL, include it as a string
+            formData.append(key, value);
           }
+        } else {
+          // Handle all other fields
+          formData.append(key, String(value));
         }
       });
       

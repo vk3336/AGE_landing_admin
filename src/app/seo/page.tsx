@@ -26,6 +26,7 @@ const SEO_FIELDS = [
   { key: "productdescription", label: "Product Description", type: "text" },
   { key: "popularproduct", label: "Popular Product", type: "checkbox" },
   { key: "topratedproduct", label: "Top Rated Product", type: "checkbox" },
+  { key: "landingPageProduct", label: "Landing Page Product", type: "checkbox" },
   { key: "slug", label: "Slug", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "description", label: "Description", type: "text" },

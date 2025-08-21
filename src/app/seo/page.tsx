@@ -27,6 +27,7 @@ const SEO_FIELDS = [
   { key: "popularproduct", label: "Popular Product", type: "checkbox" },
   { key: "topratedproduct", label: "Top Rated Product", type: "checkbox" },
   { key: "landingPageProduct", label: "Landing Page Product", type: "checkbox" },
+  { key: "shopyProduct", label: "Shopy Product", type: "checkbox" },
   { key: "slug", label: "Slug", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "description", label: "Description", type: "text" },
@@ -212,38 +213,69 @@ function SeoPage() {
 
   const handleProductChange = (_: React.SyntheticEvent, value: { label: string; value: string; img?: string } | null) => {
     const productId = value ? value.value : '';
-    const existingSeo = seoList.find(seo =>
-      seo.product &&
-      typeof seo.product === 'object' &&
-      seo.product !== null &&
-      '_id' in seo.product &&
-      typeof (seo.product as unknown as { _id: string })._id === 'string' &&
-      ((seo.product as unknown as { _id: string })._id === productId)
-    );
+    if (!productId) return;
+    
+    // Create a new form object with existing values
+    const updatedForm = { ...form };
+    
+    // Update product reference
+    updatedForm.product = productId;
+    
+    // Find existing SEO data for the selected product
+    const existingSeo = seoList.find(seo => {
+      const product = seo.product;
+      if (!product) return false;
+      
+      // Handle both direct product ID and nested product object
+      if (typeof product === 'string') {
+        return product === productId;
+      } else if (product && typeof product === 'object' && '_id' in product) {
+        return (product as { _id: string })._id === productId;
+      }
+      return false;
+    });
+    
+    // If product has existing SEO data, merge it with current form
     if (existingSeo) {
-      // Deeply initialize all fields from SEO_FIELDS
-      const newForm: Record<string, unknown> = { product: productId };
-      SEO_FIELDS.forEach(f => {
-        if (typeof f.key === 'string') {
-          if (f.key.includes('.')) {
-            const keys = f.key.split('.');
-            let obj = newForm;
-            let src = existingSeo as Record<string, unknown>;
+      // Create a deep copy of the existing SEO data
+      const seoData = JSON.parse(JSON.stringify(existingSeo));
+      
+      // Merge the existing SEO data with the current form
+      Object.entries(seoData).forEach(([key, value]) => {
+        if (!['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) {
+          updatedForm[key] = value;
+        }
+      });
+    } else {
+      // If no existing SEO data, initialize empty values for all fields
+      SEO_FIELDS.forEach(field => {
+        if (field.key && field.key !== 'product') {
+          if (field.key.includes('.')) {
+            // Handle nested fields
+            const keys = field.key.split('.');
+            let obj = updatedForm;
             for (let i = 0; i < keys.length - 1; i++) {
               if (!obj[keys[i]]) obj[keys[i]] = {};
               obj = obj[keys[i]] as Record<string, unknown>;
-              src = (src && typeof src === 'object' && src[keys[i]]) ? src[keys[i]] as Record<string, unknown> : {};
             }
-            obj[keys[keys.length - 1]] = src && typeof src === 'object' && keys[keys.length - 1] in src ? src[keys[keys.length - 1]] : '';
-          } else {
-            newForm[f.key] = (existingSeo as Record<string, unknown>)[f.key] ?? '';
+            if (obj[keys[keys.length - 1]] === undefined) {
+              obj[keys[keys.length - 1]] = '';
+            }
+          } else if (updatedForm[field.key] === undefined) {
+            updatedForm[field.key] = '';
           }
         }
       });
-      setForm(newForm);
-    } else {
-      setForm((prev) => ({ ...prev, product: productId }));
     }
+    
+    // Update product details
+    const selectedProduct = products.find(p => p._id === productId);
+    if (selectedProduct) {
+      updatedForm.productName = selectedProduct.name;
+      updatedForm.productImage = selectedProduct.img || '';
+    }
+    
+    setForm(updatedForm);
   };
 
   const handleLocationChange = (_: React.SyntheticEvent, value: { _id: string; name: string } | null) => {
@@ -404,17 +436,19 @@ function SeoPage() {
                 <TableCell>Product</TableCell>
                 <TableCell>Location</TableCell>
                 <TableCell>Slug</TableCell>
+                <TableCell align="center">Landing Page</TableCell>
+                <TableCell align="center">Shopy Product</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">Loading...</TableCell>
+                  <TableCell colSpan={6} align="center">Loading...</TableCell>
                 </TableRow>
               ) : seoList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">No SEO entries found</TableCell>
+                  <TableCell colSpan={6} align="center">No SEO entries found</TableCell>
                 </TableRow>
               ) : seoList.map(seo => {
                 const location = seo.location && typeof seo.location === 'object' && 'name' in seo.location 
@@ -451,6 +485,24 @@ function SeoPage() {
                   </TableCell>
                   <TableCell>{location}</TableCell>
                   <TableCell>{typeof seo.slug === 'string' ? seo.slug : '-'}</TableCell>
+                  <TableCell align="center">
+                    <Box display="flex" justifyContent="center">
+                      {seo.landingPageProduct ? (
+                        <Chip label="Yes" color="success" size="small" />
+                      ) : (
+                        <Chip label="No" variant="outlined" size="small" />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box display="flex" justifyContent="center">
+                      {seo.shopyProduct ? (
+                        <Chip label="Yes" color="success" size="small" />
+                      ) : (
+                        <Chip label="No" variant="outlined" size="small" />
+                      )}
+                    </Box>
+                  </TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleOpen(seo)} disabled={pageAccess === 'only view'}><EditIcon /></IconButton>
                     <IconButton color="info" onClick={() => { setSelectedSeo(seo); setViewOpen(true); }}><VisibilityIcon /></IconButton>

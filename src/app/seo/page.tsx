@@ -118,6 +118,19 @@ interface Location {
   pincode?: string;
 }
 
+interface SeoFormData {
+  [key: string]: any;
+  product?: string;
+  slug?: string;
+  location?: string | null;
+  locationName?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  // Add other form fields as needed
+}
+
 function SeoPage() {
   const [seoList, setSeoList] = useState<Record<string, unknown>[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -125,7 +138,7 @@ function SeoPage() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<Record<string, unknown>>({});
+  const [form, setForm] = useState<SeoFormData>({});
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -278,33 +291,90 @@ function SeoPage() {
     setForm(updatedForm);
   };
 
-  const handleLocationChange = (_: React.SyntheticEvent, value: { _id: string; name: string } | null) => {
-    setForm(prev => ({
-      ...prev,
-      location: value?._id || '',
-      locationName: value?.name || ''
-    }));
+  const handleLocationChange = (_: React.SyntheticEvent, value: Location | null) => {
+    const updatedForm = { ...form };
+    
+    if (value) {
+      updatedForm.location = value._id;
+      updatedForm.locationName = value.name;
+      
+      // If location has city/state/country, update those fields as well
+      if (value.city) updatedForm.city = value.city;
+      if (value.state) updatedForm.state = value.state;
+      if (value.country) updatedForm.country = value.country;
+      if (value.pincode) updatedForm.pincode = value.pincode;
+    } else {
+      // Clear location related fields
+      updatedForm.location = '';
+      updatedForm.locationName = '';
+      delete updatedForm.city;
+      delete updatedForm.state;
+      delete updatedForm.country;
+      delete updatedForm.pincode;
+    }
+    
+    setForm(updatedForm);
+  };
+
+  // Helper function to generate slug from text
+  const generateSlug = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '-')        // Replace spaces with -
+      .replace(/[^\w\-]+/g, '')   // Remove all non-word chars
+      .replace(/\-\-+/g, '-')      // Replace multiple - with single -
+      .replace(/^-+/, '')          // Trim - from start of text
+      .replace(/-+$/, '');         // Trim - from end of text
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Validate product field
-    if (!products.find(p => p._id === form.product)) {
+    const selectedProduct = products.find(p => p._id === form.product);
+    if (!selectedProduct) {
       alert('Please select a valid product from the dropdown.');
       return;
     }
     setSubmitting(true);
     const method = editId ? "PUT" : "POST";
     const url = editId ? `${API_URL}/seo/${editId}` : `${API_URL}/seo`;
+    
+    // Create a clean copy of the form data
     const body = { ...form };
+    
+    // Generate slug from product name if slug is empty
+    if (!body.slug || (typeof body.slug === 'string' && body.slug.trim() === '')) {
+      body.slug = generateSlug(selectedProduct.name);
+    }
+    
+    // Handle location field - ensure it's properly formatted as an object if it exists
+    if (body.location) {
+      const locationId = body.location;
+      const locationName = body.locationName || '';
+      // Store location as a string ID for the form
+      body.location = locationId as string;
+      // Add location name to the form data
+      body.locationName = locationName;
+    } else {
+      // If location is being cleared, ensure it's set to empty string
+      body.location = '';
+      body.locationName = '';
+    }
+    
     // Convert number fields
     SEO_FIELDS.forEach(f => {
       if (f.type === "number" && body[f.key] !== undefined && body[f.key] !== "") {
         body[f.key] = Number(body[f.key]);
       }
     });
-    // Remove empty fields
-    Object.keys(body).forEach(k => (body[k] === "" || body[k] === undefined) && delete body[k]);
+    
+    // Remove empty fields except for slug which can be empty
+    Object.keys(body).forEach(k => {
+      if (k !== 'slug' && (body[k] === "" || body[k] === undefined || body[k] === null)) {
+        delete body[k];
+      }
+    });
     const res = await apiFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },

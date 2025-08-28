@@ -280,9 +280,12 @@ export default function ProductPage() {
         }
       }
       
+      // Generate slug from name if not exists
+      const slug = product.slug || generateSlug(product.name);
+      
       setForm({
         name: product.name,
-        slug: product.slug || '',
+        slug: slug,
         productdescription: product.productdescription || '',
         category: getId(product.category),
         substructure: getId(product.substructure),
@@ -411,6 +414,19 @@ export default function ProductPage() {
     }
   }, []);
 
+  // Function to generate a URL-friendly slug from a string
+  const generateSlug = (str: string): string => {
+    return str
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')     // Replace spaces with -
+      .replace(/[^\w\-]+/g, '') // Remove all non-word characters
+      .replace(/\-\-+/g, '-')   // Replace multiple - with single -
+      .replace(/^\-+/, '')      // Trim - from start of text
+      .replace(/\-+$/, '');     // Trim - from end of text
+  };
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -418,8 +434,16 @@ export default function ProductPage() {
     try {
       const formData = new FormData();
       
+      // Process form data
+      const processedForm = { ...form };
+      
+      // Auto-generate slug from name if slug is empty
+      if (!processedForm.slug && processedForm.name) {
+        processedForm.slug = generateSlug(processedForm.name);
+      }
+      
       // Append all form fields that have values
-      Object.entries(form).forEach(([key, value]) => {
+      Object.entries(processedForm).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         
         if (key === 'colors' && Array.isArray(value)) {
@@ -442,7 +466,15 @@ export default function ProductPage() {
           }
         } else {
           // Handle all other fields
-          formData.append(key, String(value));
+          // Convert values to string before appending
+          let stringValue = String(value);
+          
+          // Ensure slug is properly formatted
+          if (key === 'slug' && stringValue) {
+            stringValue = generateSlug(stringValue);
+          }
+          
+          formData.append(key, stringValue);
         }
       });
       

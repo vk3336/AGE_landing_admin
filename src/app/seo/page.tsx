@@ -118,8 +118,10 @@ interface Location {
   pincode?: string;
 }
 
+type SeoFormValue = string | number | boolean | string[] | null | undefined | Record<string, unknown>;
+
 interface SeoFormData {
-  [key: string]: any;
+  [key: string]: SeoFormValue;
   product?: string;
   slug?: string;
   location?: string | null;
@@ -138,7 +140,7 @@ function SeoPage() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<SeoFormData>({});
+  const [form, setForm] = useState<SeoFormData>({} as SeoFormData);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -186,37 +188,49 @@ function SeoPage() {
   }, [fetchSeo]);
 
   // Handlers
-  const handleOpen = (item?: Record<string, unknown>) => {
-    setEditId(item && typeof item._id === 'string' ? item._id : null);
-    // Initialize form with all fields, including nested
-    const newForm: Record<string, unknown> = {};
+  const handleOpen = (item: Record<string, unknown> | null = null) => {
+    if (item && item._id) {
+      setEditId(item._id as string);
+    } else {
+      setEditId(null);
+    }
+    const newForm: SeoFormData = {} as SeoFormData;
+    
+    // Initialize with default values
     SEO_FIELDS.forEach(f => {
-      if (typeof f.key === 'string') {
+      if (f.key) {
         if (f.key.includes('.')) {
+          // Handle nested fields
           const keys = f.key.split('.');
-          let obj = newForm;
-          let src = item as Record<string, unknown>;
-          for (let i = 0; i < keys.length - 1; i++) {
-            if (!obj[keys[i]]) obj[keys[i]] = {};
-            obj = obj[keys[i]] as Record<string, unknown>;
-            src = (src && typeof src === 'object' && src[keys[i]]) ? src[keys[i]] as Record<string, unknown> : {};
+          let value: SeoFormValue = item;
+          for (const key of keys) {
+            if (value && typeof value === 'object' && key in value) {
+              value = (value as Record<string, SeoFormValue>)[key];
+            } else {
+              value = '';
+              break;
+            }
           }
-          obj[keys[keys.length - 1]] = src && typeof src === 'object' && keys[keys.length - 1] in src ? src[keys[keys.length - 1]] : '';
+          newForm[f.key] = value || '';
         } else {
-          newForm[f.key] = item && typeof item === 'object' && f.key in item ? item[f.key] : '';
+          const itemValue = item && typeof item === 'object' && f.key in item ? item[f.key] : '';
+          newForm[f.key as keyof SeoFormData] = itemValue as SeoFormValue;
         }
       }
     });
+    
     // Special handling for product field
     if (item && typeof item === 'object' && item.product) {
-      newForm.product = item.product && typeof item.product === 'object' && '_id' in item.product && typeof (item.product as { _id: string })._id === 'string'
+      const productValue = item.product && typeof item.product === 'object' && '_id' in item.product && typeof (item.product as { _id: string })._id === 'string'
         ? (item.product as { _id: string })._id
         : item.product;
+      newForm.product = productValue as string;
     }
-    setForm(item ? newForm : {});
+    
+    setForm(newForm);
     setOpen(true);
   };
-  const handleClose = () => { setOpen(false); setEditId(null); setForm({}); };
+  const handleClose = () => { setOpen(false); setEditId(null); setForm({} as SeoFormData); };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const target = e.target as HTMLInputElement;
@@ -256,7 +270,7 @@ function SeoPage() {
       // Merge the existing SEO data with the current form
       Object.entries(seoData).forEach(([key, value]) => {
         if (!['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) {
-          updatedForm[key] = value;
+          (updatedForm as Record<string, SeoFormValue>)[key] = value as SeoFormValue;
         }
       });
     } else {
@@ -266,13 +280,17 @@ function SeoPage() {
           if (field.key.includes('.')) {
             // Handle nested fields
             const keys = field.key.split('.');
-            let obj = updatedForm;
+            let current: Record<string, SeoFormValue> = updatedForm as Record<string, SeoFormValue>;
             for (let i = 0; i < keys.length - 1; i++) {
-              if (!obj[keys[i]]) obj[keys[i]] = {};
-              obj = obj[keys[i]] as Record<string, unknown>;
+              const key = keys[i];
+              if (!current[key]) {
+                current[key] = {} as SeoFormValue;
+              }
+              current = current[key] as Record<string, SeoFormValue>;
             }
-            if (obj[keys[keys.length - 1]] === undefined) {
-              obj[keys[keys.length - 1]] = '';
+            const lastKey = keys[keys.length - 1];
+            if (current[lastKey] === undefined) {
+              current[lastKey] = '';
             }
           } else if (updatedForm[field.key] === undefined) {
             updatedForm[field.key] = '';
@@ -316,76 +334,54 @@ function SeoPage() {
     setForm(updatedForm);
   };
 
-  // Helper function to generate slug from text
-  const generateSlug = (text: string) => {
-    return text
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, '-')        // Replace spaces with -
-      .replace(/[^\w\-]+/g, '')   // Remove all non-word chars
-      .replace(/\-\-+/g, '-')      // Replace multiple - with single -
-      .replace(/^-+/, '')          // Trim - from start of text
-      .replace(/-+$/, '');         // Trim - from end of text
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate product field
-    const selectedProduct = products.find(p => p._id === form.product);
-    if (!selectedProduct) {
-      alert('Please select a valid product from the dropdown.');
-      return;
-    }
     setSubmitting(true);
-    const method = editId ? "PUT" : "POST";
-    const url = editId ? `${API_URL}/seo/${editId}` : `${API_URL}/seo`;
     
-    // Create a clean copy of the form data
-    const body = { ...form };
-    
-    // Generate slug from product name if slug is empty
-    if (!body.slug || (typeof body.slug === 'string' && body.slug.trim() === '')) {
-      body.slug = generateSlug(selectedProduct.name);
-    }
-    
-    // Handle location field - ensure it's properly formatted as an object if it exists
-    if (body.location) {
-      const locationId = body.location;
-      const locationName = body.locationName || '';
-      // Store location as a string ID for the form
-      body.location = locationId as string;
-      // Add location name to the form data
-      body.locationName = locationName;
-    } else {
-      // If location is being cleared, ensure it's set to empty string
-      body.location = '';
-      body.locationName = '';
-    }
-    
-    // Convert number fields
-    SEO_FIELDS.forEach(f => {
-      if (f.type === "number" && body[f.key] !== undefined && body[f.key] !== "") {
-        body[f.key] = Number(body[f.key]);
+    try {
+      const url = editId 
+        ? `${API_URL}/seo/${editId}`
+        : `${API_URL}/seo`;
+      
+      const method = editId ? 'PUT' : 'POST';
+      
+      // Create a clean form data object with only the fields we want to send
+      const formData: Record<string, unknown> = {};
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          formData[key] = value;
+        }
+      });
+      
+      const response = await apiFetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save SEO data');
       }
-    });
-    
-    // Remove empty fields except for slug which can be empty
-    Object.keys(body).forEach(k => {
-      if (k !== 'slug' && (body[k] === "" || body[k] === undefined || body[k] === null)) {
-        delete body[k];
+      
+      const result = await response.json();
+      
+      // Update the list with the new/updated SEO data
+      if (editId) {
+        setSeoList(prev => 
+          prev.map(item => item._id === editId ? { ...item, ...result.data } : item)
+        );
+      } else {
+        setSeoList(prev => [result.data, ...prev]);
       }
-    });
-    const res = await apiFetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      setSearch("");      // Clear search so new entry is visible
-      handleClose();      // Close dialog first
-      await fetchSeo();   // Then fetch latest data
+      
+      handleClose();
+      
+    } catch (error) {
+      console.error('Error saving SEO data:', error);
+      // Handle error (show error message to user)
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -699,16 +695,21 @@ function SeoPage() {
                       const keys = field.key.split('.');
                       setForm((prev) => {
                         const updated = { ...prev };
-                        let obj = updated;
+                        let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
                         for (let i = 0; i < keys.length - 1; i++) {
-                          const k = keys[i];
-                          if (typeof k !== 'string' || !k) continue;
-                          if (!obj[k]) obj[k] = {};
-                          obj = obj[k] as Record<string, unknown>;
+                          const key = keys[i];
+                          if (typeof key !== 'string' || !key) continue;
+                          if (!current[key]) {
+                            current[key] = {} as SeoFormValue;
+                          }
+                          current = current[key] as Record<string, SeoFormValue>;
                         }
                         const lastKey = keys[keys.length - 1];
                         if (typeof lastKey === 'string' && lastKey) {
-                          obj[lastKey] = field.key === 'openGraph.images' ? e.target.value : (field.type === 'number' ? Number(e.target.value) : e.target.value);
+                          const value = field.key === 'openGraph.images' 
+                            ? e.target.value 
+                            : (field.type === 'number' ? Number(e.target.value) : e.target.value);
+                          current[lastKey] = value as SeoFormValue;
                         }
                         return updated;
                       });

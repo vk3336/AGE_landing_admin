@@ -78,6 +78,7 @@ const filterModels = [
   { name: "Category", path: "/category" },
   { name: "City", path: "/city" },
   { name: "Color", path: "/color" },
+  { name: "Contact", path: "/contact" },
   { name: "Content", path: "/content" },
   { name: "Country", path: "/country" },
   { name: "Design", path: "/design" },

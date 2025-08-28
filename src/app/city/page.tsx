@@ -15,7 +15,6 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as Searc
 type CityOption = {
   name: string;
   state: string;
-  pincode: string;
 };
 
 type CountryOption = {
@@ -35,7 +34,6 @@ type CityFormData = {
   _id?: string;
   name: string;
   slug: string;
-  pincode: string;
   country: string;
   state: string;
   country_name?: string;
@@ -46,7 +44,6 @@ interface City {
   _id: string;
   name: string;
   slug: string;
-  pincode: string;
   country: string | { _id: string; name: string };
   state: string | { _id: string; name: string };
   state_name?: string;
@@ -57,43 +54,42 @@ interface City {
 
 // Sample city data
 const sampleCities: CityOption[] = [
-    { name: 'Mumbai', state: 'Maharashtra', pincode: '400001' },
-    { name: 'Delhi', state: 'Delhi', pincode: '110001' },
-    { name: 'Bangalore', state: 'Karnataka', pincode: '560001' },
-    { name: 'Hyderabad', state: 'Telangana', pincode: '500001' },
-    { name: 'Chennai', state: 'Tamil Nadu', pincode: '600001' },
-    { name: 'Kolkata', state: 'West Bengal', pincode: '700001' },
-    { name: 'Ahmedabad', state: 'Gujarat', pincode: '380001' },
-    { name: 'Pune', state: 'Maharashtra', pincode: '411001' },
-    { name: 'Jaipur', state: 'Rajasthan', pincode: '302001' },
-    { name: 'Lucknow', state: 'Uttar Pradesh', pincode: '226001' },
-    { name: 'Kanpur', state: 'Uttar Pradesh', pincode: '208001' },
-    { name: 'Nagpur', state: 'Maharashtra', pincode: '440001' },
-    { name: 'Indore', state: 'Madhya Pradesh', pincode: '452001' },
-    { name: 'Bhopal', state: 'Madhya Pradesh', pincode: '462001' },
-    { name: 'Patna', state: 'Bihar', pincode: '800001' },
-    { name: 'Ludhiana', state: 'Punjab', pincode: '141001' },
-    { name: 'Agra', state: 'Uttar Pradesh', pincode: '282001' },
-    { name: 'Varanasi', state: 'Uttar Pradesh', pincode: '221001' },
-    { name: 'Amritsar', state: 'Punjab', pincode: '143001' },
-    { name: 'Coimbatore', state: 'Tamil Nadu', pincode: '641001' },
-    { name: 'Thiruvananthapuram', state: 'Kerala', pincode: '695001' },
-    { name: 'Kochi', state: 'Kerala', pincode: '682001' },
-    { name: 'Surat', state: 'Gujarat', pincode: '395003' },
-    { name: 'Rajkot', state: 'Gujarat', pincode: '360001' },
-    { name: 'Ranchi', state: 'Jharkhand', pincode: '834001' },
-    { name: 'Guwahati', state: 'Assam', pincode: '781001' },
-    { name: 'Dehradun', state: 'Uttarakhand', pincode: '248001' },
-    { name: 'Shimla', state: 'Himachal Pradesh', pincode: '171001' },
-    { name: 'Panaji', state: 'Goa', pincode: '403001' },
-    { name: 'Shillong', state: 'Meghalaya', pincode: '793001' }
+    { name: 'Mumbai', state: 'Maharashtra' },
+    { name: 'Delhi', state: 'Delhi' },
+    { name: 'Bangalore', state: 'Karnataka' },
+    { name: 'Hyderabad', state: 'Telangana' },
+    { name: 'Chennai', state: 'Tamil Nadu' },
+    { name: 'Kolkata', state: 'West Bengal' },
+    { name: 'Ahmedabad', state: 'Gujarat' },
+    { name: 'Pune', state: 'Maharashtra' },
+    { name: 'Jaipur', state: 'Rajasthan' },
+    { name: 'Lucknow', state: 'Uttar Pradesh' },
+    { name: 'Kanpur', state: 'Uttar Pradesh' },
+    { name: 'Nagpur', state: 'Maharashtra' },
+    { name: 'Indore', state: 'Madhya Pradesh' },
+    { name: 'Bhopal', state: 'Madhya Pradesh' },
+    { name: 'Patna', state: 'Bihar' },
+    { name: 'Ludhiana', state: 'Punjab' },
+    { name: 'Agra', state: 'Uttar Pradesh' },
+    { name: 'Varanasi', state: 'Uttar Pradesh' },
+    { name: 'Amritsar', state: 'Punjab' },
+    { name: 'Coimbatore', state: 'Tamil Nadu' },
+    { name: 'Thiruvananthapuram', state: 'Kerala' },
+    { name: 'Kochi', state: 'Kerala' },
+    { name: 'Surat', state: 'Gujarat' },
+    { name: 'Rajkot', state: 'Gujarat' },
+    { name: 'Ranchi', state: 'Jharkhand' },
+    { name: 'Guwahati', state: 'Assam' },
+    { name: 'Dehradun', state: 'Uttarakhand' },
+    { name: 'Shimla', state: 'Himachal Pradesh' },
+    { name: 'Panaji', state: 'Goa' },
+    { name: 'Shillong', state: 'Meghalaya' }
 ];
 
 interface City {
   _id: string;
   name: string;
   slug: string;
-  pincode: string;
   country: string | { _id: string; name: string };
   state: string | { _id: string; name: string };
   state_name?: string;
@@ -134,7 +130,6 @@ export default function CityPage() {
   const [form, setForm] = useState<CityFormData>({
     name: '',
     slug: '',
-    pincode: '',
     country: '',
     state: '',
     country_name: '',
@@ -299,7 +294,6 @@ export default function CityPage() {
         ...prev,
         name: selectedCity.name,
         slug: slug,
-        pincode: selectedCity.pincode,
         state: matchedState?._id || '',
         state_name: matchedState ? matchedState.name : selectedCity.state
       }));
@@ -323,7 +317,6 @@ export default function CityPage() {
       const formData: Partial<CityFormData> = {};
       if (form.name) formData.name = form.name.trim();
       if (form.slug) formData.slug = form.slug.trim();
-      if (form.pincode) formData.pincode = form.pincode.trim();
       if (form.country) formData.country = form.country;
       if (form.state) formData.state = form.state;
       
@@ -356,19 +349,35 @@ export default function CityPage() {
 
   // Handle edit button click
   const handleEdit = (city: City) => {
+    console.log('Editing city:', city);
+    
+    const countryId = !city.country ? '' : 
+      typeof city.country === 'string' ? city.country : 
+      city.country?._id || '';
+      
+    const stateId = !city.state ? '' : 
+      typeof city.state === 'string' ? city.state : 
+      city.state?._id || '';
+      
+    const countryName = (city.country && typeof city.country === 'object') ? city.country.name : 
+      (city.country_name || '');
+      
+    const stateName = (city.state && typeof city.state === 'object') ? city.state.name : 
+      (city.state_name || '');
+      
+    console.log('Processed values:', { countryId, stateId, countryName, stateName });
+      
     setForm({
-      name: city.name,
-      slug: city.slug,
-      pincode: city.pincode || '',
-      country: typeof city.country === 'string' ? city.country : city.country._id,
-      state: typeof city.state === 'string' ? city.state : city.state._id,
-      country_name: typeof city.country === 'string' ? '' : city.country.name,
-      state_name: typeof city.state === 'string' ? '' : city.state.name
+      name: city.name || '',
+      slug: city.slug || '',
+      country: countryId,
+      state: stateId,
+      country_name: countryName,
+      state_name: stateName
     });
+    
     setEditId(city._id);
     setOpenForm(true);
-    
-    // No need to fetch states here as we're loading all states at once
   };
 
   // Handle delete button click
@@ -440,7 +449,6 @@ export default function CityPage() {
     setForm({
       name: '',
       slug: '',
-      pincode: '',
       country: '',
       state: '',
       country_name: '',
@@ -520,7 +528,6 @@ export default function CityPage() {
                   <TableCell>Name</TableCell>
                   <TableCell>State</TableCell>
                   <TableCell>Country</TableCell>
-                  <TableCell>Pincode</TableCell>
                   <TableCell>Slug</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -538,7 +545,6 @@ export default function CityPage() {
                         city.country && typeof city.country === 'object' ? city.country.name : 
                         city.country_name || 'N/A'
                       }</TableCell>
-                      <TableCell>{city.pincode || '-'}</TableCell>
                       <TableCell>{city.slug || '-'}</TableCell>
                       <TableCell align="right">
                         <IconButton
@@ -562,7 +568,7 @@ export default function CityPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
+                    <TableCell colSpan={5} align="center">
                       No cities found
                     </TableCell>
                   </TableRow>
@@ -625,16 +631,6 @@ export default function CityPage() {
                 value={form.slug}
                 onChange={handleChange}
                 helperText="URL-friendly version of the name (auto-generated but can be customized)"
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                id="pincode"
-                label="Pincode"
-                name="pincode"
-                value={form.pincode}
-                onChange={handleChange}
               />
               
               <Autocomplete

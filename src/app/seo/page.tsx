@@ -248,6 +248,29 @@ function SeoPage() {
     // Update product reference
     updatedForm.product = productId;
     
+    // Find the selected product from the products list
+    const selectedProduct = products.find(p => p._id === productId);
+    if (selectedProduct) {
+      // Update product name and image in the form
+      updatedForm.productName = selectedProduct.name;
+      updatedForm.productImage = selectedProduct.img || '';
+      
+      // If title is empty, set it to the product name
+      if (!updatedForm.title) {
+        updatedForm.title = selectedProduct.name;
+      }
+      
+      // If slug is empty, generate a slug from the product name
+      if (!updatedForm.slug) {
+        const slug = selectedProduct.name
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '') // Remove special characters
+          .replace(/\s+/g, '-')      // Replace spaces with hyphens
+          .replace(/-+/g, '-');       // Replace multiple hyphens with single hyphen
+        updatedForm.slug = slug;
+      }
+    }
+    
     // Find existing SEO data for the selected product
     const existingSeo = seoList.find(seo => {
       const product = seo.product;
@@ -269,14 +292,16 @@ function SeoPage() {
       
       // Merge the existing SEO data with the current form
       Object.entries(seoData).forEach(([key, value]) => {
-        if (!['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) {
+        // Skip system fields and don't override the product name we just set
+        if (!['_id', '__v', 'createdAt', 'updatedAt', 'productName', 'productImage'].includes(key)) {
           (updatedForm as Record<string, SeoFormValue>)[key] = value as SeoFormValue;
         }
       });
     } else {
       // If no existing SEO data, initialize empty values for all fields
       SEO_FIELDS.forEach(field => {
-        if (field.key && field.key !== 'product') {
+        if (field.key && field.key !== 'product' && !updatedForm[field.key as keyof SeoFormData]) {
+          // Skip if the field is already set (like productName, productImage)
           if (field.key.includes('.')) {
             // Handle nested fields
             const keys = field.key.split('.');
@@ -292,18 +317,11 @@ function SeoPage() {
             if (current[lastKey] === undefined) {
               current[lastKey] = '';
             }
-          } else if (updatedForm[field.key] === undefined) {
-            updatedForm[field.key] = '';
+          } else if (updatedForm[field.key as keyof SeoFormData] === undefined) {
+            updatedForm[field.key as keyof SeoFormData] = '' as SeoFormValue;
           }
         }
       });
-    }
-    
-    // Update product details
-    const selectedProduct = products.find(p => p._id === productId);
-    if (selectedProduct) {
-      updatedForm.productName = selectedProduct.name;
-      updatedForm.productImage = selectedProduct.img || '';
     }
     
     setForm(updatedForm);

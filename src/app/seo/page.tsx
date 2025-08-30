@@ -239,11 +239,11 @@ function SeoPage() {
   }, [fetchSeo]);
 
   // Helper function to get nested value from an object using dot notation
-  const getNestedValue = (obj: any, path: string) => {
+  const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
     return path.split('.').reduce((acc, part) => {
-      if (acc === null || acc === undefined) return '';
-      return acc[part];
-    }, obj);
+      if (acc === null || acc === undefined || typeof acc !== 'object') return '';
+      return (acc as Record<string, unknown>)[part];
+    }, obj as unknown);
   };
 
   // Handlers
@@ -263,14 +263,15 @@ function SeoPage() {
       // Handle nested fields (those with dots in the key)
       if (field.key.includes('.')) {
         const keys = field.key.split('.');
-        let current = newForm as any;
+        let current: Record<string, unknown> = newForm;
         
         // Create nested structure
         for (let i = 0; i < keys.length - 1; i++) {
-          if (!current[keys[i]]) {
-            current[keys[i]] = {};
+          const key = keys[i];
+          if (!current[key] || typeof current[key] !== 'object' || current[key] === null) {
+            current[key] = {} as Record<string, unknown>;
           }
-          current = current[keys[i]];
+          current = current[key] as Record<string, unknown>;
         }
         
         // Set the value
@@ -287,17 +288,17 @@ function SeoPage() {
     // Special handling for product field
     if (item && item.product) {
       const productId = item.product && typeof item.product === 'object' && '_id' in item.product
-        ? (item.product as any)._id
-        : item.product;
-      newForm.product = productId as string;
+        ? (item.product as { _id: string })._id
+        : (item.product as string);
+      newForm.product = productId;
     }
     
     // Special handling for location field
     if (item && item.location) {
       const locationId = item.location && typeof item.location === 'object' && '_id' in item.location
-        ? (item.location as any)._id
-        : item.location;
-      newForm.location = locationId as string;
+        ? (item.location as { _id: string })._id
+        : (item.location as string);
+      newForm.location = locationId;
     }
     
     setForm(newForm);
@@ -306,13 +307,34 @@ function SeoPage() {
 
   const handleClose = () => { setOpen(false); setEditId(null); setForm({} as SeoFormData); };
 
+  const updateNestedValue = (obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> => {
+    const keys = path.split('.');
+    const newObj = { ...obj };
+    
+    if (keys.length === 1) {
+      return { ...newObj, [keys[0]]: value };
+    }
+    
+    const [currentKey, ...restKeys] = keys;
+    
+    return {
+      ...newObj,
+      [currentKey]: {
+        ...(newObj[currentKey] as Record<string, unknown> || {}),
+        ...(restKeys.length > 1 
+          ? updateNestedValue(newObj[currentKey] as Record<string, unknown> || {}, restKeys.join('.'), value)
+          : { [restKeys[0]]: value })
+      }
+    };
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
     const { name, value, type } = target;
     const checked = 'checked' in target ? target.checked : undefined;
     
     // Handle different input types
-    if (type === 'checkbox') {
+    if (type === 'checkbox' && checked !== undefined) {
       setForm(prev => ({
         ...prev,
         [name]: checked
@@ -325,41 +347,27 @@ function SeoPage() {
         [name]: numValue
       }));
     } else if (type === 'file') {
-          // Handle file uploads if needed
+      // Handle file uploads if needed
       const files = (e.target as HTMLInputElement).files;
       if (files && files.length > 0) {
-        setForm((prev: SeoFormData) => ({
+        setForm(prev => ({
           ...prev,
-          [name]: files[0] as File
-        } as SeoFormData));
+          [name]: files[0]
+        }));
       }
     } else if (name.includes('.')) {
       // Handle nested fields (e.g., openGraph.images)
-      const keys = name.split('.');
       setForm(prev => {
-        const newForm = { ...prev } as any;
-        let current = newForm;
-        
-        // Traverse the nested structure
-        for (let i = 0; i < keys.length - 1; i++) {
-          const key = keys[i];
-          if (!current[key]) {
-            current[key] = {};
-          }
-          current = current[key];
-        }
-        
-        // Set the final value
-        current[keys[keys.length - 1]] = value;
-        
-        return newForm;
+        // Use the helper function to update nested values
+        const updated = updateNestedValue(prev, name, value);
+        return updated as SeoFormData;
       });
     } else {
       // Default case for text, textarea, etc.
       setForm(prev => ({
         ...prev,
         [name]: value
-      }));
+      } as SeoFormData));
     }
   };
 
@@ -368,7 +376,7 @@ function SeoPage() {
     if (!productId) return;
     
     // Create a new form object with existing values
-    const updatedForm = { ...form };
+    const updatedForm: SeoFormData = { ...form };
     
     // Update product reference
     updatedForm.product = productId;
@@ -397,7 +405,7 @@ function SeoPage() {
     }
     
     // Find existing SEO data for the selected product
-    const existingSeo = seoList.find(seo => {
+    const existingSeo = seoList.find((seo: Record<string, unknown>) => {
       const product = seo.product;
       if (!product) return false;
       
@@ -489,7 +497,7 @@ function SeoPage() {
       const method = editId ? 'PUT' : 'POST';
       
       // Create form data with proper structure
-      const formData: Record<string, any> = {};
+      const formData: Record<string, unknown> = {};
       
       // Process all fields from SEO_FIELDS
       SEO_FIELDS.forEach(field => {
@@ -498,23 +506,28 @@ function SeoPage() {
         // Handle nested fields (those with dots in the key)
         if (field.key.includes('.')) {
           const keys = field.key.split('.');
-          let value = form as any;
+          let value: unknown = form;
           
           // Try to get the nested value
           for (const key of keys) {
-            value = value?.[key];
-            if (value === undefined || value === null) break;
+            if (value && typeof value === 'object' && key in value) {
+              value = (value as Record<string, unknown>)[key];
+            } else {
+              value = undefined;
+              break;
+            }
           }
           
           // Only add if value exists
           if (value !== undefined && value !== null && value !== '') {
             // Create nested structure in formData
-            let current = formData;
+            let current: Record<string, unknown> = formData;
             for (let i = 0; i < keys.length - 1; i++) {
-              if (!current[keys[i]]) {
-                current[keys[i]] = {};
+              const key = keys[i];
+              if (!current[key] || typeof current[key] !== 'object') {
+                current[key] = {} as Record<string, unknown>;
               }
-              current = current[keys[i]];
+              current = current[key] as Record<string, unknown>;
             }
             current[keys[keys.length - 1]] = value;
           }
@@ -983,15 +996,15 @@ function SeoPage() {
                 let sectionFields: React.ReactNode[] = [];
                 const sections: React.ReactNode[] = [];
                 
-                const getNestedValue = (obj: any, path: string) => {
+                const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
                   try {
-                    return path.split('.').reduce((acc, key) => {
+                    return path.split('.').reduce<unknown>((acc, key) => {
                       if (acc && typeof acc === 'object' && key in acc) {
-                        return acc[key];
+                        return (acc as Record<string, unknown>)[key];
                       }
                       return undefined;
                     }, obj);
-                  } catch (e) {
+                  } catch {
                     return undefined;
                   }
                 };
@@ -1014,7 +1027,7 @@ function SeoPage() {
                     currentSection = field.section;
                   } else if (field.key) {
                     // Get the value from the selectedSeo object
-                    let value = getNestedValue(selectedSeo, field.key);
+                    const value = getNestedValue(selectedSeo, field.key);
                     let displayValue: React.ReactNode = '-';
 
                     // Special handling for location field
@@ -1025,7 +1038,7 @@ function SeoPage() {
                         const location = locations.find(loc => loc._id === value);
                         displayValue = location ? location.name : value;
                       } else {
-                        displayValue = value || '-';
+                        displayValue = value != null ? String(value) : '-';
                       }
                     } 
                     // Special handling for product field
@@ -1036,7 +1049,7 @@ function SeoPage() {
                         const product = products.find(p => p._id === value);
                         displayValue = product ? product.name : value;
                       } else {
-                        displayValue = value || '-';
+                        displayValue = value != null ? String(value) : '-';
                       }
                     }
                     // Handle boolean values

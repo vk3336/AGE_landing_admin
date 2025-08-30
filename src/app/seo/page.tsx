@@ -33,8 +33,8 @@ const SEO_FIELDS = [
   { section: "Product Location" },
   { key: "productlocationtitle", label: "Title", type: "text" },
   { key: "productlocationtagline", label: "Tagline", type: "text" },
-  { key: "productlocationdescription1", label: "Description 1", type: "textarea" },
-  { key: "productlocationdescription2", label: "Description 2", type: "textarea" },
+  { key: "productlocationdescription1", label: "Description 1", type: "textarea", rows: 6 },
+  { key: "productlocationdescription2", label: "Description 2", type: "textarea", rows: 6 },
   
   { section: "Page Meta" },
   { key: "title", label: "Page Title", type: "text" },
@@ -169,7 +169,7 @@ interface Location {
   pincode?: string;
 }
 
-type SeoFormValue = string | number | boolean | string[] | null | undefined | Record<string, unknown>;
+type SeoFormValue = string | number | boolean | string[] | File | null | undefined | Record<string, unknown>;
 
 interface SeoFormData {
   [key: string]: SeoFormValue;
@@ -238,6 +238,14 @@ function SeoPage() {
     setPageAccess(getSeoPagePermission());
   }, [fetchSeo]);
 
+  // Helper function to get nested value from an object using dot notation
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc, part) => {
+      if (acc === null || acc === undefined) return '';
+      return acc[part];
+    }, obj);
+  };
+
   // Handlers
   const handleOpen = (item: Record<string, unknown> | null = null) => {
     if (item && item._id) {
@@ -245,48 +253,114 @@ function SeoPage() {
     } else {
       setEditId(null);
     }
+    
     const newForm: SeoFormData = {} as SeoFormData;
     
-    // Initialize with default values
-    SEO_FIELDS.forEach(f => {
-      if (f.key) {
-        if (f.key.includes('.')) {
-          // Handle nested fields
-          const keys = f.key.split('.');
-          let value: SeoFormValue = item;
-          for (const key of keys) {
-            if (value && typeof value === 'object' && key in value) {
-              value = (value as Record<string, SeoFormValue>)[key];
-            } else {
-              value = '';
-              break;
-            }
+    // Initialize form with all fields from SEO_FIELDS
+    SEO_FIELDS.forEach(field => {
+      if (!field.key) return;
+      
+      // Handle nested fields (those with dots in the key)
+      if (field.key.includes('.')) {
+        const keys = field.key.split('.');
+        let current = newForm as any;
+        
+        // Create nested structure
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!current[keys[i]]) {
+            current[keys[i]] = {};
           }
-          newForm[f.key] = value || '';
-        } else {
-          const itemValue = item && typeof item === 'object' && f.key in item ? item[f.key] : '';
-          newForm[f.key as keyof SeoFormData] = itemValue as SeoFormValue;
+          current = current[keys[i]];
         }
+        
+        // Set the value
+        const lastKey = keys[keys.length - 1];
+        current[lastKey] = item ? getNestedValue(item, field.key) || '' : '';
+      } else {
+        // Handle flat fields
+        newForm[field.key as keyof SeoFormData] = item && item[field.key] !== undefined 
+          ? item[field.key] as SeoFormValue 
+          : '';
       }
     });
     
     // Special handling for product field
-    if (item && typeof item === 'object' && item.product) {
-      const productValue = item.product && typeof item.product === 'object' && '_id' in item.product && typeof (item.product as { _id: string })._id === 'string'
-        ? (item.product as { _id: string })._id
+    if (item && item.product) {
+      const productId = item.product && typeof item.product === 'object' && '_id' in item.product
+        ? (item.product as any)._id
         : item.product;
-      newForm.product = productValue as string;
+      newForm.product = productId as string;
+    }
+    
+    // Special handling for location field
+    if (item && item.location) {
+      const locationId = item.location && typeof item.location === 'object' && '_id' in item.location
+        ? (item.location as any)._id
+        : item.location;
+      newForm.location = locationId as string;
     }
     
     setForm(newForm);
     setOpen(true);
   };
+
   const handleClose = () => { setOpen(false); setEditId(null); setForm({} as SeoFormData); };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
-    const { name, value, type, checked } = target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    const { name, value, type } = target;
+    const checked = 'checked' in target ? target.checked : undefined;
+    
+    // Handle different input types
+    if (type === 'checkbox') {
+      setForm(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else if (type === 'number') {
+      // Convert empty string to null for number fields
+      const numValue = value === '' ? null : Number(value);
+      setForm(prev => ({
+        ...prev,
+        [name]: numValue
+      }));
+    } else if (type === 'file') {
+          // Handle file uploads if needed
+      const files = (e.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        setForm((prev: SeoFormData) => ({
+          ...prev,
+          [name]: files[0] as File
+        } as SeoFormData));
+      }
+    } else if (name.includes('.')) {
+      // Handle nested fields (e.g., openGraph.images)
+      const keys = name.split('.');
+      setForm(prev => {
+        const newForm = { ...prev } as any;
+        let current = newForm;
+        
+        // Traverse the nested structure
+        for (let i = 0; i < keys.length - 1; i++) {
+          const key = keys[i];
+          if (!current[key]) {
+            current[key] = {};
+          }
+          current = current[key];
+        }
+        
+        // Set the final value
+        current[keys[keys.length - 1]] = value;
+        
+        return newForm;
+      });
+    } else {
+      // Default case for text, textarea, etc.
+      setForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleProductChange = (_: React.SyntheticEvent, value: { label: string; value: string; img?: string } | null) => {
@@ -330,7 +404,7 @@ function SeoPage() {
       // Handle both direct product ID and nested product object
       if (typeof product === 'string') {
         return product === productId;
-      } else if (product && typeof product === 'object' && '_id' in product) {
+      } else if (product && typeof product === 'object' && product !== null && '_id' in product) {
         return (product as { _id: string })._id === productId;
       }
       return false;
@@ -414,11 +488,42 @@ function SeoPage() {
       
       const method = editId ? 'PUT' : 'POST';
       
-      // Create a clean form data object with only the fields we want to send
-      const formData: Record<string, unknown> = {};
-      Object.entries(form).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          formData[key] = value;
+      // Create form data with proper structure
+      const formData: Record<string, any> = {};
+      
+      // Process all fields from SEO_FIELDS
+      SEO_FIELDS.forEach(field => {
+        if (!field.key) return;
+        
+        // Handle nested fields (those with dots in the key)
+        if (field.key.includes('.')) {
+          const keys = field.key.split('.');
+          let value = form as any;
+          
+          // Try to get the nested value
+          for (const key of keys) {
+            value = value?.[key];
+            if (value === undefined || value === null) break;
+          }
+          
+          // Only add if value exists
+          if (value !== undefined && value !== null && value !== '') {
+            // Create nested structure in formData
+            let current = formData;
+            for (let i = 0; i < keys.length - 1; i++) {
+              if (!current[keys[i]]) {
+                current[keys[i]] = {};
+              }
+              current = current[keys[i]];
+            }
+            current[keys[keys.length - 1]] = value;
+          }
+        } else {
+          // Handle flat fields
+          const value = form[field.key as keyof SeoFormData];
+          if (value !== undefined && value !== null && value !== '') {
+            formData[field.key] = value;
+          }
         }
       });
       
@@ -758,36 +863,43 @@ function SeoPage() {
                   key={field.key}
                   label={field.label}
                   name={field.key}
-                    value={value}
-                    onChange={e => {
-                      if (!field.key) return;
-                      const keys = field.key.split('.');
-                      setForm((prev) => {
-                        const updated = { ...prev };
-                        let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
-                        for (let i = 0; i < keys.length - 1; i++) {
-                          const key = keys[i];
-                          if (typeof key !== 'string' || !key) continue;
-                          if (!current[key]) {
-                            current[key] = {} as SeoFormValue;
-                          }
-                          current = current[key] as Record<string, SeoFormValue>;
+                  value={value}
+                  onChange={e => {
+                    if (!field.key) return;
+                    const keys = field.key.split('.');
+                    setForm((prev) => {
+                      const updated = { ...prev };
+                      let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
+                      for (let i = 0; i < keys.length - 1; i++) {
+                        const key = keys[i];
+                        if (typeof key !== 'string' || !key) continue;
+                        if (!current[key]) {
+                          current[key] = {} as SeoFormValue;
                         }
-                        const lastKey = keys[keys.length - 1];
-                        if (typeof lastKey === 'string' && lastKey) {
-                          const value = field.key === 'openGraph.images' 
-                            ? e.target.value 
-                            : (field.type === 'number' ? Number(e.target.value) : e.target.value);
-                          current[lastKey] = value as SeoFormValue;
-                        }
-                        return updated;
-                      });
-                    }}
-                  type={field.type}
+                        current = current[key] as Record<string, SeoFormValue>;
+                      }
+                      const lastKey = keys[keys.length - 1];
+                      if (typeof lastKey === 'string' && lastKey) {
+                        const value = field.key === 'openGraph.images' 
+                          ? e.target.value 
+                          : (field.type === 'number' ? Number(e.target.value) : e.target.value);
+                        current[lastKey] = value as SeoFormValue;
+                      }
+                      return updated;
+                    });
+                  }}
+                  type={field.type === 'textarea' ? undefined : field.type}
+                  multiline={field.type === 'textarea'}
+                  rows={field.type === 'textarea' ? (field.rows || 4) : undefined}
                   fullWidth
-                  sx={{ minWidth: 220 }}
+                  sx={{ 
+                    minWidth: 220,
+                    '& .MuiOutlinedInput-root': {
+                      alignItems: field.type === 'textarea' ? 'flex-start' : 'center'
+                    }
+                  }}
                   disabled={pageAccess === 'only view'}
-                    helperText={field.key === 'openGraph.images' ? 'Separate multiple images with commas' : ''}
+                  helperText={field.key === 'openGraph.images' ? 'Separate multiple images with commas' : ''}
                 />
                 );
               }
@@ -870,6 +982,20 @@ function SeoPage() {
                 let currentSection: string | null = null;
                 let sectionFields: React.ReactNode[] = [];
                 const sections: React.ReactNode[] = [];
+                
+                const getNestedValue = (obj: any, path: string) => {
+                  try {
+                    return path.split('.').reduce((acc, key) => {
+                      if (acc && typeof acc === 'object' && key in acc) {
+                        return acc[key];
+                      }
+                      return undefined;
+                    }, obj);
+                  } catch (e) {
+                    return undefined;
+                  }
+                };
+
                 SEO_FIELDS.forEach(field => {
                   if (field.section) {
                     if (sectionFields.length > 0 && currentSection !== null) {
@@ -887,55 +1013,96 @@ function SeoPage() {
                     }
                     currentSection = field.section;
                   } else if (field.key) {
-                    // Support nested fields for view
-                    const value = typeof field.key === 'string'
-                      ? field.key.split('.').reduce((acc: unknown, k: string) => (acc && typeof acc === 'object' && k in acc) ? (acc as Record<string, unknown>)[k] : undefined, selectedSeo) ?? "-"
-                      : "-";
-                    
-                    // Special handling for specific fields
-                    let displayValue;
+                    // Get the value from the selectedSeo object
+                    let value = getNestedValue(selectedSeo, field.key);
+                    let displayValue: React.ReactNode = '-';
+
+                    // Special handling for location field
                     if (field.key === 'location') {
-                      // Handle location field
                       if (value && typeof value === 'object' && 'name' in value) {
                         displayValue = (value as { name: string }).name;
                       } else if (typeof value === 'string') {
                         const location = locations.find(loc => loc._id === value);
                         displayValue = location ? location.name : value;
                       } else {
-                        displayValue = value;
+                        displayValue = value || '-';
                       }
-                    } else if (field.key === 'product') {
-                      // Handle product field - show product name instead of ID
+                    } 
+                    // Special handling for product field
+                    else if (field.key === 'product') {
                       if (value && typeof value === 'object' && 'name' in value) {
-                        // If it's already a product object with name
                         displayValue = (value as { name: string }).name;
                       } else if (typeof value === 'string') {
-                        // If it's a product ID, find the product
                         const product = products.find(p => p._id === value);
                         displayValue = product ? product.name : value;
                       } else {
-                        displayValue = value;
+                        displayValue = value || '-';
                       }
-                    } else {
-                      displayValue = value;
                     }
-                    
-                    sectionFields.push(
-                      <Box key={field.key} minWidth={180}>
-                        <Typography variant="subtitle2" color="textSecondary" fontWeight={600}>{field.label}</Typography>
-                        <Typography variant="body1">
-                          {typeof displayValue === "boolean"
-                            ? (displayValue ? "Yes" : "No")
-                            : Array.isArray(displayValue)
-                              ? displayValue.join(", ")
-                              : (typeof displayValue === "object" && displayValue !== null)
-                                ? (hasName(displayValue) ? displayValue.name : JSON.stringify(displayValue))
-                                : typeof displayValue === "string" || typeof displayValue === "number"
-                                  ? displayValue
-                                  : String(displayValue)}
+                    // Handle boolean values
+                    else if (typeof value === 'boolean') {
+                      displayValue = value ? 'Yes' : 'No';
+                    }
+                    // Handle empty values
+                    else if (value === null || value === undefined || value === '') {
+                      displayValue = '-';
+                    }
+                    // Handle arrays and objects
+                    else if (Array.isArray(value) || (value && typeof value === 'object')) {
+                      displayValue = JSON.stringify(value, null, 2);
+                    }
+                    // For all other cases, convert to string
+                    else {
+                      displayValue = String(value);
+                    }
+
+                    // Create the field display
+                    const fieldDisplay = (
+                      <Box key={field.key} sx={{ 
+                        mb: 2, 
+                        whiteSpace: 'pre-wrap',
+                        gridColumn: { xs: 'span 2', sm: 'span 1' }
+                      }}>
+                        <Typography variant="subtitle2" sx={{ 
+                          fontWeight: 600, 
+                          color: 'text.secondary',
+                          mb: 0.5 
+                        }}>
+                          {field.label}
                         </Typography>
+                        <Box
+                          sx={{
+                            p: field.type === 'textarea' ? 1.5 : 1,
+                            bgcolor: field.type === 'textarea' ? 'background.paper' : 'transparent',
+                            border: field.type === 'textarea' ? '1px solid' : 'none',
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            minHeight: field.type === 'textarea' ? '120px' : 'auto',
+                            maxHeight: field.type === 'textarea' ? '300px' : 'none',
+                            overflow: 'auto',
+                            fontFamily: field.type === 'textarea' ? 'monospace' : 'inherit',
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {field.type === 'textarea' ? (
+                            <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
+                              {typeof displayValue === 'string' 
+                                ? displayValue.split('\n').map((line: string, i: number) => (
+                                    <div key={i}>{line || ' '}</div>
+                                  ))
+                                : displayValue}
+                            </Typography>
+                          ) : (
+                            <Typography variant="body1">
+                              {displayValue}
+                            </Typography>
+                          )}
+                        </Box>
                       </Box>
                     );
+                    
+                    // Add to section fields
+                    sectionFields.push(fieldDisplay);
                   }
                 });
                 // Push last section

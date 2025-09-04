@@ -3,14 +3,19 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
+    ...(process.env.DISABLE_CACHE === 'true' && {
+      serverActions: {
+        bodySizeLimit: '2mb',
+      },
+    }),
   },
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
   
-  // Disable cache in development
+  // Cache control headers
   headers: async () => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.DISABLE_CACHE === 'true' || process.env.NODE_ENV === 'development') {
       return [
         {
           source: '/:path*',
@@ -34,8 +39,9 @@ const nextConfig: NextConfig = {
     return [];
   },
 
-  // ✅ Disables source maps in production — this speeds up build time
+  // Disable source maps in production for faster builds
   productionBrowserSourceMaps: false,
+  
 
   images: {
     domains: ['res.cloudinary.com'],

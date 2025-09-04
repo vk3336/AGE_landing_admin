@@ -1,8 +1,8 @@
 // Read env variables at the top level
 const API_KEY_NAME = process.env.NEXT_PUBLIC_API_KEY_NAME;
 const API_KEY_VALUE = process.env.NEXT_PUBLIC_API_SECRET_KEY;
-const SUPER_ADMIN_HEADER_NAME = process.env.NEXT_PUBLIC_Role_Management_Key;
-const SUPER_ADMIN_EMAIL = process.env.NEXT_PUBLIC_Role_Management_Key_Value;
+const ROLE_MANAGEMENT_HEADER = process.env.NEXT_PUBLIC_Role_Management_Key;
+const ROLE_MANAGEMENT_VALUE = process.env.NEXT_PUBLIC_Role_Management_Key_Value;
 
 // Get base URL based on environment
 const getBaseUrl = () => {
@@ -39,14 +39,12 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
     
     // Add authentication headers if needed
     const isRoleApi = url.includes('/api/roles');
-    if (isRoleApi) {
-        if (SUPER_ADMIN_HEADER_NAME && SUPER_ADMIN_EMAIL) {
-            headers.append(SUPER_ADMIN_HEADER_NAME, SUPER_ADMIN_EMAIL);
-        }
-    } else {
-        if (API_KEY_NAME && API_KEY_VALUE) {
-            headers.append(API_KEY_NAME, API_KEY_VALUE);
-        }
+    if (isRoleApi && ROLE_MANAGEMENT_HEADER && ROLE_MANAGEMENT_VALUE) {
+        // Use role management headers for role-based APIs
+        headers.append(ROLE_MANAGEMENT_HEADER, ROLE_MANAGEMENT_VALUE);
+    } else if (API_KEY_NAME && API_KEY_VALUE) {
+        // Use standard API key for other endpoints
+        headers.append(API_KEY_NAME, API_KEY_VALUE);
     }
 
     // If FormData, remove Content-Type so browser sets it, but keep auth headers

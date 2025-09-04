@@ -784,7 +784,12 @@ export default function ProductPage() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <Box sx={{ 
+                        maxWidth: '200px', 
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal',
+                        lineHeight: 1.4
+                      }}>
                         {product.slug || 'N/A'}
                       </Box>
                     </TableCell>

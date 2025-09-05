@@ -1,146 +1,116 @@
-// Read env variables at the top level
+// utils/apiFetch.ts
+
 const API_KEY_NAME = process.env.NEXT_PUBLIC_API_KEY_NAME;
 const API_KEY_VALUE = process.env.NEXT_PUBLIC_API_SECRET_KEY;
 const ROLE_MANAGEMENT_HEADER = process.env.NEXT_PUBLIC_Role_Management_Key;
 const ROLE_MANAGEMENT_VALUE = process.env.NEXT_PUBLIC_Role_Management_Key_Value;
 
-// Get base URL based on environment
 const getBaseUrl = () => {
-  // In browser, use relative URL (handled by Next.js proxy in development)
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || '';
+  if (typeof window !== "undefined") {
+    return (process.env.NEXT_PUBLIC_API_URL?.trim() || window.location.origin);
   }
-  // In server-side rendering, use absolute URL from environment
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7000';
+  return (process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:7000");
 };
+
+const isAbsoluteUrl = (s: string) => /^https?:\/\//i.test(s);
+const ensureLeadingSlash = (s: string) => (s ? (s.startsWith("/") ? s.replace(/^\/+/, "/") : `/${s}`) : "/");
 
 export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    // Convert input to URL object if it's a string
-    let url = typeof input === 'string' ? input : input.toString();
-    
-    // Prepend base URL if the URL is relative
-    if (url.startsWith('/')) {
-      const baseUrl = getBaseUrl();
-      // Ensure we don't create double slashes
-      const separator = baseUrl.endsWith('/') ? '' : '/';
-      url = `${baseUrl}${separator}${url.replace(/^\/+/, '')}`;
-    }
-    
-    console.log('API Request:', { url, method: init?.method || 'GET' });
-    
-    let headers: Headers | undefined = undefined;
-    const isFormData = init?.body instanceof FormData;
-    headers = new Headers(init?.headers);
-    
-    // Set default headers
-    if (!headers.has('Content-Type') && !isFormData) {
-      headers.set('Content-Type', 'application/json');
-    }
-    
-    // Add authentication headers if needed
-    const isRoleApi = url.includes('/api/roles');
-    if (isRoleApi && ROLE_MANAGEMENT_HEADER && ROLE_MANAGEMENT_VALUE) {
-        // Use role management headers for role-based APIs
-        headers.append(ROLE_MANAGEMENT_HEADER, ROLE_MANAGEMENT_VALUE);
-    } else if (API_KEY_NAME && API_KEY_VALUE) {
-        // Use standard API key for other endpoints
-        headers.append(API_KEY_NAME, API_KEY_VALUE);
-    }
+  let raw = typeof input === "string" ? input : input.toString();
 
-    // If FormData, remove Content-Type so browser sets it, but keep auth headers
-    if (isFormData && headers.has('Content-Type')) {
-        headers.delete('Content-Type');
-    }
+  if (!isAbsoluteUrl(raw) && !raw.startsWith("/")) raw = ensureLeadingSlash(raw);
+  if (raw.startsWith("/")) {
+    const base = getBaseUrl().replace(/\/+$/, "");
+    raw = `${base}${raw}`;
+  }
 
-    const updatedOptions = {
-        ...init,
-        headers,
-    };
+  const urlObj = new URL(raw, getBaseUrl());
 
-    try {
-      const response = await fetch(url, updatedOptions);
-      
-      // Log response details for debugging
-      console.log('API Response:', {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
+  const method = (init?.method ?? "GET").toUpperCase();
+  if (method === "GET") urlObj.searchParams.set("_ts", String(Date.now()));
+
+  const finalUrl = urlObj.toString();
+
+  const isFormData = init?.body instanceof FormData;
+  const headers = new Headers(init?.headers);
+
+  // Keep headers minimal to avoid unnecessary preflights
+  if (!headers.has("Accept")) headers.set("Accept", "application/json");
+  if (!headers.has("Content-Type") && !isFormData) headers.set("Content-Type", "application/json");
+
+  // Auth / role headers (these will cause a preflight; make sure backend allows them)
+  const isRoleApi = finalUrl.includes("/api/roles");
+  if (isRoleApi && ROLE_MANAGEMENT_HEADER && ROLE_MANAGEMENT_VALUE) {
+    headers.set(ROLE_MANAGEMENT_HEADER, ROLE_MANAGEMENT_VALUE);
+  } else if (API_KEY_NAME && API_KEY_VALUE) {
+    headers.set(API_KEY_NAME, API_KEY_VALUE);
+  }
+
+  // Let browser set multipart boundary
+  if (isFormData && headers.has("Content-Type")) headers.delete("Content-Type");
+
+  // IMPORTANT: do NOT set request 'Cache-Control'/'Pragma' — they cause CORS errors on many servers
+
+  const updatedOptions: RequestInit = {
+    mode: "cors",
+    cache: "no-store",
+    ...init,
+    method,
+    headers,
+  };
+
+  try {
+    const response = await fetch(finalUrl, updatedOptions);
+
+    if (response.status === 204) {
+      return new Response(JSON.stringify({ status: "success" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
-      
-      // Clone the response so we can read it multiple times if needed
-      // Clone response for potential error handling
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _responseClone = response.clone();
-      
-      // Handle empty responses (204 No Content)
-      if (response.status === 204) {
-        return new Response(JSON.stringify({ status: 'success' }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      const isJson = contentType && contentType.includes('application/json');
-      
-      // For empty responses, return a success response
-      if (response.status === 200 && response.body === null) {
-        return new Response(JSON.stringify({ status: 'success' }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      
-      // If JSON, return the response as is
-      if (isJson) {
-        return response;
-      }
-      
-      // If not JSON, read the response as text to see what we got
-      const text = await response.text();
-      
-      // For empty responses, return success
-      if (response.ok && (!text || text.trim() === '')) {
-        return new Response(JSON.stringify({ status: 'success' }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      
-      console.error('Non-JSON response received:', text.substring(0, 500));
-      
-      // If the response is HTML, it's likely an error page
-      if (contentType && contentType.includes('text/html')) {
-        throw new Error(`Received HTML response. Check your API endpoint (${url}). The server might be returning an error page.`);
-      }
-      
-      // For non-JSON responses that are successful, return success
-      if (response.ok) {
-        return new Response(JSON.stringify({ status: 'success' }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      
-      // For non-JSON error responses, throw an error with the response text
-      throw new Error(text || 'Request failed');
-    } catch (error) {
-      console.error('API Request Failed:', {
-        url,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-      throw error;
     }
+
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+
+    if (response.status === 200 && response.body === null) {
+      return new Response(JSON.stringify({ status: "success" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (isJson) return response;
+
+    const text = await response.text();
+
+    if (response.ok && (!text || text.trim() === "")) {
+      return new Response(JSON.stringify({ status: "success" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (contentType.includes("text/html")) {
+      console.error("Non-JSON (HTML) response:", text.slice(0, 500));
+      throw new Error(`Received HTML response. Check API endpoint (${finalUrl}).`);
+    }
+
+    if (response.ok) {
+      return new Response(JSON.stringify({ status: "success" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    console.error("Non-JSON error response:", text.slice(0, 500));
+    throw new Error(text || "Request failed");
+  } catch (error) {
+    console.error("API Request Failed:", {
+      url: finalUrl,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
 };
 
-export default apiFetch; 
+export default apiFetch;

@@ -783,6 +783,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
+ <head>
+        {/* 🔥 Preconnect & DNS prefetch to speed up first API call */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL!} crossOrigin="" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL!} />
+      </head>
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />

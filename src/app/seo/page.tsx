@@ -871,35 +871,64 @@ function SeoPage() {
                 const value = typeof field.key === 'string'
                   ? field.key.split('.').reduce((acc: unknown, k: string) => (acc && typeof acc === 'object' && k in acc) ? (acc as Record<string, unknown>)[k] : undefined, form) ?? "-"
                   : "-";
+                // For ogTitle, always use the title value
+                const displayValue = field.key === 'ogTitle' ? (form.title || '') : value;
+                
                 return (
                 <TextField
                   key={field.key}
                   label={field.label}
                   name={field.key}
-                  value={value}
+                  value={displayValue}
                   onChange={e => {
                     if (!field.key) return;
-                    const keys = field.key.split('.');
-                    setForm((prev) => {
-                      const updated = { ...prev };
-                      let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
-                      for (let i = 0; i < keys.length - 1; i++) {
-                        const key = keys[i];
-                        if (typeof key !== 'string' || !key) continue;
-                        if (!current[key]) {
-                          current[key] = {} as SeoFormValue;
+                    
+                    const newValue = e.target.value;
+                    
+                    // If this is the title field, update both title and ogTitle
+                    if (field.key === 'title') {
+                      setForm(prev => ({
+                        ...prev,
+                        title: newValue,
+                        ogTitle: newValue  // Keep ogTitle in sync with title
+                      }));
+                      return;
+                    }
+                    
+                    // For other fields, handle nested fields if needed
+                    if (field.key.includes('.')) {
+                      const keys = field.key.split('.');
+                      setForm(prev => {
+                        const updated = { ...prev };
+                        let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
+                        
+                        // Handle nested fields
+                        for (let i = 0; i < keys.length - 1; i++) {
+                          const key = keys[i];
+                          if (typeof key !== 'string' || !key) continue;
+                          if (!current[key]) {
+                            current[key] = {} as SeoFormValue;
+                          }
+                          current = current[key] as Record<string, SeoFormValue>;
                         }
-                        current = current[key] as Record<string, SeoFormValue>;
-                      }
-                      const lastKey = keys[keys.length - 1];
-                      if (typeof lastKey === 'string' && lastKey) {
-                        const value = field.key === 'openGraph.images' 
-                          ? e.target.value 
-                          : (field.type === 'number' ? Number(e.target.value) : e.target.value);
-                        current[lastKey] = value as SeoFormValue;
-                      }
-                      return updated;
-                    });
+                        
+                        const lastKey = keys[keys.length - 1];
+                        if (typeof lastKey === 'string' && lastKey) {
+                          const processedValue = field.key === 'openGraph.images' 
+                            ? newValue 
+                            : (field.type === 'number' ? Number(newValue) : newValue);
+                          current[lastKey] = processedValue as SeoFormValue;
+                        }
+                        
+                        return updated;
+                      });
+                    } else {
+                      // Handle flat fields
+                      setForm(prev => ({
+                        ...prev,
+                        [field.key as string]: field.type === 'number' ? Number(newValue) : newValue
+                      }));
+                    }
                   }}
                   type={field.type === 'textarea' ? undefined : field.type}
                   multiline={field.type === 'textarea'}
@@ -908,11 +937,21 @@ function SeoPage() {
                   sx={{ 
                     minWidth: 220,
                     '& .MuiOutlinedInput-root': {
-                      alignItems: field.type === 'textarea' ? 'flex-start' : 'center'
+                      alignItems: field.type === 'textarea' ? 'flex-start' : 'center',
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.12) !important'
+                        }
+                      }
                     }
                   }}
-                  disabled={pageAccess === 'only view'}
-                  helperText={field.key === 'openGraph.images' ? 'Separate multiple images with commas' : ''}
+                  disabled={pageAccess === 'only view' || field.key === 'ogTitle'}
+                  helperText={field.key === 'ogTitle' ? 'This field is synchronized with the Page Title' : 
+                            field.key === 'openGraph.images' ? 'Separate multiple images with commas' : ''}
+                  InputProps={field.key === 'ogTitle' ? {
+                    readOnly: true,
+                  } : undefined}
                 />
                 );
               }

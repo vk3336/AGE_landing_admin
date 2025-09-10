@@ -391,6 +391,42 @@ export default function ProductPage() {
     setSelectedProduct(null);
   }, []);
 
+  const handleDeleteImage = useCallback(async (imageType: 'img' | 'image1' | 'image2') => {
+    try {
+      // If this is an existing image (not a new upload), delete it from the server
+      if (form[imageType] && typeof form[imageType] === 'string' && editId) {
+        const imageUrl = form[imageType] as string;
+        // Extract the image filename from the URL
+        const imagePath = imageUrl.split('/').pop();
+        if (imagePath) {
+          await apiFetch(`${API_URL}/product/image/${editId}/${imagePath}`, {
+            method: 'DELETE'
+          });
+        }
+      }
+
+      // Update the form state
+      setForm(prev => ({
+        ...prev,
+        [imageType]: undefined
+      }));
+      
+      // Clear the preview
+      if (imageType === 'img') setImagePreview(null);
+      if (imageType === 'image1') setImage1Preview(null);
+      if (imageType === 'image2') setImage2Preview(null);
+      
+      // Reset the file input
+      if (imageType === 'img' && fileInputRef.current) fileInputRef.current.value = '';
+      if (imageType === 'image1' && image1InputRef.current) image1InputRef.current.value = '';
+      if (imageType === 'image2' && image2InputRef.current) image2InputRef.current.value = '';
+      
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      alert('Failed to delete image. Please try again.');
+    }
+  }, [form, editId]);
+
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -406,6 +442,7 @@ export default function ProductPage() {
       setImage1Preview(URL.createObjectURL(file));
     }
   }, []);
+  
   const handleImage2Change = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -442,9 +479,22 @@ export default function ProductPage() {
         processedForm.slug = generateSlug(processedForm.name);
       }
       
+      // Track which images were explicitly removed
+      const deletedImages = {
+        img: processedForm.img === undefined && form.img !== undefined,
+        image1: processedForm.image1 === undefined && form.image1 !== undefined,
+        image2: processedForm.image2 === undefined && form.image2 !== undefined
+      };
+      
       // Append all form fields that have values
       Object.entries(processedForm).forEach(([key, value]) => {
-        if (value === undefined || value === null || value === '') return;
+        if (value === undefined || value === null || value === '') {
+          // If this is an image field that was explicitly set to undefined, mark it for deletion
+          if ((key === 'img' || key === 'image1' || key === 'image2') && deletedImages[key as keyof typeof deletedImages]) {
+            formData.append(`delete_${key}`, 'true');
+          }
+          return;
+        }
         
         if (key === 'colors' && Array.isArray(value)) {
           // Handle colors array
@@ -454,7 +504,6 @@ export default function ProductPage() {
           formData.append(key, value);
         } else if (key === 'img' || key === 'image1' || key === 'image2' || key === 'video') {
           // Only append image fields if they're files
-          // Skip if it's just a string URL (existing image)
           if (value instanceof File) {
             formData.append(key, value);
           } else if (typeof value === 'string' && value.startsWith('blob:')) {
@@ -1150,17 +1199,65 @@ export default function ProductPage() {
               >
                 {imagePreview ? 'Change Main Image' : 'Upload Main Image'}
               </Button>
-              {imagePreview && (
-                <Box sx={{ mt: 2 }}>
-                  <Image
-                    src={imagePreview}
-                    alt="Preview"
-                    width={200}
-                    height={200}
-                    style={{ borderRadius: '8px' }}
-                  />
-                </Box>
-              )}
+              <Box sx={{ 
+                mt: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1
+              }}>
+                {imagePreview && (
+                  <Box sx={{ 
+                    position: 'relative',
+                    width: 200,
+                    height: 200,
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #e0e0e0',
+                    bgcolor: '#f5f5f5',
+                    '&:hover .delete-btn': {
+                      opacity: 1
+                    }
+                  }}>
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      width={200}
+                      height={200}
+                      style={{ 
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <IconButton
+                      className="delete-btn"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteImage('img');
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                        color: 'white',
+                        width: 28,
+                        height: 28,
+                        opacity: 0.8,
+                        transition: 'opacity 0.2s',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                          opacity: 1
+                        },
+                      }}
+                      disabled={pageAccess === 'only view'}
+                    >
+                      <DeleteIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
             </Box>
             <Box>
               <input
@@ -1187,17 +1284,65 @@ export default function ProductPage() {
               >
                 {image1Preview ? 'Change Image 1' : 'Upload Image 1'}
               </Button>
-              {image1Preview && (
-                <Box sx={{ mt: 2 }}>
-                  <Image
-                    src={image1Preview}
-                    alt="Preview 1"
-                    width={200}
-                    height={200}
-                    style={{ borderRadius: '8px' }}
-                  />
-                </Box>
-              )}
+              <Box sx={{ 
+                mt: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1
+              }}>
+                {image1Preview && (
+                  <Box sx={{ 
+                    position: 'relative',
+                    width: 200,
+                    height: 200,
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #e0e0e0',
+                    bgcolor: '#f5f5f5',
+                    '&:hover .delete-btn': {
+                      opacity: 1
+                    }
+                  }}>
+                    <Image
+                      src={image1Preview}
+                      alt="Preview 1"
+                      width={200}
+                      height={200}
+                      style={{ 
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <IconButton
+                      className="delete-btn"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteImage('image1');
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                        color: 'white',
+                        width: 28,
+                        height: 28,
+                        opacity: 0.8,
+                        transition: 'opacity 0.2s',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                          opacity: 1
+                        },
+                      }}
+                      disabled={pageAccess === 'only view'}
+                    >
+                      <DeleteIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
             </Box>
             <Box>
               <input
@@ -1224,17 +1369,65 @@ export default function ProductPage() {
               >
                 {image2Preview ? 'Change Image 2' : 'Upload Image 2'}
               </Button>
-              {image2Preview && (
-                <Box sx={{ mt: 2 }}>
-                  <Image
-                    src={image2Preview}
-                    alt="Preview 2"
-                    width={200}
-                    height={200}
-                    style={{ borderRadius: '8px' }}
-                  />
-                </Box>
-              )}
+              <Box sx={{ 
+                mt: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1
+              }}>
+                {image2Preview && (
+                  <Box sx={{ 
+                    position: 'relative',
+                    width: 200,
+                    height: 200,
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #e0e0e0',
+                    bgcolor: '#f5f5f5',
+                    '&:hover .delete-btn': {
+                      opacity: 1
+                    }
+                  }}>
+                    <Image
+                      src={image2Preview}
+                      alt="Preview 2"
+                      width={200}
+                      height={200}
+                      style={{ 
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <IconButton
+                      className="delete-btn"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteImage('image2');
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                        color: 'white',
+                        width: 28,
+                        height: 28,
+                        opacity: 0.8,
+                        transition: 'opacity 0.2s',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                          opacity: 1
+                        },
+                      }}
+                      disabled={pageAccess === 'only view'}
+                    >
+                      <DeleteIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
             </Box>
             {/* Video upload */}
             <Box>

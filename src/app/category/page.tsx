@@ -155,6 +155,7 @@ const CategoryForm = React.memo(({
   editId, 
   imagePreview, 
   onImageChange, 
+  onDeleteImage,
   viewOnly,
   formError
 }: {
@@ -167,6 +168,7 @@ const CategoryForm = React.memo(({
   editId: string | null;
   imagePreview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDeleteImage: () => void;
   viewOnly: boolean;
   formError: string | null;
 }) => {
@@ -245,22 +247,45 @@ const CategoryForm = React.memo(({
               disabled={submitting || viewOnly}
               startIcon={<ImageIcon />}
             >
-              Upload Image
+              {form.image ? 'Change Image' : 'Upload Image'}
               <input type="file" accept="image/*" hidden onChange={onImageChange} disabled={viewOnly} />
             </Button>
             {imagePreview && (
-              <Avatar 
-                variant="rounded" 
-                src={imagePreview} 
-                sx={{ 
-                  width: 56, 
-                  height: 56,
-                  border: '2px solid',
-                  borderColor: 'divider'
-                }}
-              >
-                <ImageIcon />
-              </Avatar>
+              <Box sx={{ position: 'relative' }}>
+                <Avatar 
+                  variant="rounded" 
+                  src={imagePreview} 
+                  sx={{ 
+                    width: 56, 
+                    height: 56,
+                    border: '2px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <ImageIcon />
+                </Avatar>
+                {!viewOnly && (
+                  <IconButton
+                    size="small"
+                    onClick={onDeleteImage}
+                    sx={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      backgroundColor: 'error.main',
+                      color: 'white',
+                      width: 24,
+                      height: 24,
+                      '&:hover': {
+                        backgroundColor: 'error.dark',
+                      },
+                    }}
+                    disabled={submitting}
+                  >
+                    <DeleteIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                )}
+              </Box>
             )}
           </Box>
         </DialogContent>
@@ -370,6 +395,33 @@ export default function CategoryPage() {
       setImagePreview(URL.createObjectURL(file));
     }
   }, []);
+
+  const handleDeleteImage = useCallback(async () => {
+    if (!editId || !form.image) return;
+    
+    try {
+      // If it's a string URL, it's an existing image that needs to be deleted from Cloudinary
+      if (typeof form.image === 'string') {
+        await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/category/${editId}/image`, {
+          method: 'DELETE',
+        });
+      }
+      
+      // Clear the image from the form and preview
+      setForm(prev => ({ ...prev, image: undefined }));
+      setImagePreview(null);
+      
+      // Clear the file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      // Handle error (e.g., show a toast or alert)
+    }
+  }, [editId, form.image]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -671,6 +723,7 @@ export default function CategoryPage() {
         editId={editId}
         imagePreview={imagePreview}
         onImageChange={handleImageChange}
+        onDeleteImage={handleDeleteImage}
         viewOnly={pageAccess === 'only view'}
         formError={formError}
       />

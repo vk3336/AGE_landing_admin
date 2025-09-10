@@ -6,6 +6,7 @@ import {
 import CodeIcon from '@mui/icons-material/Code';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
@@ -100,9 +101,10 @@ interface GroupcodeFormProps {
   onSubmit: (e: React.FormEvent) => void;
   form: Groupcode;
   setForm: React.Dispatch<React.SetStateAction<Groupcode>>;
+  onDeleteImage?: (id: string) => Promise<boolean>; // Update return type to Promise<boolean>
 }
 
-const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit, viewOnly, form, setForm }: GroupcodeFormProps) => {
+const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit, viewOnly, form, setForm, onDeleteImage }: GroupcodeFormProps) => {
   const [imgPreview, setImgPreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [imgDims, setImgDims] = useState<[number, number] | undefined>(undefined);
@@ -206,18 +208,57 @@ const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit,
                 {imgPreview ? 'Change Image' : 'Upload Image'}
               </Button>
               {imgPreview && (
-                <Box sx={{ mt: 1, textAlign: 'center' }}>
-                  <Image
-                    src={imgPreview}
-                    alt="Preview"
-                    width={120}
-                    height={120}
-                    style={{ maxWidth: 120, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-                    onLoad={e => {
-                      const target = e.target as HTMLImageElement;
-                      setImgDims([target.naturalWidth, target.naturalHeight]);
-                    }}
-                  />
+                <Box sx={{ mt: 1, textAlign: 'center', position: 'relative' }}>
+                  <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                    <Image
+                      src={imgPreview}
+                      alt="Preview"
+                      width={120}
+                      height={120}
+                      style={{ maxWidth: 120, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                      onLoad={e => {
+                        const target = e.target as HTMLImageElement;
+                        setImgDims([target.naturalWidth, target.naturalHeight]);
+                      }}
+                    />
+                    {!viewOnly && imgPreview && (
+                      <IconButton
+                        size="small"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          // If we have an editId and the image is from the server, call onDeleteImage
+                          if (editId && typeof form.img === 'string' && onDeleteImage) {
+                            try {
+                              await onDeleteImage(editId);
+                            } catch (error) {
+                              console.error('Error deleting image:', error);
+                              return; // Don't clear the form if deletion fails
+                            }
+                          }
+                          // Always clear the form preview and reset the file input
+                          setForm(prev => ({ ...prev, img: undefined }));
+                          setImgPreview(null);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          top: -8,
+                          right: -8,
+                          backgroundColor: 'error.main',
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: 'error.dark',
+                          },
+                          width: 24,
+                          height: 24,
+                        }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
                   {imgDims && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
                       w: {imgDims[0]} h: {imgDims[1]}
@@ -379,11 +420,12 @@ export default function GroupcodePage() {
 
   const handleOpen = useCallback((groupcode: Groupcode | null = null) => {
     setEditId(groupcode?._id || null);
-    setForm(groupcode ? { ...groupcode } : { name: "" });
-    // setImgPreview(groupcode?.img || null); // This will be handled by GroupcodeForm
-    // setVideoPreview(groupcode?.video || null); // This will be handled by GroupcodeForm
-    // setImgDims(undefined); // This will be handled by GroupcodeForm
-    // setVideoDims(undefined); // This will be handled by GroupcodeForm
+    // Ensure we're properly setting the image URL in the form state
+    setForm(groupcode ? { 
+      ...groupcode,
+      img: groupcode.img || undefined,
+      video: groupcode.video || undefined
+    } : { name: "" });
     setOpen(true);
   }, []);
 
@@ -405,8 +447,25 @@ export default function GroupcodePage() {
       const url = `${process.env.NEXT_PUBLIC_API_URL}/groupcode${editId ? "/" + editId : ""}`;
       const formData = new FormData();
       formData.append("name", form.name);
-      if (isFile(form.img)) formData.append("img", form.img);
-      if (isFile(form.video)) formData.append("video", form.video);
+      
+      // Handle image - append if it's a File, or if it's a string (existing image URL)
+      if (form.img) {
+        if (isFile(form.img)) {
+          formData.append("img", form.img);
+        } else if (typeof form.img === 'string') {
+          // If it's a string (URL), we still want to keep it, so we need to send it
+          formData.append("img", form.img);
+        }
+      }
+      
+      // Handle video - append if it's a File, or if it's a string (existing video URL)
+      if (form.video) {
+        if (isFile(form.video)) {
+          formData.append("video", form.video);
+        } else if (typeof form.video === 'string') {
+          formData.append("video", form.video);
+        }
+      }
       await apiFetch(url, {
         method,
         body: formData,
@@ -460,6 +519,44 @@ export default function GroupcodePage() {
     setViewGroupcode(null);
     setImgDims(undefined);
     setVideoDims(undefined);
+  }, []);
+
+  const handleDeleteImage = useCallback(async (id: string) => {
+    try {
+      const response = await apiFetch(`/groupcode/${id}/image`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete image');
+      }
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to delete image');
+      }
+      
+      // Update the groupcode in the list
+      setGroupcodes(prev => 
+        prev.map(gc => 
+          gc._id === id 
+            ? { ...gc, img: undefined } 
+            : gc
+        )
+      );
+      
+      return true;
+    } catch (error: unknown) {
+      console.error('Error deleting group code image:', error);
+      // Show error to user
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      alert(`Failed to delete image: ${errorMessage}`);
+      throw error;
+    }
   }, []);
 
   // Permission check rendering
@@ -697,6 +794,7 @@ export default function GroupcodePage() {
         viewOnly={pageAccess === 'view'}
         form={form}
         setForm={setForm}
+        onDeleteImage={handleDeleteImage}
       />
 
       {/* Delete Confirmation Dialog */}

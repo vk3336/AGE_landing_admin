@@ -25,6 +25,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import ArticleIcon from '@mui/icons-material/Article';
 import BrushIcon from '@mui/icons-material/Brush';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import BusinessIcon from '@mui/icons-material/Business';
 import { keyframes } from '@mui/system';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -317,7 +318,8 @@ export default function DashboardPage() {
           Countryres,
           stateres,
           cityres,
-          locationres
+          locationres,
+          contactRes
 
         ] = await Promise.all([
           apiFetch(`${base}/product`),
@@ -337,7 +339,8 @@ export default function DashboardPage() {
           apiFetch(`${base}/countries`),
           apiFetch(`${base}/states`),
           apiFetch(`${base}/cities`),
-          apiFetch(`${base}/locations`)
+          apiFetch(`${base}/locations`),
+          apiFetch(`${base}/contacts`)
           
         ]);
         const results = await Promise.all([
@@ -358,7 +361,8 @@ export default function DashboardPage() {
           Countryres.json(),
           stateres.json(),
           cityres.json(),
-          locationres.json()
+          locationres.json(),
+          contactRes.json()
         ]);
         const newCounts: { [key: string]: number } = {};
         newCounts['product'] = Array.isArray(results[0].data) ? results[0].data.length : 0;
@@ -378,6 +382,10 @@ export default function DashboardPage() {
   newCounts['states'] = Array.isArray(results[15].data.states) ? results[15].data.states.length : 0;
   newCounts['cities'] = Array.isArray(results[16].data.cities) ? results[16].data.cities.length : 0;
   newCounts['locations'] = Array.isArray(results[17].data.locations) ? results[17].data.locations.length : 0;
+  // Contact data is in results[18].data as an array
+  const contactResponse = results[18] || {};
+  const contactData = contactResponse.data || [];
+  newCounts['contacts'] = Array.isArray(contactData) ? contactData.length : 0;
         
         setCounts(newCounts);
         setProductCount(Array.isArray(results[0].data) ? results[0].data.length : 0);
@@ -425,35 +433,149 @@ export default function DashboardPage() {
       href: '/products',
     },
     {
+      title: 'Categories',
+      value: counts['category'] || 0,
+      subtitle: 'Categories',
+      icon: <CategoryIcon />,
+      color: '#00cfe8',
+      href: '/category',
+    },
+    {
+      title: 'Colors',
+      value: counts['color'] || 0,
+      subtitle: 'Colors',
+      icon: <PaletteIcon />,
+      color: '#ff6b6b',
+      href: '/color',
+    },
+    {
+      title: 'Contents',
+      value: counts['content'] || 0,
+      subtitle: 'Contents',
+      icon: <ArticleIcon />,
+      color: '#4ecdc4',
+      href: '/content',
+    },
+    {
+      title: 'Designs',
+      value: counts['design'] || 0,
+      subtitle: 'Designs',
+      icon: <BrushIcon />,
+      color: '#45b7d1',
+      href: '/design',
+    },
+    {
+      title: 'Finishes',
+      value: counts['finish'] || 0,
+      subtitle: 'Finishes',
+      icon: <BrushIcon />,
+      color: '#96ceb4',
+      href: '/finish',
+    },
+    {
+      title: 'Group Codes',
+      value: counts['groupcode'] || 0,
+      subtitle: 'Group Codes',
+      icon: <ArticleIcon />,
+      color: '#feca57',
+      href: '/groupcode',
+    },
+    {
+      title: 'Structures',
+      value: counts['structure'] || 0,
+      subtitle: 'Structures',
+      icon: <CategoryIcon />,
+      color: '#ff9ff3',
+      href: '/structure',
+    },
+    {
+      title: 'Sub Finishes',
+      value: counts['subfinish'] || 0,
+      subtitle: 'Sub Finishes',
+      icon: <BrushIcon />,
+      color: '#5f27cd',
+      href: '/subfinish',
+    },
+    {
+      title: 'Sub Structures',
+      value: counts['substructure'] || 0,
+      subtitle: 'Sub Structures',
+      icon: <CategoryIcon />,
+      color: '#1dd1a1',
+      href: '/substructure',
+    },
+    {
+      title: 'Sub Suitables',
+      value: counts['subsuitable'] || 0,
+      subtitle: 'Sub Suitables',
+      icon: <CategoryIcon />,
+      color: '#ff9f43',
+      href: '/subsuitable',
+    },
+    {
+      title: 'Suitable For',
+      value: counts['suitablefor'] || 0,
+      subtitle: 'Suitable For',
+      icon: <CategoryIcon />,
+      color: '#2e86de',
+      href: '/suitablefor',
+    },
+    {
+      title: 'Vendors',
+      value: counts['vendor'] || 0,
+      subtitle: 'Vendors',
+      icon: <BusinessIcon />,
+      color: '#ea5455',
+      href: '/vendor',
+    },
+    {
+      title: 'Countries',
+      value: counts['countries'] || 0,
+      subtitle: 'Countries',
+      icon: <CategoryIcon />,
+      color: '#28c76f',
+      href: '/countries',
+    },
+    {
+      title: 'States',
+      value: counts['states'] || 0,
+      subtitle: 'States',
+      icon: <CategoryIcon />,
+      color: '#ff9f43',
+      href: '/states',
+    },
+    {
+      title: 'Cities',
+      value: counts['cities'] || 0,
+      subtitle: 'Cities',
+      icon: <CategoryIcon />,
+      color: '#9c8cfc',
+      href: '/cities',
+    },
+    {
+      title: 'Locations',
+      value: counts['locations'] || 0,
+      subtitle: 'Locations',
+      icon: <BrushIcon />,
+      color: '#00cfe8',
+      href: '/locations',
+    },
+    {
       title: 'SEO',
       value: seoCount,
       subtitle: 'SEO Entries',
-      icon: <InventoryIcon />,
-      color: '#00cfe8',
+      icon: <ArticleIcon />,
+      color: '#ff6b6b',
       href: '/seo',
     },
-    ...[
-      { key: 'countries', label: 'Country', icon: <CategoryIcon />, color: '#7367f0' },
-      { key: 'states', label: 'State', icon: <PaletteIcon />, color: '#ea5455' },
-      { key: 'cities', label: 'City', icon: <ArticleIcon />, color: '#ff9f43' },
-      { key: 'locations', label: 'Location', icon: <BrushIcon />, color: '#28c76f' },
-      // { key: 'finish', label: 'Finishes', icon: <CheckCircleIcon />, color: '#00cfe8' },
-      // { key: 'groupcode', label: 'Groupcodes', icon: <CodeIcon />, color: '#9c8cfc' },
-      // { key: 'structure', label: 'Structures', icon: <ArchitectureIcon />, color: '#ff6b6b' },
-      // { key: 'subfinish', label: 'Subfinishes', icon: <LayersIcon />, color: '#4ecdc4' },
-      // { key: 'substructure', label: 'Substructures', icon: <ArchitectureIcon />, color: '#45b7d1' },
-      // { key: 'subsuitable', label: 'Subsuitables', icon: <ThumbUpIcon />, color: '#96ceb4' },
-      // { key: 'suitablefor', label: 'Suitablefors', icon: <ThumbUpIcon />, color: '#feca57' },
-      // { key: 'vendor', label: 'Vendors', icon: <BusinessIcon />, color: '#ff9ff3' },
-
-    ].map(f => ({
-      title: f.label,
-      value: counts[f.key] || 0,
-      subtitle: f.label,
-      icon: f.icon,
-      color: f.color,
-      href: `/${f.key}`,
-    })),
+    {
+      title: 'Contacts',
+      value: counts['contacts'] || 0,
+      subtitle: 'Contact Entries',
+      icon: <ArticleIcon />,
+      color: '#9c27b0',
+      href: '/contacts',
+    },
   ];
 
   return (

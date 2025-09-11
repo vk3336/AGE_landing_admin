@@ -319,7 +319,8 @@ export default function DashboardPage() {
           stateres,
           cityres,
           locationres,
-          contactRes
+          contactRes,
+          aboutUsRes
 
         ] = await Promise.all([
           apiFetch(`${base}/product`),
@@ -340,7 +341,18 @@ export default function DashboardPage() {
           apiFetch(`${base}/states`),
           apiFetch(`${base}/cities`),
           apiFetch(`${base}/locations`),
-          apiFetch(`${base}/contacts`)
+          apiFetch(`${base}/contacts`),
+          (() => {
+            const aboutUsUrl = `${base}/aboutus`;
+            console.log('About Us API URL:', aboutUsUrl);
+            const res = apiFetch(aboutUsUrl);
+            res.then(async response => {
+              console.log('About Us Response Status:', response.status);
+              const data = await response.clone().json();
+              console.log('Raw About Us Response:', data);
+            });
+            return res;
+          })()
           
         ]);
         const results = await Promise.all([
@@ -362,8 +374,15 @@ export default function DashboardPage() {
           stateres.json(),
           cityres.json(),
           locationres.json(),
-          contactRes.json()
+          contactRes.json(),
+          aboutUsRes.json()
         ]);
+        
+        // Debug log for about us response
+        console.log('Full About Us Response:', JSON.stringify(results[19], null, 2));
+        console.log('About Us Data Type:', typeof results[19]?.data);
+        console.log('About Us Data Keys:', results[19]?.data ? Object.keys(results[19].data) : 'No data');
+        
         const newCounts: { [key: string]: number } = {};
         newCounts['product'] = Array.isArray(results[0].data) ? results[0].data.length : 0;
         newCounts['category'] = Array.isArray(results[1].data) ? results[1].data.length : 0;
@@ -386,6 +405,24 @@ export default function DashboardPage() {
   const contactResponse = results[18] || {};
   const contactData = contactResponse.data || [];
   newCounts['contacts'] = Array.isArray(contactData) ? contactData.length : 0;
+  // Handle different possible response structures for about us
+  const aboutUsResponse = results[19] || {};
+  let aboutUsCount = 0;
+  
+  if (Array.isArray(aboutUsResponse)) {
+    aboutUsCount = aboutUsResponse.length;
+  } else if (aboutUsResponse && typeof aboutUsResponse === 'object') {
+    if (Array.isArray(aboutUsResponse.data)) {
+      aboutUsCount = aboutUsResponse.data.length;
+    } else if (aboutUsResponse.data && typeof aboutUsResponse.data === 'object') {
+      aboutUsCount = Object.keys(aboutUsResponse.data).length;
+    } else if (aboutUsResponse.count !== undefined) {
+      aboutUsCount = aboutUsResponse.count;
+    } else if (aboutUsResponse.length !== undefined) {
+      aboutUsCount = aboutUsResponse.length;
+    }
+  }
+  newCounts['aboutus'] = aboutUsCount;
         
         setCounts(newCounts);
         setProductCount(Array.isArray(results[0].data) ? results[0].data.length : 0);
@@ -575,6 +612,14 @@ export default function DashboardPage() {
       icon: <ArticleIcon />,
       color: '#9c27b0',
       href: '/contacts',
+    },
+    {
+      title: 'About Us',
+      value: counts['aboutus'] || 0,
+      subtitle: 'About Us Entries',
+      icon: <ArticleIcon />,
+      color: '#9c27b0',
+      href: '/aboutus',
     },
   ];
 

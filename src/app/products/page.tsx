@@ -197,10 +197,14 @@ export default function ProductPage() {
     }
   }, [dropdownFields]);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (searchTerm = '') => {
     setProductsLoading(true);
     try {
-      const res = await apiFetch(`${API_URL}/product`);
+      let url = `${API_URL}/product`;
+      if (searchTerm) {
+        url = `${API_URL}/product/search/${encodeURIComponent(searchTerm)}`;
+      }
+      const res = await apiFetch(url);
       const data = await res.json();
       setProducts(Array.isArray(data.data) ? (data.data as Product[]) : []);
     } finally {
@@ -570,23 +574,30 @@ export default function ProductPage() {
     }
   }, [deleteId, fetchProducts]);
 
-  const filteredProducts = useCallback(() => {
-    const searchTerm = search?.toLowerCase() || '';
-    return products.filter(product => {
-      const productName = product?.name?.toLowerCase() || '';
-      const categoryName = (hasName(product.category) ? product.category.name : '').toLowerCase();
-      
-      return productName.includes(searchTerm) || 
-             categoryName.includes(searchTerm);
-    });
-  }, [products, search]);
+  // Update search handler to fetch from backend
+  // Handle search input changes with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search !== '') {
+        fetchProducts(search);
+      } else {
+        fetchProducts();
+      }
+      setPage(1); // Reset to first page on search
+    }, 500); // 500ms debounce
 
+    return () => clearTimeout(timer);
+  }, [search, fetchProducts]);
+
+  // Get paginated products from the current list
   const paginatedProducts = useCallback(() => {
     const start = (page - 1) * rowsPerPage;
-    return filteredProducts().slice(start, start + rowsPerPage);
-  }, [filteredProducts, page]);
+    return products.slice(start, start + rowsPerPage);
+  }, [page, products]);
 
-  // Add this handler for product selection
+  // Keep filteredProducts for backward compatibility
+  const filteredProducts = useCallback(() => products, [products]);
+
   // Define the shape of a color object
   interface ColorObject {
     _id: string;
@@ -747,7 +758,7 @@ export default function ProductPage() {
             }}>
               <SearchIcon sx={{ color: '#7f8c8d', mr: 1 }} />
               <InputBase
-                placeholder="Search products..."
+                placeholder="Search products by name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 sx={{ flex: 1, fontSize: '14px' }}

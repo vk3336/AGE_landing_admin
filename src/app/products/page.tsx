@@ -385,8 +385,21 @@ export default function ProductPage() {
     });
   }, []);
 
-  const handleView = useCallback((product: Product) => {
-    setSelectedProduct(product);
+  const handleView = useCallback(async (product: Product) => {
+    try {
+      // Fetch the full product details to ensure we have all related data
+      const res = await apiFetch(`${API_URL}/product/${product._id}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSelectedProduct(data.data);
+      } else {
+        // Fallback to the original product data if the fetch fails
+        setSelectedProduct(product);
+      }
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      setSelectedProduct(product);
+    }
     setViewOpen(true);
   }, []);
 
@@ -1640,17 +1653,23 @@ export default function ProductPage() {
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
                 {dropdownFields.filter(field => field.key !== 'motif' && field.key !== 'color').map((field) => {
                   const value = (selectedProduct as unknown as Record<string, unknown>)[field.key];
+                  // Helper function to get display value
+                  const getDisplayValue = (val: unknown): string => {
+                    if (!val) return '-';
+                    if (isNameObject(val)) return val.name || '-';
+                    if (typeof val === 'object' && val !== null && '_id' in val) {
+                      return (val as { _id: string })._id || '-';
+                    }
+                    return String(val);
+                  };
+                  
                   return (
                     <Box key={field.key}>
                       <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>
                         {field.label}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>
-                        {isNameObject(value)
-                          ? value.name || '-'
-                          : value !== undefined && value !== null && typeof value !== 'object'
-                            ? String(value)
-                            : '-'}
+                        {getDisplayValue(value)}
                       </Typography>
                     </Box>
                   );
@@ -1661,34 +1680,46 @@ export default function ProductPage() {
                     Colors
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                    {Array.isArray(selectedProduct.color) ? (
-                      selectedProduct.color.length > 0 ? (
-                        selectedProduct.color.map((color, index) => {
-                          const colorLabel = hasName(color) ? color.name : typeof color === 'string' ? color : 'N/A';
-                          return (
-                            <Chip
-                              key={`${colorLabel}-${index}`}
-                              label={colorLabel}
-                              size="small"
-                              sx={{ 
-                                bgcolor: '#f0f8ff', 
-                                color: '#2980b9', 
-                                fontWeight: 500,
-                                mb: 0.5
-                              }}
-                            />
-                          );
-                        })
-                      ) : (
-                        <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>
-                      )
-                    ) : (
-                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>
-                        {hasName(selectedProduct.color) 
-                          ? selectedProduct.color.name 
-                          : selectedProduct.color || '-'}
-                      </Typography>
-                    )}
+                    {(() => {
+                      // Handle all possible color formats
+                      const colors = selectedProduct.color;
+                      
+                      if (!colors) return <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>;
+                      
+                      // Convert single color to array for consistent handling
+                      const colorArray = Array.isArray(colors) ? colors : [colors];
+                      
+                      if (colorArray.length === 0) {
+                        return <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>;
+                      }
+                      
+                      return colorArray.map((color, index) => {
+                        let colorLabel = 'N/A';
+                        
+                        if (color === null || color === undefined) {
+                          colorLabel = 'N/A';
+                        } else if (typeof color === 'string') {
+                          colorLabel = color;
+                        } else if (typeof color === 'object' && color !== null) {
+                          const colorObj = color as { name?: string; _id?: string };
+                          colorLabel = colorObj.name || colorObj._id || 'N/A';
+                        }
+                        
+                        return (
+                          <Chip
+                            key={`${colorLabel}-${index}`}
+                            label={colorLabel}
+                            size="small"
+                            sx={{ 
+                              bgcolor: '#f0f8ff', 
+                              color: '#2980b9', 
+                              fontWeight: 500,
+                              mb: 0.5
+                            }}
+                          />
+                        );
+                      });
+                    })()}
                   </Box>
                 </Box>
                 {/* Motif and new fields */}

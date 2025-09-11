@@ -75,6 +75,7 @@ const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
 const filterModels = [
+  { name: "About Us", path: "/aboutus" },
   { name: "Category", path: "/category" },
   { name: "City", path: "/city" },
   { name: "Color", path: "/color" },

@@ -23,6 +23,9 @@ interface Product {
   img?: string;
   image1?: string;
   image2?: string;
+  altimg1?: string;
+  altimg2?: string;
+  altimg3?: string;
   category: string;
   substructure: string;
   content: string;
@@ -41,6 +44,7 @@ interface Product {
   inch?: number;
   video?: string;
   videoThumbnail?: string;
+  altvideo?: string;
   quantity?: number;
 }
 
@@ -111,8 +115,12 @@ export default function ProductPage() {
     img?: File | string;
     image1?: File | string;
     image2?: File | string;
+    altimg1?: string;
+    altimg2?: string;
+    altimg3?: string;
     video?: File | string;
     videoThumbnail?: string;
+    altvideo?: string;
     quantity?: number | string;
     [key: string]: string | number | boolean | File | string[] | null | undefined;
   };
@@ -137,6 +145,14 @@ export default function ProductPage() {
     oz: "",
     cm: "",
     inch: "",
+    img: undefined,
+    image1: undefined,
+    image2: undefined,
+    altimg1: "",
+    altimg2: "",
+    altimg3: "",
+    video: undefined,
+    altvideo: "",
     quantity: "",
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -310,7 +326,11 @@ export default function ProductPage() {
         img: product.img,
         image1: product.image1,
         image2: product.image2,
+        altimg1: product.altimg1 || "",
+        altimg2: product.altimg2 || "",
+        altimg3: product.altimg3 || "",
         video: product.video,
+        altvideo: product.altvideo || "",
         quantity: product.quantity !== undefined && product.quantity !== null ? String(product.quantity) : "",
       });
       setEditId(product._id || null);
@@ -380,7 +400,11 @@ export default function ProductPage() {
       img: undefined,
       image1: undefined,
       image2: undefined,
+      altimg1: "",
+      altimg2: "",
+      altimg3: "",
       video: undefined,
+      altvideo: "",
       quantity: "",
     });
   }, []);
@@ -1495,6 +1519,51 @@ export default function ProductPage() {
                 </Box>
               )}
             </Box>
+            
+            {/* Alternative Image URLs */}
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>Alternative Image Text</Typography>
+              <TextField
+                label="Alternative Image 1 Text"
+                value={form.altimg1 || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, altimg1: e.target.value }))}
+                fullWidth
+                margin="normal"
+                disabled={pageAccess === 'only view'}
+                helperText="Text for alternative image 1"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Alternative Image 2 Text"
+                value={form.altimg2 || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, altimg2: e.target.value }))}
+                fullWidth
+                margin="normal"
+                disabled={pageAccess === 'only view'}
+                helperText="Text for alternative image 2"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Alternative Image 3 Text"
+                value={form.altimg3 || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, altimg3: e.target.value }))}
+                fullWidth
+                margin="normal"
+                disabled={pageAccess === 'only view'}
+                helperText="Text for alternative image 3"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Video Alt Text"
+                value={form.altvideo || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, altvideo: e.target.value }))}
+                fullWidth
+                margin="normal"
+                disabled={pageAccess === 'only view'}
+                helperText="Alternative text for the video (for accessibility)"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+            </Box>
           </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
           <Button onClick={handleClose} sx={{ color: '#7f8c8d' }}>
@@ -1627,6 +1696,42 @@ export default function ProductPage() {
                   )}
                 </Box>
               </Box>
+              
+              {/* Alternative Image URLs and Video Alt Text */}
+              {(selectedProduct.altimg1 || selectedProduct.altimg2 || selectedProduct.altimg3 || selectedProduct.altvideo) && (
+                <Box sx={{ mt: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50' }}>
+                    Alternative Media Details
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
+                    {selectedProduct.altimg1 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Alternative Image 1 Text:</Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{selectedProduct.altimg1}</Typography>
+                      </Box>
+                    )}
+                    {selectedProduct.altimg2 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Alternative Image 2 Text:</Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{selectedProduct.altimg2}</Typography>
+                      </Box>
+                    )}
+                    {selectedProduct.altimg3 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Alternative Image 3 Text:</Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{selectedProduct.altimg3}</Typography>
+                      </Box>
+                    )}
+                    {selectedProduct.altvideo && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video Alt Text:</Typography>
+                        <Typography variant="body2">{selectedProduct.altvideo}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+              
               {/* Product name, ID and description above details grid */}
               <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: '#2c3e50', mb: 1 }}>

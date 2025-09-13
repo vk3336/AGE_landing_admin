@@ -611,7 +611,7 @@ export default function DashboardPage() {
       subtitle: 'Contact Entries',
       icon: <ArticleIcon />,
       color: '#9c27b0',
-      href: '/contacts',
+      href: '/contact',
     },
     {
       title: 'About Us',

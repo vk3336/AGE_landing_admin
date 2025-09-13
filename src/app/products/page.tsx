@@ -795,7 +795,7 @@ export default function ProductPage() {
             }}>
               <SearchIcon sx={{ color: '#7f8c8d', mr: 1 }} />
               <InputBase
-                placeholder="Search products by name..."
+                placeholder="Search products by name and slug"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 sx={{ flex: 1, fontSize: '14px' }}

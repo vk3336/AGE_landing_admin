@@ -177,12 +177,34 @@ export default function FinishPage() {
     setDeleteId(id);
   }, []);
 
-  // Filter finishes by search
-  const filteredFinishes = finishes.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
-  );
-  // Pagination
-  const paginatedFinishes = filteredFinishes.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const searchFinishes = useCallback(async (query: string) => {
+    try {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/finish/search/${encodeURIComponent(query)}`);
+      const data = await res.json();
+      return data.data || [];
+    } catch (error) {
+      console.error('Search failed:', error);
+      return [];
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.trim()) {
+        searchFinishes(search).then(results => {
+          setFinishes(results);
+          setPage(1); // Reset to first page on new search
+        });
+      } else {
+        // If search is cleared, fetch all finishes
+        fetchFinishes();
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [search, searchFinishes, fetchFinishes]);
+
+  const paginatedFinishes = finishes.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   // Permission check rendering
   if (pageAccess === 'denied') {
@@ -285,7 +307,7 @@ export default function FinishPage() {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Finishes ({filteredFinishes.length})
+              Finishes ({finishes.length})
             </Typography>
           </Box>
           <TextField
@@ -371,10 +393,10 @@ export default function FinishPage() {
       </Card>
 
       {/* Pagination */}
-      {filteredFinishes.length > rowsPerPage && (
+      {finishes.length > rowsPerPage && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
-            count={Math.ceil(filteredFinishes.length / rowsPerPage)}
+            count={Math.ceil(finishes.length / rowsPerPage)}
             page={page}
             onChange={(_, value) => setPage(value)}
             color="primary"

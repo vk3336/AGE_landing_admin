@@ -24,7 +24,8 @@ import {
   Chip,
   InputAdornment,
   Breadcrumbs,
-  Link
+  Link,
+  CircularProgress
 } from '@mui/material';
 import CategoryIcon from '@mui/icons-material/Category';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -355,22 +356,51 @@ export default function CategoryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const rowsPerPage = 8;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const fetchCategories = useCallback(async () => {
+  const fetchCategories = useCallback(async (searchTerm = '') => {
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/category`);
+      setIsLoading(true);
+      const url = searchTerm 
+        ? `/category/search/${encodeURIComponent(searchTerm)}`
+        : '/category';
+      
+      const res = await apiFetch(url);
       const data = await res.json();
       setCategories(data.data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
     } finally {
+      setIsLoading(false);
     }
   }, []);
 
+  // Handle search with debounce
   useEffect(() => {
-    fetchCategories();
-    setPageAccess(getCategoryPagePermission());
+    const timer = setTimeout(() => {
+      fetchCategories(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, fetchCategories]);
+
+  // Initial data fetch and permission check
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const permission = getCategoryPagePermission();
+      setPageAccess(permission);
+      
+      if (permission !== 'no access') {
+        await fetchCategories();
+      }
+    };
+    
+    checkPermissions();
   }, [fetchCategories]);
 
   const handleOpen = useCallback((category: Category | null = null) => {
@@ -402,7 +432,7 @@ export default function CategoryPage() {
     try {
       // If it's a string URL, it's an existing image that needs to be deleted from Cloudinary
       if (typeof form.image === 'string') {
-        await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/category/${editId}/image`, {
+        await apiFetch(`/category/${editId}/image`, {
           method: 'DELETE',
         });
       }
@@ -441,11 +471,22 @@ export default function CategoryPage() {
         formData.append("image", form.image);
       }
       const method = editId ? "PUT" : "POST";
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/category${editId ? "/" + editId : ""}`;
-      await apiFetch(url, {
+      const url = `/category${editId ? "/" + editId : ""}`;
+      const response = await apiFetch(url, {
         method,
         body: formData,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Operation failed');
+      }
       fetchCategories();
       handleClose();
     } finally {
@@ -457,7 +498,7 @@ export default function CategoryPage() {
     if (!deleteId) return;
     setDeleteError(null);
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/category/${deleteId}`, { method: "DELETE" });
+      const res = await apiFetch(`/category/${deleteId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data && data.message && data.message.includes("in use")) {
@@ -480,6 +521,15 @@ export default function CategoryPage() {
     setDeleteId(id);
   }, []);
 
+  // Show loading state initially
+  if (isLoading && categories.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   // Permission check rendering
   if (pageAccess === 'no access') {
     return (
@@ -488,7 +538,7 @@ export default function CategoryPage() {
           Access Denied
         </Typography>
         <Typography variant="body1" sx={{ color: '#7f8c8d' }}>
-          You dont have permission to access this page.
+          You don&apos;t have permission to access this page.
         </Typography>
       </Box>
     );
@@ -589,7 +639,7 @@ export default function CategoryPage() {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Categories ({filteredCategories.length})
+              Categories ({categories.length})
             </Typography>
             <Chip 
               label={`${paginatedCategories.length} of ${filteredCategories.length}`}
@@ -695,10 +745,10 @@ export default function CategoryPage() {
       </Card>
 
       {/* Pagination */}
-      {filteredCategories.length > rowsPerPage && (
+      {categories.length > rowsPerPage && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
-            count={Math.ceil(filteredCategories.length / rowsPerPage)}
+            count={Math.ceil(categories.length / rowsPerPage)}
             page={page}
             onChange={(_, value) => setPage(value)}
             color="primary"

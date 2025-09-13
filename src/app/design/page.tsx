@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress
 } from '@mui/material';
 import BrushIcon from '@mui/icons-material/Brush';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -72,10 +72,6 @@ const DesignForm = React.memo(({
 
 DesignForm.displayName = 'DesignForm';
 
-function getCurrentAdminEmail() {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('admin-email');
-}
 
 function getDesignPagePermission() {
   if (typeof window === 'undefined') return 'no access';
@@ -102,44 +98,48 @@ export default function DesignPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-
-  const fetchDesigns = React.useCallback(async () => {
+  const fetchDesigns = React.useCallback(async (searchTerm = '') => {
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/design`);
+      setIsLoading(true);
+      const url = searchTerm 
+        ? `/design/search/${encodeURIComponent(searchTerm)}`
+        : '/design';
+      
+      const res = await apiFetch(url);
       const data = await res.json();
       setDesigns(data.data || []);
-    } catch {}
+    } catch (error) {
+      console.error('Error fetching designs:', error);
+      setDesigns([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Handle search with debounce
   useEffect(() => {
-    const checkPermission = async () => {
-      const email = getCurrentAdminEmail();
-      if (!email) {
-        // setAllowed(false);
-        return;
-      }
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/allowed-admins-permissions`);
-      const data = await res.json();
-      if (data.success) {
-        // const admin = data.data.find((a: { email: string }) => a.email === email);
-        // setAllowed(admin?.canAccessFilter ?? false);
-      } else {
-        // setAllowed(false);
+    const timer = setTimeout(() => {
+      fetchDesigns(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, fetchDesigns]);
+
+  // Initial data fetch and permission check
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const permission = getDesignPagePermission();
+      setPageAccess(permission);
+      
+      if (permission !== 'no access') {
+        await fetchDesigns();
       }
     };
-    checkPermission();
-  }, []);
-
-  useEffect(() => {
-    // Check permission from localStorage
-    const permission = getDesignPagePermission();
-    setPageAccess(permission);
-  }, []);
-
-  useEffect(() => {
-    fetchDesigns();
-    setPageAccess(getDesignPagePermission());
+    
+    checkPermissions();
   }, [fetchDesigns]);
 
   const handleOpen = React.useCallback((design: Design | null = null) => {
@@ -159,14 +159,28 @@ export default function DesignPage() {
     setSubmitting(true);
     try {
       const method = editId ? "PUT" : "POST";
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/design${editId ? "/" + editId : ""}`;
-      await apiFetch(url, {
+      const url = `/design${editId ? "/" + editId : ""}`;
+      
+      const response = await apiFetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify(form),
       });
-      fetchDesigns();
-      handleClose();
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        fetchDesigns();
+        handleClose();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -176,7 +190,7 @@ export default function DesignPage() {
     if (!deleteId) return;
     setDeleteError(null);
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/design/${deleteId}`, { method: "DELETE" });
+      const res = await apiFetch(`/design/${deleteId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data && data.message && data.message.includes("in use")) {
@@ -199,12 +213,17 @@ export default function DesignPage() {
     setDeleteId(id);
   }, []);
 
-  // Filter designs by search
-  const filteredDesigns = designs.filter((d) =>
-    d.name.toLowerCase().includes(search.toLowerCase())
-  );
   // Pagination
-  const paginatedDesigns = filteredDesigns.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const paginatedDesigns = designs.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  // Show loading state initially
+  if (isLoading && designs.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   // Permission check rendering
   if (pageAccess === 'no access') {
@@ -214,7 +233,7 @@ export default function DesignPage() {
           Access Denied
         </Typography>
         <Typography variant="body1" sx={{ color: '#7f8c8d' }}>
-          You dont have permission to access this page.
+          You don&apos;t have permission to access this page.
         </Typography>
       </Box>
     );
@@ -307,7 +326,7 @@ export default function DesignPage() {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Designs ({filteredDesigns.length})
+              Designs ({designs.length})
             </Typography>
           </Box>
           <TextField
@@ -393,10 +412,10 @@ export default function DesignPage() {
       </Card>
 
       {/* Pagination */}
-      {filteredDesigns.length > rowsPerPage && (
+      {designs.length > rowsPerPage && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
-            count={Math.ceil(filteredDesigns.length / rowsPerPage)}
+            count={Math.ceil(designs.length / rowsPerPage)}
             page={page}
             onChange={(_, value) => setPage(value)}
             color="primary"

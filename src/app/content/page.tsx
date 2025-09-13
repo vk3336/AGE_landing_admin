@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress
 } from '@mui/material';
 import ArticleIcon from '@mui/icons-material/Article';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -111,10 +111,6 @@ const ContentForm = React.memo(({
 
 ContentForm.displayName = 'ContentForm';
 
-function getCurrentAdminEmail() {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('admin-email');
-}
 
 function getContentPagePermission() {
   if (typeof window === 'undefined') return 'no access';
@@ -141,43 +137,49 @@ export default function ContentPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-
-  const fetchContents = useCallback(async () => {
+  const fetchContents = useCallback(async (searchTerm = '') => {
     try {
-      const data = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/content`).then(res => res.json());
+      setIsLoading(true);
+      const url = searchTerm 
+        ? `/content/search/${encodeURIComponent(searchTerm)}`
+        : '/content';
+      
+      const res = await apiFetch(url);
+      const data = await res.json();
       setContents(data.data || []);
-    } catch {}
+    } catch (error) {
+      console.error('Error fetching contents:', error);
+      setContents([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Handle search with debounce
   useEffect(() => {
-    const checkPermission = async () => {
-      const email = getCurrentAdminEmail();
-      if (!email) {
-        return;
-      }
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/allowed-admins-permissions`);
-      const data = await res.json();
-      if (data.success) {
-        // const admin = data.data.find((a: { email: string }) => a.email === email);
-        // setAllowed(admin?.canAccessFilter ?? false); // This line was removed
-      } else {
-        // setAllowed(false); // This line was removed
+    const timer = setTimeout(() => {
+      fetchContents(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, fetchContents]);
+
+  // Initial data fetch and permission check
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const permission = getContentPagePermission();
+      setPageAccess(permission);
+      
+      if (permission !== 'no access') {
+        await fetchContents();
       }
     };
-    checkPermission();
-  }, []);
-
-  useEffect(() => {
-    fetchContents();
-    setPageAccess(getContentPagePermission());
+    
+    checkPermissions();
   }, [fetchContents]);
-
-  useEffect(() => {
-    // Check permission from localStorage
-    const permission = getContentPagePermission();
-    setPageAccess(permission);
-  }, []);
 
   const handleOpen = useCallback((content: Content | null = null) => {
     setEditId(content?._id || null);
@@ -200,7 +202,7 @@ export default function ContentPage() {
     
     try {
       const method = editId ? "PUT" : "POST";
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/content${editId ? "/" + editId : ""}`;
+      const url = `/content${editId ? "/" + editId : ""}`;
       
       const response = await apiFetch(url, {
         method,
@@ -233,7 +235,7 @@ export default function ContentPage() {
     if (!deleteId) return;
     setDeleteError(null);
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/content/${deleteId}`, { method: "DELETE" });
+      const res = await apiFetch(`/content/${deleteId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data && data.message && data.message.includes("in use")) {
@@ -256,12 +258,17 @@ export default function ContentPage() {
     setDeleteId(id);
   }, []);
 
-  // Filter contents by search
-  const filteredContents = contents.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
   // Pagination
-  const paginatedContents = filteredContents.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const paginatedContents = contents.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  // Show loading state initially
+  if (isLoading && contents.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   // Permission check rendering
   if (pageAccess === 'no access') {
@@ -271,7 +278,7 @@ export default function ContentPage() {
           Access Denied
         </Typography>
         <Typography variant="body1" sx={{ color: '#7f8c8d' }}>
-          You dont have permission to access this page.
+          You don&apos;t have permission to access this page.
         </Typography>
       </Box>
     );
@@ -364,7 +371,7 @@ export default function ContentPage() {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Contents ({filteredContents.length})
+              Contents ({contents.length})
             </Typography>
           </Box>
           <TextField
@@ -450,10 +457,10 @@ export default function ContentPage() {
       </Card>
 
       {/* Pagination */}
-      {filteredContents.length > rowsPerPage && (
+      {contents.length > rowsPerPage && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
-            count={Math.ceil(filteredContents.length / rowsPerPage)}
+            count={Math.ceil(contents.length / rowsPerPage)}
             page={page}
             onChange={(_, value) => setPage(value)}
             color="primary"

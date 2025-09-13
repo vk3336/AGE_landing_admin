@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress
 } from '@mui/material';
 import PaletteIcon from '@mui/icons-material/Palette';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -103,17 +103,48 @@ export default function ColorPage() {
   const rowsPerPage = 8;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchColors = useCallback(async () => {
+  const fetchColors = useCallback(async (searchTerm = '') => {
     try {
-      const data = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/color`).then(res => res.json());
+      setIsLoading(true);
+      const url = searchTerm 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/color/search/${encodeURIComponent(searchTerm)}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/color`;
+      
+      const res = await apiFetch(url);
+      const data = await res.json();
       setColors(data.data || []);
-    } catch {}
+    } catch (error) {
+      console.error('Error fetching colors:', error);
+      setColors([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Handle search with debounce
   useEffect(() => {
-    fetchColors();
-    setPageAccess(getColorPagePermission());
+    const timer = setTimeout(() => {
+      fetchColors(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, fetchColors]);
+
+  // Initial data fetch and permission check
+  useEffect(() => {
+    const checkPermissions = () => {
+      const permission = getColorPagePermission();
+      setPageAccess(permission);
+      
+      if (permission !== 'no access') {
+        fetchColors();
+      }
+    };
+    
+    checkPermissions();
   }, [fetchColors]);
 
   const handleOpen = useCallback((color: Color | null = null) => {
@@ -183,6 +214,15 @@ export default function ColorPage() {
     setDeleteId(id);
   }, []);
 
+  // Show loading state initially
+  if (isLoading && colors.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   // Permission check rendering
   if (pageAccess === 'no access') {
     return (
@@ -191,18 +231,15 @@ export default function ColorPage() {
           Access Denied
         </Typography>
         <Typography variant="body1" sx={{ color: '#7f8c8d' }}>
-          You dont have permission to access this page.
+          You don&apos;t have permission to access this page.
         </Typography>
       </Box>
     );
   }
 
-  // Filter colors by search
-  const filteredColors = colors.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+
   // Pagination
-  const paginatedColors = filteredColors.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const paginatedColors = colors.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   return (
     <Box sx={{ p: 0 }}>
@@ -293,7 +330,7 @@ export default function ColorPage() {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Colors ({filteredColors.length})
+              Colors ({colors.length})
             </Typography>
           </Box>
           <TextField
@@ -355,10 +392,10 @@ export default function ColorPage() {
       </TableContainer>
 
       {/* Pagination */}
-      {filteredColors.length > rowsPerPage && (
+      {colors.length > rowsPerPage && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
-            count={Math.ceil(filteredColors.length / rowsPerPage)}
+            count={Math.ceil(colors.length / rowsPerPage)}
             page={page}
             onChange={(_, value) => setPage(value)}
             color="secondary"

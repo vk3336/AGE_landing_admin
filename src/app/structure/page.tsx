@@ -211,11 +211,17 @@ export default function StructurePage() {
   const rowsPerPage = 8;
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const fetchStructures = useCallback(async () => {
+  const fetchStructures = useCallback(async (searchTerm = '') => {
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/structure`);
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/structure`);
+      if (searchTerm) {
+        url.searchParams.append('search', searchTerm);
+      }
+      const res = await apiFetch(url.toString());
       const data = await res.json();
       setStructures(data.data || []);
+      // Reset to first page when searching
+      setPage(1);
     } catch {}
   }, []);
 
@@ -280,6 +286,15 @@ export default function StructurePage() {
   const handleDeleteClick = useCallback((id: string) => {
     setDeleteId(id);
   }, []);
+
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchStructures(search);
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [search, fetchStructures]);
 
   // Permission check rendering
   if (pageAccess === 'no access') {

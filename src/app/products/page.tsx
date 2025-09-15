@@ -1214,7 +1214,7 @@ export default function ProductPage() {
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />
             <TextField
-              label="Quantity"
+              label="MOQ"
               type="number"
               value={form.quantity || ""}
               onChange={e => setForm(prev => ({ ...prev, quantity: e.target.value }))}

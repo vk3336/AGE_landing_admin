@@ -19,6 +19,7 @@ const SEO_FIELDS = [
   { key: "product", label: "Product", type: "select" },
   { key: "purchasePrice", label: "Purchase Price", type: "number" },
   { key: "salesPrice", label: "Sales Price", type: "number" },
+  { key: "leadtime", label: "Lead Time (days)", type: "number" },
   { key: "location", label: "Location", type: "location" },
   { key: "locationCode", label: "Location Code", type: "text" },
   { key: "productIdentifier", label: "Product Identifier", type: "text" },

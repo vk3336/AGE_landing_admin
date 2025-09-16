@@ -78,6 +78,7 @@ const filterModels = [
   { name: "About Us", path: "/aboutus" },
   { name: "Category", path: "/category" },
   { name: "City", path: "/city" },
+  { name: "Office Information", path: "/office-information" },
   { name: "Color", path: "/color" },
   { name: "Contact", path: "/contact" },
   { name: "Content", path: "/content" },

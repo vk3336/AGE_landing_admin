@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormHelperText, Grid, Divider
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, FormControl, InputLabel, Select, MenuItem, Divider
 } from '@mui/material';
 import BusinessIcon from '@mui/icons-material/Business';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -507,9 +507,10 @@ export default function OfficeInfoPage() {
       
       await fetchOfficeInfo();
       setOpen(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving office information:', error);
-      setError(error.message || 'Failed to save office information');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save office information';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -534,9 +535,10 @@ export default function OfficeInfoPage() {
       
       await fetchOfficeInfo();
       setDeleteId(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting office information:', error);
-      setError(error.message || 'Failed to delete office information');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete office information';
+      setError(errorMessage);
     }
   };
 
@@ -561,7 +563,7 @@ export default function OfficeInfoPage() {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="error">
-          You don't have permission to access this page.
+          You don&apos;t have permission to view this page.
         </Typography>
       </Box>
     );

@@ -26,6 +26,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import BrushIcon from '@mui/icons-material/Brush';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import BusinessIcon from '@mui/icons-material/Business';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import { keyframes } from '@mui/system';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -320,7 +321,8 @@ export default function DashboardPage() {
           cityres,
           locationres,
           contactRes,
-          aboutUsRes
+          aboutUsRes,
+          officeInfoRes
 
         ] = await Promise.all([
           apiFetch(`${base}/product`),
@@ -342,18 +344,8 @@ export default function DashboardPage() {
           apiFetch(`${base}/cities`),
           apiFetch(`${base}/locations`),
           apiFetch(`${base}/contacts`),
-          (() => {
-            const aboutUsUrl = `${base}/aboutus`;
-            console.log('About Us API URL:', aboutUsUrl);
-            const res = apiFetch(aboutUsUrl);
-            res.then(async response => {
-              console.log('About Us Response Status:', response.status);
-              const data = await response.clone().json();
-              console.log('Raw About Us Response:', data);
-            });
-            return res;
-          })()
-          
+          apiFetch(`${base}/aboutus`),
+          apiFetch(`${base}/officeinformation`)
         ]);
         const results = await Promise.all([
           productsRes.json(),
@@ -375,7 +367,8 @@ export default function DashboardPage() {
           cityres.json(),
           locationres.json(),
           contactRes.json(),
-          aboutUsRes.json()
+          aboutUsRes.json(),
+          officeInfoRes.json()
         ]);
         
         // Debug log for about us response
@@ -423,6 +416,7 @@ export default function DashboardPage() {
     }
   }
   newCounts['aboutus'] = aboutUsCount;
+  newCounts['officeInfo'] = Array.isArray(results[20]?.data) ? results[20].data.length : 0;
         
         setCounts(newCounts);
         setProductCount(Array.isArray(results[0].data) ? results[0].data.length : 0);
@@ -596,6 +590,14 @@ export default function DashboardPage() {
       icon: <BrushIcon />,
       color: '#00cfe8',
       href: '/locations',
+    },
+    {
+      title: 'Office Info',
+      value: counts['officeInfo'] || 0,
+      subtitle: 'Office Information',
+      icon: <BusinessCenterIcon />,
+      color: '#6c5ce7',
+      href: '/office-information',
     },
     {
       title: 'SEO',

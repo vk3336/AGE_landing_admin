@@ -273,22 +273,15 @@ export default function LocationPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
-  // Debug effect to log state changes
+  // Log state changes in development only
   useEffect(() => {
-    console.log('Countries updated:', countries);
-  }, [countries]);
-
-  useEffect(() => {
-    console.log('States updated:', states);
-  }, [search, page, 10]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    console.log('Cities updated:', cities);
-  }, [cities]);
-
-  useEffect(() => {
-    console.log('Locations updated:', locations);
-  }, [locations]);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Countries updated:', countries);
+      console.log('States updated:', states);
+      console.log('Cities updated:', cities);
+      console.log('Locations updated:', locations);
+    }
+  }, [countries, states, cities, locations]);
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -298,124 +291,85 @@ export default function LocationPage() {
     totalPages: 1
   });
 
-  // Fetch locations with pagination
-  const fetchLocations = useCallback(async () => {
+  // Fetch all required data in parallel
+  const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Fetching locations...');
-      const queryParams = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        ...(search && { search })
-      });
+      setError(null);
       
-      const res = await apiFetch(`/locations?${queryParams}`);
-      const response = await res.json();
-      console.log('Locations API Response:', response);
-      
-      let locationsData: Location[] = [];
-      if (response && response.status === 'success' && response.data && response.data.locations) {
-        locationsData = response.data.locations;
-        
-        // Update pagination info
-        if (response.data.pagination) {
-          setPagination(prev => ({
-            ...prev,
-            total: response.data.pagination.total,
-            totalPages: response.data.pagination.totalPages,
-            currentPage: response.data.pagination.currentPage
-          }));
-        }
-      } else if (Array.isArray(response)) {
-        locationsData = response;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        locationsData = response.data;
-      } else if (response && response.data && response.data.locations) {
-        locationsData = response.data.locations;
+      // Fetch all data in parallel
+      const [locationsRes, countriesRes, statesRes, citiesRes] = await Promise.all([
+        apiFetch(`/locations?page=${pagination.page}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
+        apiFetch('/countries'),
+        apiFetch('/states'),
+        apiFetch('/cities')
+      ]);
+
+      // Process all responses
+      const [locationsData, countriesData, statesData, citiesData] = await Promise.all([
+        locationsRes.json(),
+        countriesRes.json(),
+        statesRes.json(),
+        citiesRes.json()
+      ]);
+
+      // Process locations
+      let processedLocations: Location[] = [];
+      if (locationsData?.status === 'success' && locationsData.data?.locations) {
+        processedLocations = locationsData.data.locations;
+        setPagination(prev => ({
+          ...prev,
+          total: locationsData.data.pagination.total,
+          totalPages: locationsData.data.pagination.totalPages,
+          currentPage: locationsData.data.pagination.currentPage
+        }));
+      } else if (Array.isArray(locationsData)) {
+        processedLocations = locationsData;
       }
-      
-      console.log('Processed locations data:', locationsData);
-      setLocations(locationsData);
+
+      // Process countries
+      let processedCountries: Country[] = [];
+      if (countriesData?.status === 'success' && countriesData.data?.countries) {
+        processedCountries = countriesData.data.countries;
+      } else if (Array.isArray(countriesData)) {
+        processedCountries = countriesData;
+      }
+
+      // Process states
+      let processedStates: State[] = [];
+      if (statesData?.status === 'success' && statesData.data?.states) {
+        processedStates = statesData.data.states;
+      } else if (Array.isArray(statesData)) {
+        processedStates = statesData;
+      }
+
+      // Process cities
+      let processedCities: City[] = [];
+      if (citiesData?.status === 'success' && citiesData.data?.cities) {
+        processedCities = citiesData.data.cities;
+      } else if (Array.isArray(citiesData)) {
+        processedCities = citiesData;
+      }
+
+      // Update state in a single batch
+      setLocations(processedLocations);
+      setCountries(processedCountries);
+      setStates(processedStates);
+      setCities(processedCities);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load locations';
-      console.error('Error fetching locations:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
+      console.error('Error fetching data:', error);
       setError(errorMessage);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
-    }
-  }, [pagination.page, pagination.limit, search]);
-
-  // Fetch countries
-  const fetchCountries = useCallback(async () => {
-    try {
-      const res = await apiFetch('/countries');
-      const response = await res.json();
-      
-      let countriesData: Country[] = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.countries)) {
-        countriesData = response.data.countries;
-      } else if (Array.isArray(response)) {
-        countriesData = response;
-      }
-      
-      setCountries(countriesData);
-    } catch (error) {
-      console.error('Failed to fetch countries:', error);
-    }
-  }, []);
-
-  // Fetch all states
-  const fetchStates = useCallback(async () => {
-    try {
-      const res = await apiFetch('/states');
-      const response = await res.json();
-      
-      let statesData: State[] = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.states)) {
-        statesData = response.data.states;
-      } else if (Array.isArray(response)) {
-        statesData = response;
-      } else if (response && response.data) {
-        statesData = response.data.states || [];
-      }
-      
-      setStates(statesData);
-    } catch (error) {
-      console.error('Failed to fetch states:', error);
-    }
-  }, []);
-
-  // Fetch all cities
-  const fetchCities = useCallback(async () => {
-    try {
-      const res = await apiFetch('/cities');
-      const response = await res.json();
-      
-      let citiesData: City[] = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.cities)) {
-        citiesData = response.data.cities;
-      } else if (Array.isArray(response)) {
-        citiesData = response;
-      } else if (response && response.data) {
-        citiesData = response.data.cities || [];
-      }
-      
-      setCities(citiesData);
-    } catch (error) {
-      console.error('Failed to fetch cities:', error);
-      setStates([]);
-      setCities([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pagination.page, pagination.limit, search]);
 
   // Load initial data
   useEffect(() => {
-    fetchLocations();
-    fetchCountries();
-    fetchStates();
-    fetchCities();
-  }, [fetchLocations, fetchCountries, fetchStates, fetchCities]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -442,67 +396,80 @@ export default function LocationPage() {
   };
 
   // Helper function to clean form data before submission
-  const cleanFormData = (data: FormState) => {
-    return {
-      ...data,
-      country: data.country || undefined,
-      state: data.state || undefined,
-      city: data.city || undefined,
-      pincode: data.pincode || undefined,
-      timezone: data.timezone || undefined,
-      language: data.language || undefined
-    };
-  };
+  // const cleanFormData = (data: FormState) => {
+  //   return {
+  //     ...data,
+  //     country: data.country || undefined,
+  //     state: data.state || undefined,
+  //     city: data.city || undefined,
+  //     pincode: data.pincode || undefined,
+  //     timezone: data.timezone || undefined,
+  //     language: data.language || undefined
+  //   };
+  // };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      const cleanedData = cleanFormData(form);
+      const url = editId ? `/locations/${editId}` : '/locations';
+      const method = editId ? 'PUT' : 'POST';
       
-      if (editId) {
-        // Update existing location
-        const response = await apiFetch(`/locations/${editId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cleanedData)
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to update location');
-        }
-        
-        setSuccess('Location updated successfully');
-      } else {
-        // Create new location
-        const response = await apiFetch('/locations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cleanedData)
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to create location');
-        }
-        
-        setSuccess('Location created successfully');
+      const response = await apiFetch(url, {
+        method,
+        body: JSON.stringify({
+          name: form.name,
+          slug: form.slug,
+          pincode: form.pincode,
+          country: form.country,
+          state: form.state,
+          city: form.city,
+          timezone: form.timezone,
+          language: form.language,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong');
       }
+
+      setSuccess(editId ? 'Location updated successfully' : 'Location added successfully');
+      setSnackbar({
+        open: true,
+        message: editId ? 'Location updated successfully' : 'Location added successfully',
+        severity: 'success',
+      });
+
+      // Refresh the data
+      fetchAllData();
       
-      fetchLocations();
-      handleClose();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      // Reset form
+      setForm({
+        name: '',
+        slug: '',
+        pincode: '',
+        country: '',
+        state: '',
+        city: '',
+        timezone: '',
+        language: '',
+      });
+      setEditId(null);
+      setOpen(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save location';
       setError(errorMessage);
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -518,67 +485,37 @@ export default function LocationPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     
+    setDeleteSubmitting(true);
+    setDeleteError(null);
+
     try {
-      setDeleteSubmitting(true);
-      setDeleteError(null);
-      
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${deleteId}`, { 
+      const response = await apiFetch(`/locations/${deleteId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(process.env.NEXT_PUBLIC_API_KEY_NAME && process.env.NEXT_PUBLIC_API_SECRET_KEY ? {
-            [process.env.NEXT_PUBLIC_API_KEY_NAME]: process.env.NEXT_PUBLIC_API_SECRET_KEY
-          } : {})
-        },
       });
-      
-      const data = await res.json();
-      console.log('Delete response:', data);
-      
-      if (res.ok) {
-        setSnackbar({
-          open: true,
-          message: data.message || 'Location deleted successfully',
-          severity: 'success'
-        });
-        
-        setDeleteId(null);
-        fetchLocations();
-        return;
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete location');
       }
-      
-      // Handle error responses
-      let errorMessage = data?.message || 'Failed to delete location';
-      
-      // Show specific error message for in-use locations
-      if (res.status === 400) {
-        if (errorMessage.includes('being used by one or more SEO entries')) {
-          errorMessage = 'Cannot delete location because it is being used in one or more SEO entries. Please remove the location from all SEO entries before deleting it.';
-        } else if (errorMessage.includes('being used by other records')) {
-          errorMessage = 'Cannot delete location because it is being used by one or more records';
-        }
-      }
-      
+
+      setSnackbar({
+        open: true,
+        message: 'Location deleted successfully',
+        severity: 'success',
+      });
+
+      // Refresh the data
+      fetchAllData();
+      setOpenDeleteDialog(false);
+      setDeleteId(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete location';
       setDeleteError(errorMessage);
-      
-      // Also show error in snackbar
       setSnackbar({
         open: true,
         message: errorMessage,
-        severity: 'error'
-      });
-    } catch (err: unknown) {
-      console.error('Delete error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete location';
-      
-      // Set error in delete dialog
-      setDeleteError(errorMessage);
-      
-      // Also show error in snackbar
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: 'error'
+        severity: 'error',
       });
     } finally {
       setDeleteSubmitting(false);
@@ -782,13 +719,10 @@ export default function LocationPage() {
     }
   }, [form.name, editId]);
 
-  // Load data on component mount
+  // Fetch all data when component mounts or when pagination/search changes
   useEffect(() => {
-    fetchLocations();
-    fetchCountries();
-    fetchStates();
-    fetchCities();
-  }, [fetchLocations, fetchCountries, fetchStates, fetchCities]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   // Handle page change
   const handlePageChange = (_event: React.ChangeEvent<unknown>, newPage: number) => {
@@ -808,10 +742,10 @@ export default function LocationPage() {
     }));
   }, []);
 
-  // Fetch locations when pagination or search changes
+  // Fetch data when pagination or search changes
   useEffect(() => {
-    fetchLocations();
-  }, [pagination.page, pagination.limit, search, fetchLocations]);
+    fetchAllData();
+  }, [pagination.page, pagination.limit, search, fetchAllData]);
 
   const viewOnly = pageAccess === 'only view';
 

@@ -19,7 +19,9 @@ interface Groupcode {
   _id?: string;
   name: string;
   img?: string;
+  altimg?: string;
   video?: string;
+  altvideo?: string;
 }
 
 const GroupcodeRow = React.memo(({ groupcode, onEdit, onDelete, onView, viewOnly }: {
@@ -173,6 +175,25 @@ const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit,
               },
             }}
           />
+          <TextField 
+            label="Image Alt Text" 
+            name="altimg" 
+            value={form.altimg || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            InputProps={{ readOnly: viewOnly }}
+            variant="outlined"
+            placeholder="Enter alternative text for the image"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                '& fieldset': { borderColor: 'divider' },
+                '&:hover fieldset': { borderColor: 'primary.main' },
+                '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+              },
+            }}
+          />
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
             {/* Image upload */}
             <Box sx={{ textAlign: 'center', minWidth: 160 }}>
@@ -319,6 +340,25 @@ const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit,
                 </Box>
               )}
             </Box>
+            <TextField 
+              label="Video Alt Text" 
+              name="altvideo" 
+              value={form.altvideo || ''} 
+              onChange={handleChange} 
+              fullWidth 
+              disabled={submitting || viewOnly}
+              InputProps={{ readOnly: viewOnly }}
+              variant="outlined"
+              placeholder="Enter alternative text for the video"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  '& fieldset': { borderColor: 'divider' },
+                  '&:hover fieldset': { borderColor: 'primary.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                },
+              }}
+            />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0, bgcolor: '#f8f9fa', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
@@ -466,6 +506,10 @@ export default function GroupcodePage() {
           formData.append("video", form.video);
         }
       }
+      
+      // Add alt text fields
+      if (form.altimg !== undefined) formData.append("altimg", form.altimg);
+      if (form.altvideo !== undefined) formData.append("altvideo", form.altvideo);
       await apiFetch(url, {
         method,
         body: formData,
@@ -507,9 +551,13 @@ export default function GroupcodePage() {
 
   const handleView = useCallback(async (groupcode: Groupcode) => {
     await fetchGroupcodes(); // Always fetch latest before viewing
-    // Find the latest groupcode by id
+    // Find the latest groupcode by id and include all fields
     const latest = groupcodes.find(g => g._id === groupcode._id) || groupcode;
-    setViewGroupcode(latest);
+    setViewGroupcode({
+      ...latest,
+      altimg: latest.altimg || '',
+      altvideo: latest.altvideo || ''
+    });
     setViewDialogOpen(true);
     setImgDims(undefined);
     setVideoDims(undefined);
@@ -878,49 +926,63 @@ export default function GroupcodePage() {
           {viewGroupcode && (
             <>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>Groupcode: {viewGroupcode.name}</Typography>
-              <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {/* Image */}
-                {viewGroupcode.img && (
-                  <Box sx={{ textAlign: 'center', minWidth: 160 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Image</Typography>
-                    <Image
-                      src={viewGroupcode.img}
-                      alt="Groupcode Image"
-                      width={220}
-                      height={220}
-                      style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-                      onLoad={e => {
-                        const target = e.target as HTMLImageElement;
-                        if (!imgDims) setImgDims([target.naturalWidth, target.naturalHeight]);
-                      }}
-                    />
-                    {imgDims && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                        w: {imgDims[0]} h: {imgDims[1]}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-                {/* Video */}
-                {viewGroupcode.video && (
-                  <Box sx={{ textAlign: 'center', minWidth: 160 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Video</Typography>
-                    <video
-                      src={viewGroupcode.video}
-                      controls
-                      style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-                      onLoadedMetadata={e => {
-                        const target = e.target as HTMLVideoElement;
-                        if (!videoDims) setVideoDims([target.videoWidth, target.videoHeight]);
-                      }}
-                    />
-                    {videoDims && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                        w: {videoDims[0]} h: {videoDims[1]}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {/* Image */}
+                  {viewGroupcode.img && (
+                    <Box sx={{ textAlign: 'center', minWidth: 160 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Image</Typography>
+                      <Image
+                        src={viewGroupcode.img}
+                        alt={viewGroupcode.altimg || 'Groupcode Image'}
+                        width={220}
+                        height={220}
+                        style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                        onLoad={e => {
+                          const target = e.target as HTMLImageElement;
+                          if (!imgDims) setImgDims([target.naturalWidth, target.naturalHeight]);
+                        }}
+                      />
+                      {imgDims && (
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                          w: {imgDims[0]} h: {imgDims[1]}
+                        </Typography>
+                      )}
+                      {viewGroupcode.altimg && (
+                        <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Alt Text:</Typography>
+                          <Typography variant="body2">{viewGroupcode.altimg}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                  {/* Video */}
+                  {viewGroupcode.video && (
+                    <Box sx={{ textAlign: 'center', minWidth: 160 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Video</Typography>
+                      <video
+                        src={viewGroupcode.video}
+                        controls
+                        style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                        onLoadedMetadata={e => {
+                          const target = e.target as HTMLVideoElement;
+                          if (!videoDims) setVideoDims([target.videoWidth, target.videoHeight]);
+                        }}
+                      />
+                      {videoDims && (
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                          w: {videoDims[0]} h: {videoDims[1]}
+                        </Typography>
+                      )}
+                      {viewGroupcode.altvideo && (
+                        <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Video Alt Text:</Typography>
+                          <Typography variant="body2">{viewGroupcode.altvideo}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </Box>
               </Box>
             </>
           )}

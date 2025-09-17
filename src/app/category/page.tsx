@@ -41,6 +41,7 @@ interface Category {
   _id?: string;
   name: string;
   image?: string;
+  altimg?: string;
 }
 
 const CategoryRow = React.memo(({ category, onEdit, onDelete, viewOnly }: {
@@ -67,6 +68,16 @@ const CategoryRow = React.memo(({ category, onEdit, onDelete, viewOnly }: {
         borderColor: 'divider'
       }}>
         {category.name}
+      </TableCell>
+      <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box>
+          <Typography variant="body1" fontWeight={500}>{category.name}</Typography>
+          {category.altimg && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+              {category.altimg}
+            </Typography>
+          )}
+        </Box>
       </TableCell>
       <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
         {category.image ? (
@@ -211,6 +222,30 @@ const CategoryForm = React.memo(({
             fullWidth 
             disabled={submitting || viewOnly}
             InputProps={{ readOnly: viewOnly }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '6px',
+                '& fieldset': {
+                  borderColor: 'divider',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          />
+          <TextField 
+            label="Image Alt Text" 
+            name="altimg" 
+            value={form.altimg || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            InputProps={{ readOnly: viewOnly }}
+            helperText="Alternative text for the category image (for accessibility)"
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '6px',
@@ -405,7 +440,7 @@ export default function CategoryPage() {
 
   const handleOpen = useCallback((category: Category | null = null) => {
     setEditId(category?._id || null);
-    setForm(category ? { ...category } : { name: "" });
+    setForm(category ? { ...category } : { name: "", altimg: "" });
     setImagePreview(category?.image || null);
     setOpen(true);
   }, []);
@@ -414,7 +449,7 @@ export default function CategoryPage() {
     setOpen(false);
     setEditId(null);
     setImagePreview(null);
-    setForm({ name: "" });
+    setForm({ name: "", altimg: "" });
     setFormError(null); // Clear form error when closing
   }, []);
 
@@ -467,6 +502,9 @@ export default function CategoryPage() {
     try {
       const formData = new FormData();
       formData.append("name", form.name);
+      if (form.altimg) {
+        formData.append("altimg", form.altimg);
+      }
       if (isFile(form.image)) {
         formData.append("image", form.image);
       }

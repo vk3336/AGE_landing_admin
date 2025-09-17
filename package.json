@@ -14,6 +14,7 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@mui/system": "^7.2.0",
+    "@tanstack/react-query": "^5.89.0",
     "cities-list": "^1.0.3",
     "cities.json": "^1.1.50",
     "country-data": "^0.0.31",

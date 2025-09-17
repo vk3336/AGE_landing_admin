@@ -113,6 +113,7 @@ function getCityPagePermission() {
 export default function CityPage() {
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [cities, setCities] = useState<City[]>([]);
+  const [filteredCities, setFilteredCities] = useState<City[]>([]);
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [states, setStates] = useState<StateOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,23 +148,43 @@ export default function CityPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _router = useRouter();
 
-  // Fetch cities
-  const fetchCities = useCallback(async () => {
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
+  // Fetch cities with pagination
+  const fetchCities = useCallback(async (page = 1, search = '') => {
     try {
       setLoading(true);
-      const res = await apiFetch('/cities');
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...(search && { search }),
+      });
+      
+      const res = await apiFetch(`/cities?${queryParams}`);
       const response = await res.json();
       
-      let citiesData: City[] = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.cities)) {
-        citiesData = response.data.cities;
-      } else if (Array.isArray(response)) {
-        citiesData = response;
-      } else if (response && response.data) {
-        citiesData = response.data.cities || [];
+      if (response && response.status === 'success' && response.data) {
+        const { cities, pagination: paginationData } = response.data;
+        setCities(cities);
+        setFilteredCities(cities);
+        
+        if (paginationData) {
+          setPagination(prev => ({
+            ...prev,
+            ...paginationData,
+            page: paginationData.page || page,
+            limit: paginationData.limit || prev.limit
+          }));
+        }
       }
-      
-      setCities(citiesData);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load cities';
       setError(errorMessage);
@@ -171,7 +192,7 @@ export default function CityPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pagination.limit]);
 
   // Fetch countries
   const fetchCountries = useCallback(async () => {
@@ -213,12 +234,21 @@ export default function CityPage() {
     }
   }, []);
 
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCities(1, searchTerm);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm, fetchCities]);
+
   // Load initial data
   useEffect(() => {
-    fetchCities();
+    fetchCities(pagination.page);
     fetchCountries();
     fetchStates();
-  }, [fetchCities, fetchCountries, fetchStates]);
+  }, [fetchCities, fetchCountries, fetchStates, pagination.page]);
 
   // Handle country change
   const handleCountryChange = (countryId: string) => {
@@ -339,7 +369,7 @@ export default function CityPage() {
       });
       
       resetForm();
-      fetchCities();
+      fetchCities(pagination.page, searchTerm);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save city';
       setError(errorMessage);
@@ -408,7 +438,12 @@ export default function CityPage() {
         });
         
         setDeleteId(null);
-        fetchCities();
+        // If this was the last item on the page and not the first page, go to previous page
+        if (filteredCities.length === 1 && pagination.page > 1) {
+          fetchCities(pagination.page - 1, searchTerm);
+        } else {
+          fetchCities(pagination.page, searchTerm);
+        }
         return;
       }
       
@@ -521,61 +556,109 @@ export default function CityPage() {
 
         {/* Cities table */}
         {!loading && !error && (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>State</TableCell>
-                  <TableCell>Country</TableCell>
-                  <TableCell>Slug</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {cities.length > 0 ? (
-                  cities.map((city) => (
-                    <TableRow key={city._id}>
-                      <TableCell>{city.name || '-'}</TableCell>
-                      <TableCell>{
-                        city.state && typeof city.state === 'object' ? city.state.name : 
-                        city.state_name || 'N/A'
-                      }</TableCell>
-                      <TableCell>{
-                        city.country && typeof city.country === 'object' ? city.country.name : 
-                        city.country_name || 'N/A'
-                      }</TableCell>
-                      <TableCell>{city.slug || '-'}</TableCell>
-                      <TableCell align="right">
-                        <IconButton
-                          color={pageAccess === 'only view' ? 'default' : 'primary'}
-                          onClick={() => handleEdit(city)}
-                          size="small"
-                          disabled={pageAccess === 'only view'}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          color={pageAccess === 'only view' ? 'default' : 'error'}
-                          onClick={() => handleDeleteClick(city._id)}
-                          size="small"
-                          disabled={pageAccess === 'only view'}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+          <>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>State</TableCell>
+                    <TableCell>Country</TableCell>
+                    <TableCell>Slug</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredCities.length > 0 ? (
+                    filteredCities.map((city) => (
+                      <TableRow key={city._id}>
+                        <TableCell>{city.name || '-'}</TableCell>
+                        <TableCell>{
+                          city.state && typeof city.state === 'object' ? city.state.name : 
+                          city.state_name || 'N/A'
+                        }</TableCell>
+                        <TableCell>{
+                          city.country && typeof city.country === 'object' ? city.country.name : 
+                          city.country_name || 'N/A'
+                        }</TableCell>
+                        <TableCell>{city.slug || '-'}</TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            color={pageAccess === 'only view' ? 'default' : 'primary'}
+                            onClick={() => handleEdit(city)}
+                            size="small"
+                            disabled={pageAccess === 'only view'}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            color={pageAccess === 'only view' ? 'default' : 'error'}
+                            onClick={() => handleDeleteClick(city._id)}
+                            size="small"
+                            disabled={pageAccess === 'only view'}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        {cities.length === 0 ? 'No cities available' : 'No matching cities found'}
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No cities found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            {/* Pagination */}
+            {pagination.total > 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 1 }}>
+                <Button 
+                  onClick={() => fetchCities(1, searchTerm)}
+                  disabled={pagination.page === 1}
+                  variant="outlined"
+                  size="small"
+                >
+                  First
+                </Button>
+                <Button 
+                  onClick={() => fetchCities(pagination.page - 1, searchTerm)}
+                  disabled={!pagination.hasPreviousPage}
+                  variant="outlined"
+                  size="small"
+                >
+                  Previous
+                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2 }}>
+                  Page {pagination.page} of {pagination.totalPages}
+                </Box>
+                <Button 
+                  onClick={() => fetchCities(pagination.page + 1, searchTerm)}
+                  disabled={!pagination.hasNextPage}
+                  variant="outlined"
+                  size="small"
+                >
+                  Next
+                </Button>
+                <Button 
+                  onClick={() => fetchCities(pagination.totalPages, searchTerm)}
+                  disabled={pagination.page === pagination.totalPages}
+                  variant="outlined"
+                  size="small"
+                >
+                  Last
+                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Total: {pagination.total} cities
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </>
         )}
 
         {/* Add/Edit City Form Dialog */}

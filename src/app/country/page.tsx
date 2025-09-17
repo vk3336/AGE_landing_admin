@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import apiFetch from '../../utils/apiFetch';
 import {
@@ -11,6 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import HomeIcon from '@mui/icons-material/Home';
 import PublicIcon from '@mui/icons-material/Public';
+import ClearIcon from '@mui/icons-material/Clear';
 
 interface Country {
   _id?: string;
@@ -1508,21 +1510,54 @@ export default function CountryPage() {
   const viewOnly = pageAccess === 'only view';
   const noAccess = pageAccess === 'no access';
 
+  // Add debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Update debounced search term after delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      // Reset to first page when search term changes
+      if (searchTerm !== debouncedSearchTerm) {
+        setPage(1);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, debouncedSearchTerm]);
+
   const fetchCountries = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/countries?page=${page}&limit=${itemsPerPage}${searchTerm ? `&search=${searchTerm}` : ''}`
-      );
+      let url = '/countries';
+      
+      // Use the search endpoint if there's a search term
+      if (debouncedSearchTerm.trim()) {
+        url = `/countries/search/${encodeURIComponent(debouncedSearchTerm.trim())}`;
+      } else {
+        // For the main listing, use pagination
+        url = `/countries?page=${page}&limit=${itemsPerPage}`;
+      }
+
+      const response = await apiFetch(url);
       const result = await response.json();
       
-      if (result && result.status === 'success' && result.data && Array.isArray(result.data.countries)) {
-        setCountries(result.data.countries);
-        setTotalPages(Math.ceil(result.results / itemsPerPage));
+      if (debouncedSearchTerm.trim()) {
+        // Handle search response
+        if (result.status === 1 && Array.isArray(result.data)) {
+          setCountries(result.data);
+          setTotalPages(1); // Search results are not paginated
+        } else {
+          setCountries([]);
+        }
       } else {
-        console.error('Unexpected API response format:', result);
-        setCountries([]);
-        setTotalPages(1);
+        // Handle normal paginated response
+        if (result.status === 'success' && result.data && Array.isArray(result.data.countries)) {
+          setCountries(result.data.countries);
+          setTotalPages(Math.ceil((result.data.pagination?.total || 0) / itemsPerPage));
+        } else {
+          setCountries([]);
+        }
       }
     } catch (err) {
       console.error('Error fetching countries:', err);
@@ -1532,11 +1567,10 @@ export default function CountryPage() {
         severity: 'error',
       });
       setCountries([]);
-      setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  }, [page, itemsPerPage, searchTerm]);
+  }, [page, itemsPerPage, debouncedSearchTerm]);
 
   useEffect(() => {
     setPageAccess(getCountryPagePermission());
@@ -1752,10 +1786,26 @@ export default function CountryPage() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setPage(1);
               }}
-              placeholder="Search by name or code..."
+              placeholder="Search by name..."
               sx={{ maxWidth: 400 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setSearchTerm('');
+                    }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                )
+              }}
             />
           </Box>
 

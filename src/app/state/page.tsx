@@ -34,7 +34,8 @@ import apiFetch from '../../utils/apiFetch';
 import {
   Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField,
-  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete
+  IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete,
+  Pagination, MenuItem
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 
@@ -253,6 +254,12 @@ export default function StatePage() {
   const [states, setStates] = useState<State[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 1,
+  });
   
   useEffect(() => {
     const access = getStatePagePermission();
@@ -309,32 +316,39 @@ export default function StatePage() {
   const [error, setError] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [viewOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch states
-  const fetchStates = useCallback(async () => {
+  const fetchStates = useCallback(async (page = 1, search = '') => {
     try {
       setLoading(true);
       console.log('Fetching states from API...');
-      const res = await apiFetch('/states');
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...(search && { search })
+      }).toString();
+      
+      const res = await apiFetch(`/states?${query}`);
       const response = await res.json();
       console.log('API response:', response);
       
-      // Handle the response structure: { status: 'success', results: number, data: { states: [...] } }
-      let statesData = [];
-      if (response && response.status === 'success' && response.data && Array.isArray(response.data.states)) {
-        statesData = response.data.states;
-      } else if (Array.isArray(response)) {
-        statesData = response;
-      } else if (response && Array.isArray(response.data)) {
-        statesData = response.data;
-      } else if (response && response.states) {
-        statesData = response.states;
-      } else if (response && response.data && response.data.states) {
-        statesData = response.data.states;
+      if (response && response.status === 'success' && response.data) {
+        const { states: statesData, pagination: paginationData } = response.data;
+        setStates(statesData || []);
+        
+        if (paginationData) {
+          setPagination(prev => ({
+            ...prev,
+            page: paginationData.page || 1,
+            total: paginationData.total || 0,
+            pages: paginationData.pages || 1,
+            limit: paginationData.limit || 10
+          }));
+        }
+      } else {
+        setStates([]);
       }
-      
-      console.log('Processed states data:', statesData);
-      setStates(statesData);
     } catch (error: unknown) {
       let errorMessage = 'Failed to load states';
       if (error instanceof Error) {
@@ -344,10 +358,11 @@ export default function StatePage() {
       }
       setError(errorMessage);
       console.error('Error fetching states:', error);
+      setStates([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pagination.limit]);
 
   // Fetch countries from API
   const fetchCountries = useCallback(async () => {
@@ -373,10 +388,24 @@ export default function StatePage() {
     }
   }, []);
 
+  // Debounce search
   useEffect(() => {
-    fetchStates();
+    const timer = setTimeout(() => {
+      fetchStates(1, searchTerm);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm, fetchStates]);
+  
+  // Initial load and page change
+  useEffect(() => {
+    fetchStates(pagination.page, searchTerm);
+  }, [pagination.page, fetchStates, searchTerm]);
+  
+  // Fetch countries on mount
+  useEffect(() => {
     fetchCountries();
-  }, [fetchCountries, fetchStates]);
+  }, [fetchCountries]);
 
   const handleStateChange = (event: React.SyntheticEvent, value: StateData | null) => {
     if (!value) return;
@@ -587,20 +616,59 @@ export default function StatePage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">States</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setForm({ name: '', code: '', country: '' });
-            setEditId(null);
-            setOpenForm(true);
-          }}
-          disabled={pageAccess === 'only view'}
-        >
-          Add State
-        </Button>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4">States</Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setForm({ name: '', code: '', country: '' });
+              setEditId(null);
+              setOpenForm(true);
+            }}
+            disabled={pageAccess === 'only view'}
+          >
+            Add State
+          </Button>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search states by name, code, or country..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              // Reset to first page when searching
+              setPagination(prev => ({ ...prev, page: 1 }));
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+            }}
+          />
+          <TextField
+            select
+            variant="outlined"
+            value={pagination.limit}
+            onChange={(e) => {
+              const newLimit = Number(e.target.value);
+              setPagination(prev => ({
+                ...prev,
+                limit: newLimit,
+                page: 1 // Reset to first page when changing page size
+              }));
+            }}
+            sx={{ minWidth: 100 }}
+          >
+            {[5, 10, 25, 50, 100].map((size) => (
+              <MenuItem key={size} value={size}>
+                {size} per page
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
       </Box>
 
       <TableContainer component={Paper}>
@@ -644,9 +712,44 @@ export default function StatePage() {
                 </TableCell>
               </TableRow>
             ))}
+            {states.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                  <Typography variant="subtitle1" color="textSecondary">
+                    No states found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+      
+      {/* Pagination */}
+      {pagination.pages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 3 }}>
+          <Pagination 
+            count={pagination.pages} 
+            page={pagination.page}
+            onChange={(_, page) => {
+              setPagination(prev => ({ ...prev, page }));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            color="primary"
+            showFirstButton
+            showLastButton
+            disabled={loading}
+          />
+        </Box>
+      )}
+      
+      {/* Pagination Info */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, mb: 2 }}>
+        <Typography variant="body2" color="textSecondary">
+          Showing {states.length > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0} to{' '}
+          {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} states
+        </Typography>
+      </Box>
 
       {/* State Form Dialog */}
       <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>

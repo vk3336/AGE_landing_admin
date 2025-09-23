@@ -970,6 +970,7 @@ export default function ProductPage() {
               onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
               fullWidth
               required
+              helperText="Enter the full name of the product as it should appear on the website"
               InputProps={{ readOnly: pageAccess === 'only view' }}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -1007,18 +1008,13 @@ export default function ProductPage() {
               onChange={(e) => setForm(prev => ({ ...prev, productdescription: e.target.value }))}
               fullWidth
               multiline
-              rows={3}
-              InputProps={{ 
-                readOnly: pageAccess === 'only view',
-                inputProps: { 
-                  style: { 
-                    minHeight: '80px'
-                  }
-                } 
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
+              rows={4}
+              helperText="Provide a detailed description of the product. Include key features, benefits, and any other relevant information."
+              InputProps={{ readOnly: pageAccess === 'only view' }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              inputProps={{
+                style: { 
+                  minHeight: '80px'
                 }
               }}
             />
@@ -1185,6 +1181,7 @@ export default function ProductPage() {
               value={form.gsm || ""}
               onChange={e => setForm(prev => ({ ...prev, gsm: e.target.value }))}
               fullWidth
+              helperText="Grams per square meter (fabric weight)"
               disabled={pageAccess === 'only view'}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />
@@ -1202,6 +1199,7 @@ export default function ProductPage() {
               value={form.cm || ""}
               onChange={e => setForm(prev => ({ ...prev, cm: e.target.value }))}
               fullWidth
+              helperText="Width in centimeters"
               disabled={pageAccess === 'only view'}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />
@@ -1211,14 +1209,16 @@ export default function ProductPage() {
               value={form.inch || ""}
               fullWidth
               disabled
+              helperText="Width in inches (auto-calculated from CM)"
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />
             <TextField
-              label="MOQ"
+              label="MOQ (Minimum Order Quantity)"
               type="number"
               value={form.quantity || ""}
               onChange={e => setForm(prev => ({ ...prev, quantity: e.target.value }))}
               fullWidth
+              helperText="Minimum order quantity required for purchase"
               disabled={pageAccess === 'only view'}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />

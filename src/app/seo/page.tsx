@@ -16,115 +16,554 @@ import { apiFetch } from '../../utils/apiFetch';
 // --- SEO Model Fields ---
 const SEO_FIELDS = [
   { section: "Basic Info" },
-  { key: "product", label: "Product", type: "select" },
-  { key: "purchasePrice", label: "Purchase Price", type: "number" },
-  { key: "salesPrice", label: "Sales Price", type: "number" },
-  { key: "leadtime", label: "Lead Time (days)", type: "number" },
-  { key: "location", label: "Location", type: "location" },
-  { key: "locationCode", label: "Location Code", type: "text" },
-  { key: "productIdentifier", label: "Product Identifier", type: "text" },
-  { key: "sku", label: "SKU", type: "text" },
-  { key: "productdescription", label: "Product Description", type: "textarea" },
-  { key: "popularproduct", label: "Popular Product", type: "checkbox" },
-  { key: "topratedproduct", label: "Top Rated Product", type: "checkbox" },
-  { key: "landingPageProduct", label: "Landing Page Product", type: "checkbox" },
-  { key: "shopyProduct", label: "Shopy Product", type: "checkbox" },
-  { key: "slug", label: "Slug", type: "text" },
+  { 
+    key: "product", 
+    label: "Product", 
+    type: "select",
+    helperText: "Select the product this SEO data is for"
+  },
+  { 
+    key: "purchasePrice", 
+    label: "Purchase Price", 
+    type: "number",
+    helperText: "Enter the wholesale or purchase price"
+  },
+  { 
+    key: "salesPrice", 
+    label: "Sales Price", 
+    type: "number",
+    helperText: "Enter the retail or selling price"
+  },
+  { 
+    key: "leadtime", 
+    label: "Lead Time (days)", 
+    type: "number",
+    helperText: "Estimated number of days to prepare and ship the product"
+  },
+  { 
+    key: "location", 
+    label: "Location", 
+    type: "location",
+    helperText: "Select the physical location of the product"
+  },
+  { 
+    key: "locationCode", 
+    label: "Location Code", 
+    type: "text",
+    helperText: "Unique code identifying the product's storage location"
+  },
+  { 
+    key: "productIdentifier", 
+    label: "Product Identifier", 
+    type: "text",
+    helperText: "Unique identifier for the product (e.g., model number, part number)"
+  },
+  { 
+    key: "sku", 
+    label: "SKU", 
+    type: "text",
+    helperText: "Stock Keeping Unit - unique code for inventory tracking"
+  },
+  { 
+    key: "productdescription", 
+    label: "Product Description", 
+    type: "textarea",
+    helperText: "Detailed description of the product's features and benefits"
+  },
+  { 
+    key: "popularproduct", 
+    label: "Popular Product", 
+    type: "checkbox",
+    helperText: "Check if this is one of your best-selling or most viewed products"
+  },
+  { 
+    key: "topratedproduct", 
+    label: "Top Rated Product", 
+    type: "checkbox",
+    helperText: "Check if this product has received excellent customer reviews"
+  },
+  { 
+    key: "landingPageProduct", 
+    label: "Landing Page Product", 
+    type: "checkbox",
+    helperText: "Feature this product on marketing landing pages"
+  },
+  { 
+    key: "shopyProduct", 
+    label: "Shopy Product", 
+    type: "checkbox",
+    helperText: "Include this product in Shopy marketplace listings"
+  },
+  { 
+    key: "slug", 
+    label: "Slug", 
+    type: "text",
+    helperText: "URL-friendly version of the product name (auto-generated if left blank)"
+  },
   
   { section: "Product Location" },
-  { key: "productlocationtitle", label: "Title", type: "text" },
-  { key: "productlocationtagline", label: "Tagline", type: "text" },
-  { key: "productlocationdescription1", label: "Description 1", type: "textarea", rows: 6 },
-  { key: "productlocationdescription2", label: "Description 2", type: "textarea", rows: 6 },
+  { 
+    key: "productlocationtitle", 
+    label: "Title", 
+    type: "text",
+    helperText: "Main heading for the product's location section"
+  },
+  { 
+    key: "productlocationtagline", 
+    label: "Tagline", 
+    type: "text",
+    helperText: "Short, catchy phrase about the product's location"
+  },
+  { 
+    key: "productlocationdescription1", 
+    label: "Description 1", 
+    type: "textarea", 
+    rows: 6,
+    helperText: "First paragraph of the location description (supports HTML formatting)"
+  },
+  { 
+    key: "productlocationdescription2", 
+    label: "Description 2", 
+    type: "textarea", 
+    rows: 6,
+    helperText: "Second paragraph of the location description (supports HTML formatting)"
+  },
   
   { section: "Page Meta" },
-  { key: "title", label: "Page Title", type: "text" },
-  { key: "description", label: "Meta Description", type: "textarea" },
-  { key: "keywords", label: "Keywords", type: "text" },
-  { key: "canonical_url", label: "Canonical URL", type: "text" },
-  { key: "robots", label: "Robots Meta", type: "text" },
-  { key: "viewport", label: "Viewport", type: "text" },
-  { key: "charset", label: "Charset", type: "text" },
-  { key: "xUaCompatible", label: "X-UA-Compatible", type: "text" },
-  { key: "contentLanguage", label: "Content Language", type: "text" },
-  { key: "themeColor", label: "Theme Color", type: "color" },
-  { key: "mobileWebAppCapable", label: "Mobile Web App Capable", type: "text" },
-  { key: "appleStatusBarStyle", label: "Apple Status Bar Style", type: "text" },
-  { key: "formatDetection", label: "Format Detection", type: "text" },
+  { 
+    key: "title", 
+    label: "Page Title", 
+    type: "text",
+    helperText: "Page title (50-60 characters recommended)",
+    maxLength: 60
+  },
+  { 
+    key: "description", 
+    label: "Meta Description", 
+    type: "textarea",
+    helperText: "Brief page summary (150-160 characters recommended)",
+    maxLength: 160
+  },
+  { 
+    key: "keywords", 
+    label: "Keywords", 
+    type: "text",
+    helperText: "Comma-separated list of relevant keywords"
+  },
+  { 
+    key: "canonical_url", 
+    label: "Canonical URL", 
+    type: "text",
+    helperText: "Preferred URL if this content appears in multiple places"
+  },
+  { 
+    key: "robots", 
+    label: "Robots Meta", 
+    type: "text",
+    helperText: "Search engine indexing instructions (e.g., index,follow or noindex,nofollow)"
+  },
+  { 
+    key: "viewport", 
+    label: "Viewport", 
+    type: "text",
+    helperText: "Controls viewport settings for mobile devices (e.g., width=device-width, initial-scale=1)",
+    defaultValue: "width=device-width, initial-scale=1"
+  },
+  { 
+    key: "charset", 
+    label: "Charset", 
+    type: "text",
+    helperText: "Character encoding (usually UTF-8)",
+    defaultValue: "UTF-8"
+  },
+  { 
+    key: "xUaCompatible", 
+    label: "X-UA-Compatible", 
+    type: "text",
+    helperText: "Forces IE to use the latest rendering engine",
+    defaultValue: "IE=edge"
+  },
+  { 
+    key: "contentLanguage", 
+    label: "Content Language", 
+    type: "text",
+    helperText: "Language of the content (e.g., en-US)",
+    defaultValue: "en-US"
+  },
+  { 
+    key: "themeColor", 
+    label: "Theme Color", 
+    type: "color",
+    helperText: "Color of browser UI elements on mobile devices"
+  },
+  { 
+    key: "mobileWebAppCapable", 
+    label: "Mobile Web App Capable", 
+    type: "text",
+    helperText: "Set to 'yes' to enable full-screen mode on iOS"
+  },
+  { 
+    key: "appleStatusBarStyle", 
+    label: "Apple Status Bar Style", 
+    type: "text",
+    helperText: "Style of iOS status bar (default, black, black-translucent)"
+  },
+  { 
+    key: "formatDetection", 
+    label: "Format Detection", 
+    type: "text",
+    helperText: "Controls automatic detection of phone numbers, addresses, etc.",
+    defaultValue: "telephone=no,date=no,address=no,email=no,url=no"
+  },
   
   { section: "OpenGraph" },
-  { key: "ogTitle", label: "OG Title", type: "text" },
-  { key: "ogDescription", label: "OG Description", type: "textarea" },
-  { key: "ogType", label: "OG Type", type: "text" },
-  { key: "ogSiteName", label: "OG Site Name", type: "text" },
-  { key: "ogUrl", label: "OG URL", type: "url" },
-  { key: "ogLocale", label: "OG Locale", type: "text" },
-  { key: "ogImage", label: "OG Image URL", type: "url" },
+  { 
+    key: "ogTitle", 
+    label: "OG Title", 
+    type: "text",
+    helperText: "Title for social media shares (auto-synced with page title)",
+    maxLength: 60
+  },
+  { 
+    key: "ogDescription", 
+    label: "OG Description", 
+    type: "textarea",
+    helperText: "Description for social media shares (2-4 sentences recommended)",
+    maxLength: 300
+  },
+  { 
+    key: "ogType", 
+    label: "OG Type", 
+    type: "text",
+    helperText: "Type of content (e.g., website, article, product, video)",
+    defaultValue: "website"
+  },
+  { 
+    key: "ogSiteName", 
+    label: "OG Site Name", 
+    type: "text",
+    helperText: "The name of your website or brand"
+  },
+  { 
+    key: "ogUrl", 
+    label: "OG URL", 
+    type: "url",
+    helperText: "The canonical URL of your page"
+  },
+  { 
+    key: "ogLocale", 
+    label: "OG Locale", 
+    type: "text",
+    helperText: "The locale of the content (e.g., en_US, en_GB)",
+    defaultValue: "en_US"
+  },
+  { 
+    key: "ogImage", 
+    label: "OG Image URL", 
+    type: "url",
+    helperText: "URL of the image to display when shared (1200x630px recommended)"
+  },
   
   { section: "OpenGraph Video" },
-  { key: "ogVideoUrl", label: "Video URL", type: "url" },
-  { key: "ogVideoSecureUrl", label: "Secure Video URL", type: "url" },
-  { key: "ogVideoType", label: "Video Type", type: "text" },
-  { key: "ogVideoWidth", label: "Video Width", type: "number" },
-  { key: "ogVideoHeight", label: "Video Height", type: "number" },
+  { 
+    key: "ogVideoUrl", 
+    label: "Video URL", 
+    type: "url",
+    helperText: "URL to the video file"
+  },
+  { 
+    key: "ogVideoSecureUrl", 
+    label: "Secure Video URL", 
+    type: "url",
+    helperText: "HTTPS URL to the video file"
+  },
+  { 
+    key: "ogVideoType", 
+    label: "Video Type", 
+    type: "text",
+    helperText: "MIME type of the video (e.g., video/mp4, video/quicktime)"
+  },
+  { 
+    key: "ogVideoWidth", 
+    label: "Video Width", 
+    type: "number",
+    helperText: "Width of the video in pixels"
+  },
+  { 
+    key: "ogVideoHeight", 
+    label: "Video Height", 
+    type: "number",
+    helperText: "Height of the video in pixels"
+  },
   
   { section: "Twitter" },
-  { key: "twitterCard", label: "Card Type", type: "text" },
-  { key: "twitterSite", label: "Twitter @username", type: "text" },
-  { key: "twitterTitle", label: "Title", type: "text" },
-  { key: "twitterDescription", label: "Description", type: "textarea" },
-  { key: "twitterImage", label: "Image URL", type: "url" },
-  { key: "twitterPlayer", label: "Player URL", type: "url" },
-  { key: "twitterPlayerWidth", label: "Player Width", type: "number" },
-  { key: "twitterPlayerHeight", label: "Player Height", type: "number" },
+  { 
+    key: "twitterCard", 
+    label: "Card Type", 
+    type: "text",
+    helperText: "Type of Twitter card (summary, summary_large_image, player, or app)",
+    defaultValue: "summary_large_image"
+  },
+  { 
+    key: "twitterSite", 
+    label: "Twitter @username", 
+    type: "text",
+    helperText: "Your Twitter @username (without the @ symbol)"
+  },
+  { 
+    key: "twitterTitle", 
+    label: "Title", 
+    type: "text",
+    helperText: "Title for Twitter card (max 70 characters)",
+    maxLength: 70
+  },
+  { 
+    key: "twitterDescription", 
+    label: "Description", 
+    type: "textarea",
+    helperText: "Description for Twitter card (max 200 characters)",
+    maxLength: 200
+  },
+  { 
+    key: "twitterImage", 
+    label: "Image URL", 
+    type: "url",
+    helperText: "Image to display in Twitter card (1200x628px recommended)"
+  },
+  { 
+    key: "twitterPlayer", 
+    label: "Player URL", 
+    type: "url",
+    helperText: "URL to media player (for player cards)"
+  },
+  { 
+    key: "twitterPlayerWidth", 
+    label: "Player Width", 
+    type: "number",
+    helperText: "Width of the player in pixels"
+  },
+  { 
+    key: "twitterPlayerHeight", 
+    label: "Player Height", 
+    type: "number",
+    helperText: "Height of the player in pixels"
+  },
   
   { section: "JSON-LD" },
-  { key: "VideoJsonLd", label: "Video JSON-LD", type: "textarea" },
+  { 
+    key: "VideoJsonLd", 
+    label: "Video JSON-LD", 
+    type: "textarea",
+    helperText: "Structured data for video content in JSON-LD format"
+  },
   
   { section: "Logo JSON-LD" },
-  { key: "LogoJsonLd", label: "Logo JSON-LD", type: "textarea" },
-  { key: "LogoJsonLdcontext", label: "@context", type: "text" },
-  { key: "LogoJsonLdtype", label: "@type", type: "text" },
-  { key: "logoJsonLdurl", label: "URL", type: "url" },
-  { key: "logoJsonLdwidth", label: "Width", type: "text" },
-  { key: "logoJsonLdheight", label: "Height", type: "text" },
+  { 
+    key: "LogoJsonLd", 
+    label: "Logo JSON-LD", 
+    type: "textarea",
+    helperText: "Structured data for organization logo in JSON-LD format"
+  },
+  { 
+    key: "LogoJsonLdcontext", 
+    label: "@context", 
+    type: "text",
+    helperText: "The context for the JSON-LD (usually https://schema.org)",
+    defaultValue: "https://schema.org"
+  },
+  { 
+    key: "LogoJsonLdtype", 
+    label: "@type", 
+    type: "text",
+    helperText: "The type of the item (usually Organization)",
+    defaultValue: "Organization"
+  },
+  { 
+    key: "logoJsonLdurl", 
+    label: "Logo URL", 
+    type: "url",
+    helperText: "URL of the logo image"
+  },
+  { 
+    key: "logoJsonLdwidth", 
+    label: "Logo Width", 
+    type: "text",
+    helperText: "Width of the logo in pixels"
+  },
+  { 
+    key: "logoJsonLdheight", 
+    label: "Logo Height", 
+    type: "text",
+    helperText: "Height of the logo in pixels"
+  },
   
   { section: "Breadcrumb JSON-LD" },
-  { key: "BreadcrumbJsonLd", label: "Breadcrumb JSON-LD", type: "textarea" },
-  { key: "BreadcrumbJsonLdtype", label: "@type", type: "text" },
-  { key: "BreadcrumbJsonLdcontext", label: "@context", type: "text" },
-  { key: "BreadcrumbJsonLdname", label: "Name", type: "text" },
-  { key: "BreadcrumbJsonLditemListElement", label: "Item List Element", type: "textarea" },
+  { 
+    key: "BreadcrumbJsonLd", 
+    label: "Breadcrumb JSON-LD", 
+    type: "textarea",
+    helperText: "Structured data for breadcrumb navigation in JSON-LD format"
+  },
+  { 
+    key: "BreadcrumbJsonLdtype", 
+    label: "@type", 
+    type: "text",
+    helperText: "The type of the item (usually BreadcrumbList)",
+    defaultValue: "BreadcrumbList"
+  },
+  { 
+    key: "BreadcrumbJsonLdcontext", 
+    label: "@context", 
+    type: "text",
+    helperText: "The context for the JSON-LD (usually https://schema.org)",
+    defaultValue: "https://schema.org"
+  },
+  { 
+    key: "BreadcrumbJsonLdname", 
+    label: "Name", 
+    type: "text",
+    helperText: "Name of the breadcrumb list"
+  },
+  { 
+    key: "BreadcrumbJsonLditemListElement", 
+    label: "Item List Element", 
+    type: "textarea",
+    helperText: "Array of breadcrumb items in JSON format"
+  },
   
   { section: "Local Business JSON-LD" },
-  { key: "LocalBusinessJsonLd", label: "Local Business JSON-LD", type: "textarea" },
-  { key: "LocalBusinessJsonLdtype", label: "@type", type: "text" },
-  { key: "LocalBusinessJsonLdcontext", label: "@context", type: "text" },
-  { key: "LocalBusinessJsonLdname", label: "Business Name", type: "text" },
-  { key: "LocalBusinessJsonLdtelephone", label: "Telephone", type: "tel" },
-  { key: "LocalBusinessJsonLdareaserved", label: "Area Served", type: "text" },
+  { 
+    key: "LocalBusinessJsonLd", 
+    label: "Local Business JSON-LD", 
+    type: "textarea",
+    helperText: "Structured data for local business information in JSON-LD format"
+  },
+  { 
+    key: "LocalBusinessJsonLdtype", 
+    label: "@type", 
+    type: "text",
+    helperText: "The type of business (e.g., Store, Restaurant, LocalBusiness)",
+    defaultValue: "Store"
+  },
+  { 
+    key: "LocalBusinessJsonLdcontext", 
+    label: "@context", 
+    type: "text",
+    helperText: "The context for the JSON-LD (usually https://schema.org)",
+    defaultValue: "https://schema.org"
+  },
+  { 
+    key: "LocalBusinessJsonLdname", 
+    label: "Business Name", 
+    type: "text",
+    helperText: "The name of your business"
+  },
+  { 
+    key: "LocalBusinessJsonLdtelephone", 
+    label: "Telephone", 
+    type: "tel",
+    helperText: "Business phone number in international format"
+  },
+  { 
+    key: "LocalBusinessJsonLdareaserved", 
+    label: "Area Served", 
+    type: "text",
+    helperText: "Geographic areas where the business provides service"
+  },
   
   { section: "Local Business Address" },
-  { key: "LocalBusinessJsonLdaddress", label: "Address JSON", type: "textarea" },
-  { key: "LocalBusinessJsonLdaddresstype", label: "Address @type", type: "text" },
-  { key: "LocalBusinessJsonLdaddressstreetAddress", label: "Street Address", type: "text" },
-  { key: "LocalBusinessJsonLdaddressaddressLocality", label: "Locality", type: "text" },
-  { key: "LocalBusinessJsonLdaddressaddressRegion", label: "Region", type: "text" },
-  { key: "LocalBusinessJsonLdaddresspostalCode", label: "Postal Code", type: "text" },
-  { key: "LocalBusinessJsonLdaddressaddressCountry", label: "Country", type: "text" },
+  { 
+    key: "LocalBusinessJsonLdaddress", 
+    label: "Address JSON", 
+    type: "textarea",
+    helperText: "Complete address information in JSON format"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddresstype", 
+    label: "Address @type", 
+    type: "text",
+    helperText: "The type of the address (usually PostalAddress)",
+    defaultValue: "PostalAddress"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddressstreetAddress", 
+    label: "Street Address", 
+    type: "text",
+    helperText: "Street number and name"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddressaddressLocality", 
+    label: "Locality", 
+    type: "text",
+    helperText: "City or town name"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddressaddressRegion", 
+    label: "Region", 
+    type: "text",
+    helperText: "State or province (use 2-letter code if in US/Canada)"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddresspostalCode", 
+    label: "Postal Code", 
+    type: "text",
+    helperText: "ZIP or postal code"
+  },
+  { 
+    key: "LocalBusinessJsonLdaddressaddressCountry", 
+    label: "Country", 
+    type: "text",
+    helperText: "ISO 3166-1 alpha-2 country code (e.g., US, CA, GB)"
+  },
   
   { section: "Local Business Geo" },
-  { key: "LocalBusinessJsonLdgeo", label: "Geo JSON", type: "textarea" },
-  { key: "LocalBusinessJsonLdgeotype", label: "Geo @type", type: "text" },
-  { key: "LocalBusinessJsonLdgeolatitude", label: "Latitude", type: "text" },
-  { key: "LocalBusinessJsonLdgeolongitude", label: "Longitude", type: "text" },
+  { 
+    key: "LocalBusinessJsonLdgeo", 
+    label: "Geo JSON", 
+    type: "textarea",
+    helperText: "Geographic coordinates in JSON format"
+  },
+  { 
+    key: "LocalBusinessJsonLdgeotype", 
+    label: "Geo @type", 
+    type: "text",
+    helperText: "The type of the geographic coordinates (usually GeoCoordinates)",
+    defaultValue: "GeoCoordinates"
+  },
+  { 
+    key: "LocalBusinessJsonLdgeolatitude", 
+    label: "Latitude", 
+    type: "text",
+    helperText: "The latitude of the business location (e.g., 37.42242)"
+  },
+  { 
+    key: "LocalBusinessJsonLdgeolongitude", 
+    label: "Longitude", 
+    type: "text",
+    helperText: "The longitude of the business location (e.g., -122.08585)"
+  },
   
   { section: "Verification" },
-  { key: "googleSiteVerification", label: "Google Site Verification", type: "text" },
-  { key: "msValidate", label: "Bing Webmaster Tools", type: "text" },
+  { 
+    key: "googleSiteVerification", 
+    label: "Google Site Verification", 
+    type: "text",
+    helperText: "Google Search Console verification code"
+  },
+  { 
+    key: "msValidate", 
+    label: "Bing Webmaster Tools", 
+    type: "text",
+    helperText: "Bing Webmaster Tools verification code"
+  },
   
   { section: "Miscellaneous" },
-  { key: "excerpt", label: "Excerpt", type: "textarea" },
+  { 
+    key: "excerpt", 
+    label: "Excerpt", 
+    type: "textarea",
+    helperText: "A short summary of the page content"
+  },
   { key: "description_html", label: "Description HTML", type: "textarea" },
   { key: "rating_value", label: "Rating Value (1-5)", type: "number", min: 0, max: 5 },
   { key: "rating_count", label: "Rating Count", type: "number", min: 0 },
@@ -813,7 +1252,14 @@ function SeoPage() {
                     }
                     onChange={(_event: React.SyntheticEvent, value: { label: string; value: string; img?: string } | null) => handleProductChange(_event, value)}
                     renderInput={(params) => (
-                      <TextField {...params} label={field.label} name={field.key} required disabled={pageAccess === 'only view'} />
+                      <TextField 
+                        {...params} 
+                        label={field.label} 
+                        name={field.key} 
+                        helperText={field.helperText || ''}
+                        required 
+                        disabled={pageAccess === 'only view'} 
+                      />
                     )}
                     renderOption={(props, option, { index }) => (
                       <ListItem {...props} key={option.value || option.label || index}>
@@ -847,6 +1293,7 @@ function SeoPage() {
                         {...params}
                         label={field.label}
                         name={field.key}
+                        helperText={field.helperText || ''}
                         variant="outlined"
                         fullWidth
                       />
@@ -861,8 +1308,17 @@ function SeoPage() {
                 <FormControlLabel
                   key={field.key}
                   control={<Checkbox checked={!!form[field.key]} onChange={handleChange} name={field.key} />}
-                  label={field.label}
-                  sx={{ minWidth: 220 }}
+                  label={
+                    <Box>
+                      <div>{field.label}</div>
+                      {field.helperText && (
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}>
+                          {field.helperText}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
+                  sx={{ minWidth: 220, alignItems: 'flex-start' }}
                   disabled={pageAccess === 'only view'}
                 />
                 );
@@ -881,6 +1337,13 @@ function SeoPage() {
                   label={field.label}
                   name={field.key}
                   value={displayValue}
+                  helperText={
+                    field.key === 'ogTitle' 
+                      ? 'This field is synchronized with the Page Title' 
+                      : field.key === 'openGraph.images' 
+                        ? 'Separate multiple images with commas' 
+                        : field.helperText || ''
+                  }
                   onChange={e => {
                     if (!field.key) return;
                     
@@ -948,8 +1411,6 @@ function SeoPage() {
                     }
                   }}
                   disabled={pageAccess === 'only view' || field.key === 'ogTitle'}
-                  helperText={field.key === 'ogTitle' ? 'This field is synchronized with the Page Title' : 
-                            field.key === 'openGraph.images' ? 'Separate multiple images with commas' : ''}
                   InputProps={field.key === 'ogTitle' ? {
                     readOnly: true,
                   } : undefined}

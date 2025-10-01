@@ -29,6 +29,11 @@ interface OfficeInformation {
   clarityId: string;
   companyLogoUrl: string;
   microsofttoken: string;
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  linkedin?: string;
+  twitter?: string;
 }
 
 const OfficeInfoRow = React.memo(({ office, onEdit, onDelete, onView, viewOnly }: {
@@ -137,6 +142,80 @@ const ViewOfficeDetails = ({ open, onClose, office }: { open: boolean; onClose: 
               </Box>
             )}
             <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 3 }}>Social Media</Typography>
+              <Divider sx={{ mb: 2 }} />
+              {(office.facebook || office.instagram || office.youtube || office.linkedin || office.twitter) ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                  {office.facebook && (
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      href={office.facebook} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>f</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Facebook
+                    </Button>
+                  )}
+                  {office.instagram && (
+                    <Button 
+                      variant="outlined" 
+                      color="secondary" 
+                      href={office.instagram} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>📷</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Instagram
+                    </Button>
+                  )}
+                  {office.youtube && (
+                    <Button 
+                      variant="outlined" 
+                      color="error" 
+                      href={office.youtube} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>▶️</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      YouTube
+                    </Button>
+                  )}
+                  {office.linkedin && (
+                    <Button 
+                      variant="outlined" 
+                      color="info" 
+                      href={office.linkedin} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>in</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      LinkedIn
+                    </Button>
+                  )}
+                  {office.twitter && (
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      href={office.twitter} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>𝕏</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Twitter
+                    </Button>
+                  )}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>No social media links added</Typography>
+              )}
+              
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 3 }}>Integration Details</Typography>
               <Divider sx={{ mb: 2 }} />
               <Box sx={{ mb: 2 }}>
@@ -340,7 +419,62 @@ const OfficeInfoForm = React.memo(({
           </FormControl>
           <TextField label="Google Analytics ID" name="gaId" value={form.gaId} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
           <TextField label="Clarity ID" name="clarityId" value={form.clarityId} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Logo URL" name="companyLogoUrl" value={form.companyLogoUrl} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
+          <TextField 
+            label="Logo URL" 
+            name="companyLogoUrl" 
+            value={form.companyLogoUrl} 
+            onChange={handleChange} 
+            required 
+            fullWidth 
+            disabled={submitting || viewOnly} 
+            sx={{ gridColumn: '1 / -1' }}
+          />
+          <TextField 
+            label="Facebook URL" 
+            name="facebook" 
+            value={form.facebook || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            placeholder="https://facebook.com/yourpage"
+          />
+          <TextField 
+            label="Instagram URL" 
+            name="instagram" 
+            value={form.instagram || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            placeholder="https://instagram.com/yourpage"
+          />
+          <TextField 
+            label="YouTube URL" 
+            name="youtube" 
+            value={form.youtube || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            placeholder="https://youtube.com/yourchannel"
+          />
+          <TextField 
+            label="LinkedIn URL" 
+            name="linkedin" 
+            value={form.linkedin || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            placeholder="https://linkedin.com/company/yourcompany"
+          />
+          <TextField 
+            label="Twitter URL" 
+            name="twitter" 
+            value={form.twitter || ''} 
+            onChange={handleChange} 
+            fullWidth 
+            disabled={submitting || viewOnly}
+            placeholder="https://twitter.com/yourhandle"
+            sx={{ gridColumn: '1 / -1' }}
+          />
           
           {error && (
             <Typography sx={{ color: 'error.main', mt: 1, gridColumn: '1 / -1' }}>{error}</Typography>

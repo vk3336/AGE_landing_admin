@@ -568,8 +568,8 @@ function getUsersPagePermission() {
   const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
   if (email && superAdmin && email === superAdmin) return 'all access';
   const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
-  if (perms && perms.users) {
-    return perms.users;
+  if (perms && perms.filter) {
+    return perms.filter;
   }
   return 'no access';
 }

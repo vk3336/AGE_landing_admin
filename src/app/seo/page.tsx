@@ -12,6 +12,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Avatar } from '@mui/material';
 import { Pagination } from '@mui/material';
 import { apiFetch } from '../../utils/apiFetch';
+import Image from 'next/image';
 
 // --- SEO Model Fields ---
 const SEO_FIELDS = [
@@ -2605,16 +2606,20 @@ function SeoPage() {
                     else if (field.key.toLowerCase().includes('image') && typeof value === 'string' && (value.startsWith('http') || value.startsWith('/images/'))) {
                       displayValue = (
                         <Box sx={{ mt: 1 }}>
-                          <img 
-                            src={value.startsWith('http') ? value : `${API_URL}${value}`} 
-                            alt={field.label}
-                            style={{ 
-                              maxWidth: '100%', 
-                              maxHeight: '200px',
-                              borderRadius: '4px',
-                              border: '1px solid #eee'
-                            }} 
-                          />
+                          <Box sx={{ position: 'relative', width: '100%', height: '200px' }}>
+                            <Image 
+                              src={value.startsWith('http') ? value : `${API_URL}${value}`}
+                              alt={field.label}
+                              fill
+                              style={{ 
+                                objectFit: 'contain',
+                                borderRadius: '4px',
+                                border: '1px solid #e0e0e0'
+                              }}
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                              loading="lazy"
+                            />
+                          </Box>
                           <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
                             {value}
                           </Typography>

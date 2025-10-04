@@ -88,6 +88,7 @@ const filterModels = [
   { name: "Groupcode", path: "/groupcode" },
   { name: "Location", path: "/location" },
   { name: "Motif", path: "/motif" },
+  { name: "Shofy Users", path: "/shofy-users" },
   { name: "State", path: "/state" },
   { name: "Structure", path: "/structure" },
   { name: "Subfinish", path: "/subfinish" },

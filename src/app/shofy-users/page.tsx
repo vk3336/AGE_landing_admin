@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Divider, List, ListItem, ListItemIcon, ListItemText
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, Divider, List, ListItem, ListItemIcon, ListItemText
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -17,7 +17,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { apiFetch } from '../../utils/apiFetch';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
-import { SelectChangeEvent } from '@mui/material/Select';
 
 interface User {
   _id?: string;
@@ -25,7 +24,6 @@ interface User {
   email: string;
   phone?: string;
   userImage?: string;
-  role?: string;
   organisation?: string;
   companytaxid?: string;
   address?: string;
@@ -127,29 +125,25 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
           </Avatar>
         </Box>
         <Box>
-          <Typography variant="subtitle1" fontWeight={600}>{user.name}</Typography>
+          <Typography variant="subtitle2" fontWeight={600} color="text.primary">
+            {user.name || 'No Name'}
+          </Typography>
           <Typography variant="body2" color="text.secondary">{user.email}</Typography>
         </Box>
       </Box>
     </TableCell>
     <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.phone || 'N/A'}</TableCell>
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-      <Box 
-        sx={{
-          display: 'inline-block',
-          px: 1.5,
-          py: 0.5,
-          borderRadius: 4,
-          backgroundColor: user.role === 'admin' ? '#e3f2fd' : 
-                          user.role === 'manager' ? '#e8f5e9' : '#f3e5f5',
-          color: user.role === 'admin' ? '#1565c0' : 
-                user.role === 'manager' ? '#2e7d32' : '#7b1fa2',
-          fontWeight: 500,
-          fontSize: '0.75rem',
-          textTransform: 'capitalize'
-        }}
-      >
-        {user.role || 'User'}
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.organisation || 'N/A'}</TableCell>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.companytaxid || 'N/A'}</TableCell>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', maxWidth: '200px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {user.address && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.address}</Typography>}
+        {user.city && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.city}</Typography>}
+        {user.state && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.state}</Typography>}
+        {user.country && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.country}</Typography>}
+        {user.pincode && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.pincode}</Typography>}
+        {!user.address && !user.city && !user.state && !user.country && !user.pincode && 
+          <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>N/A</Typography>}
       </Box>
     </TableCell>
     <TableCell>
@@ -214,25 +208,15 @@ const UserForm = React.memo(({
   onRemoveImage: () => void;
 }) => {
   // Create a typed change handler for form fields
-  const createChangeHandler = (field: keyof Omit<User, '_id'>) => {
+  const createChangeHandler = useCallback((field: keyof Omit<User, '_id'>) => {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { value } = e.target;
       setForm(prev => ({
         ...prev,
-        [field]: value
+        [field]: e.target.value
       }));
     };
-  };
+  }, [setForm]);
   
-  // Specific handler for Select components
-  const handleSelectChange = (field: keyof Omit<User, '_id'>) => 
-    (event: SelectChangeEvent<string>) => {
-      setForm(prev => ({
-        ...prev,
-        [field]: event.target.value
-      }));
-    };
-
   if (!open) return null;
 
   return (
@@ -305,28 +289,13 @@ const UserForm = React.memo(({
                 label="Phone"
                 name="phone"
                 value={form.phone || ''}
-                onChange={createChangeHandler('name')}
+                onChange={createChangeHandler('phone')}
                 fullWidth
                 disabled={submitting || viewOnly}
                 InputProps={{ readOnly: viewOnly }}
               />
-              <FormControl fullWidth disabled={submitting || viewOnly}>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  name="role"
-                  value={form.role || 'user'}
-                  label="Role"
-                  onChange={handleSelectChange('role')}
-                  disabled={submitting || viewOnly}
-                >
-                  <MenuItem value="user">User</MenuItem>
-                  <MenuItem value="admin">Admin</MenuItem>
-                  <MenuItem value="manager">Manager</MenuItem>
-                </Select>
-              </FormControl>
             </Box>
           </Box>
-          
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 2 }}>
             <TextField
               label="Organization"
@@ -464,9 +433,6 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
           <Typography variant="h5" fontWeight={700} gutterBottom>
             {user.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {user.role || 'User'}
-          </Typography>
         </Box>
 
         <Divider sx={{ my: 2 }} />
@@ -584,7 +550,6 @@ export default function ShopyUsersPage() {
   const [form, setForm] = useState<Omit<User, '_id'>>({ 
     name: '',
     email: '',
-    role: 'user',
     userImage: '',
     phone: '',
     organisation: '',
@@ -598,38 +563,73 @@ export default function ShopyUsersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const rowsPerPage = 10;
 
-  const fetchUsers = useCallback(async (searchTerm = '') => {
+  const fetchUsers = useCallback(async (searchTerm = '', currentPage = 1) => {
     try {
       setIsLoading(true);
-      const url = searchTerm 
-        ? `/users/search/${encodeURIComponent(searchTerm)}`
-        : '/users';
+      const url = '/users';
+      const params = new URLSearchParams();
       
-      const res = await apiFetch(url);
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      
+      // Add pagination parameters
+      params.append('page', currentPage.toString());
+      params.append('limit', rowsPerPage.toString());
+      
+      const queryString = params.toString();
+      const fullUrl = `${url}?${queryString}`;
+      
+      const res = await apiFetch(fullUrl);
       const data = await res.json();
-      setUsers(data.data || []);
+      
+      if (data.success) {
+        setUsers(data.data || []);
+        // Update total users count if provided by the backend
+        if (data.total !== undefined) {
+          setTotalUsers(data.total);
+        } else {
+          // Fallback to the length of returned data if total is not provided
+          setTotalUsers(data.data?.length || 0);
+        }
+      } else {
+        setError(data.message || 'Failed to fetch users');
+        setUsers([]);
+        setTotalUsers(0);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
+      setError('Failed to connect to the server');
       setUsers([]);
+      setTotalUsers(0);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [rowsPerPage]);
 
   // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchUsers(search);
-      setPage(1); // Reset to first page on search
+      if (search.trim() === '' || search.length >= 2) {
+        // When searching, reset to first page and fetch with search term
+        setPage(1);
+        fetchUsers(search.trim(), 1);
+      }
     }, 500);
 
     return () => clearTimeout(timer);
   }, [search, fetchUsers]);
+  
+  // Handle page change
+  useEffect(() => {
+    fetchUsers(search.trim(), page);
+  }, [page, fetchUsers, search]);
 
   // Initial data fetch and permission check
   useEffect(() => {
@@ -638,7 +638,7 @@ export default function ShopyUsersPage() {
       setPageAccess(permission);
       
       if (permission !== 'no access') {
-        await fetchUsers();
+        await fetchUsers('', 1);
       }
     };
     
@@ -871,22 +871,13 @@ export default function ShopyUsersPage() {
           >
             <Table>
               <TableHead>
-                <TableRow sx={{ 
-                  backgroundColor: '#f5f7fa',
-                  '& th': {
-                    fontWeight: 700,
-                    color: '#2d3748',
-                    borderBottom: '2px solid #e2e8f0',
-                    backgroundColor: '#f8fafc',
-                    fontSize: '0.9rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }
-                }}>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 700 }}>User</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Contact</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Role</TableCell>
-                  <TableCell sx={{ fontWeight: 700, width: 120 }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Organization</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Tax ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Address</TableCell>
+                  <TableCell sx={{ fontWeight: 700, width: 160 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -915,15 +906,16 @@ export default function ShopyUsersPage() {
           </TableContainer>
 
           {/* Pagination */}
-          {users.length > rowsPerPage && (
+          {totalUsers > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
               <Pagination
-                count={Math.ceil(users.length / rowsPerPage)}
+                count={Math.ceil(totalUsers / rowsPerPage)}
                 page={page}
                 onChange={(e, value) => setPage(value)}
                 color="primary"
                 showFirstButton
                 showLastButton
+                disabled={isLoading}
               />
             </Box>
           )}

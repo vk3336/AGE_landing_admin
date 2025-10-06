@@ -1,21 +1,21 @@
 "use client";
 import React, { useMemo, useCallback, useState, useEffect, createContext, useContext } from "react";
 import NextLink from "next/link";
-import { 
-  Box, 
-  Drawer, 
-  List, 
-  ListItemText, 
-  Collapse, 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  IconButton, 
-  ListItemIcon, 
-  ListItemButton, 
-  Badge, 
-  Menu, 
-  MenuItem, 
+import {
+  Box,
+  Drawer,
+  List,
+  ListItemText,
+  Collapse,
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  ListItemIcon,
+  ListItemButton,
+  Badge,
+  Menu,
+  MenuItem,
   Divider,
 } from "@mui/material";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -53,16 +53,16 @@ const useSidebar = () => {
 
 const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+
   const toggleSidebar = useCallback(() => {
     setIsCollapsed(prev => !prev);
   }, []);
-  
+
   const value = useMemo(() => ({
     isCollapsed,
     toggleSidebar,
   }), [isCollapsed, toggleSidebar]);
-  
+
   return (
     <SidebarContext.Provider value={value}>
       {children}
@@ -173,7 +173,7 @@ const Sidebar = React.memo(() => {
   const pathname = usePathname();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const { isCollapsed } = useSidebar();
-  
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const email = localStorage.getItem('admin-email');
@@ -204,12 +204,15 @@ const Sidebar = React.memo(() => {
           borderColor: 'divider',
           transition: 'width 0.3s ease',
           overflowX: 'hidden',
+          '&::-webkit-scrollbar': { width: 6 },
+          '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 8 },
+          '&::-webkit-scrollbar-thumb:hover': { backgroundColor: 'rgba(0,0,0,0.25)' },
         }
       }}
     >
       {/* Logo Section */}
-      <Box sx={{ 
-        p: isCollapsed ? 1 : 3, 
+      <Box sx={{
+        p: isCollapsed ? 1 : 3,
         borderBottom: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
@@ -224,14 +227,14 @@ const Sidebar = React.memo(() => {
           </Avatar>
         ) : (
           <Box>
-            <Typography variant="h6" sx={{ 
-              color: 'text.primary', 
+            <Typography variant="h6" sx={{
+              color: 'text.primary',
               fontWeight: 600,
               fontSize: '16px'
             }}>
               Admin Panel
             </Typography>
-            <Typography variant="caption" sx={{ 
+            <Typography variant="caption" sx={{
               color: 'text.secondary',
               fontSize: '12px'
             }}>
@@ -242,334 +245,383 @@ const Sidebar = React.memo(() => {
       </Box>
 
       {/* Navigation Menu */}
-      <Box sx={{ overflow: 'auto', py: 2 }}>
-        <List sx={{ px: isCollapsed ? 0.5 : 2 }}>
+      <Box sx={{ overflow: 'auto', py: 1 }}>
+        <List sx={{ px: isCollapsed ? 0.5 : 1.5 }}>
           {/* Dashboard */}
-          <ListItemButton 
-            component={NextLink} 
-            href="/dashboard" 
+          <ListItemButton
+            component={NextLink}
+            href="/dashboard"
             sx={{
-              borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: isCollapsed ? 0 : 2,
-              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              minHeight: 48,
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
               ...(pathname === '/dashboard' && {
                 backgroundColor: 'primary.main',
                 color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                 '&:hover': {
                   backgroundColor: 'primary.dark',
                 }
               }),
               '&:hover': {
                 backgroundColor: pathname === '/dashboard' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/dashboard' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
               },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: pathname === '/dashboard' ? 'white' : 'text.secondary', 
-              minWidth: 0, 
-              mr: isCollapsed ? 0 : 2,
+            <ListItemIcon sx={{
+              color: pathname === '/dashboard' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
               justifyContent: 'center',
               display: 'flex'
             }}>
               <DashboardIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="Dashboard" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
-                    fontSize: '14px',
+              <ListItemText
+                primary="Dashboard"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
           </ListItemButton>
-          
+
           {/* Products */}
-          <ListItemButton 
-            component={NextLink} 
-            href="/products" 
+          <ListItemButton
+            component={NextLink}
+            href="/products"
             sx={{
-              borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: isCollapsed ? 0 : 2,
-              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              minHeight: 48,
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
               ...(pathname === '/products' && {
                 backgroundColor: 'primary.main',
                 color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                 '&:hover': {
                   backgroundColor: 'primary.dark',
                 }
               }),
               '&:hover': {
                 backgroundColor: pathname === '/products' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/products' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
               },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: pathname === '/products' ? 'white' : 'text.secondary', 
-              minWidth: 0, 
-              mr: isCollapsed ? 0 : 2,
+            <ListItemIcon sx={{
+              color: pathname === '/products' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
               justifyContent: 'center',
               display: 'flex'
             }}>
               <InventoryIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="Products" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
-                    fontSize: '14px',
+              <ListItemText
+                primary="Products"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
           </ListItemButton>
 
-          
+
 
           {/* SEO */}
-          <ListItemButton 
-            component={NextLink} 
-            href="/seo" 
+          <ListItemButton
+            component={NextLink}
+            href="/seo"
             sx={{
-              borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: isCollapsed ? 0 : 2,
-              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              minHeight: 48,
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
               ...(pathname === '/seo' && {
                 backgroundColor: 'primary.main',
                 color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                 '&:hover': {
                   backgroundColor: 'primary.dark',
                 }
               }),
               '&:hover': {
                 backgroundColor: pathname === '/seo' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/seo' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
               },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: pathname === '/seo' ? 'white' : 'text.secondary', 
-              minWidth: 0, 
-              mr: isCollapsed ? 0 : 2,
+            <ListItemIcon sx={{
+              color: pathname === '/seo' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
               justifyContent: 'center',
               display: 'flex'
             }}>
               <InventoryIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="SEO" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
-                    fontSize: '14px',
+              <ListItemText
+                primary="SEO"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
           </ListItemButton>
 
           {/* Static SEO */}
-          <ListItemButton 
-            component={NextLink} 
-            href="/static-seo" 
+          <ListItemButton
+            component={NextLink}
+            href="/static-seo"
             sx={{
-              borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: isCollapsed ? 0 : 2,
-              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              minHeight: 48,
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
               ...(pathname === '/static-seo' && {
                 backgroundColor: 'primary.main',
                 color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                 '&:hover': {
                   backgroundColor: 'primary.dark',
                 }
               }),
               '&:hover': {
                 backgroundColor: pathname === '/static-seo' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/static-seo' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
               },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: pathname === '/static-seo' ? 'white' : 'text.secondary', 
-              minWidth: 0, 
-              mr: isCollapsed ? 0 : 2,
+            <ListItemIcon sx={{
+              color: pathname === '/static-seo' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
               justifyContent: 'center',
               display: 'flex'
             }}>
               <SearchIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="Static SEO" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
-                    fontSize: '14px',
+              <ListItemText
+                primary="Static SEO"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
           </ListItemButton>
 
           {/* Admin Restriction */}
           {isSuperAdmin && (
-            <ListItemButton 
-              component={NextLink} 
-              href="/admin-restriction" 
+            <ListItemButton
+              component={NextLink}
+              href="/admin-restriction"
               sx={{
-                borderRadius: '6px',
-                mb: 1,
-                py: 1.5,
-                px: isCollapsed ? 0 : 2,
-                transition: 'all 0.3s ease',
+                borderRadius: '10px',
+                mb: 0.75,
+                py: 1.1,
+                px: isCollapsed ? 0 : 1.5,
+                transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
                 justifyContent: isCollapsed ? 'center' : 'flex-start',
-                minHeight: 48,
+                minHeight: 42,
+                borderLeft: '3px solid transparent',
                 ...(pathname === '/admin-restriction' && {
                   backgroundColor: 'primary.main',
                   color: 'white',
+                  borderLeftColor: 'primary.dark',
+                  boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                   '&:hover': {
                     backgroundColor: 'primary.dark',
                   }
                 }),
                 '&:hover': {
                   backgroundColor: pathname === '/admin-restriction' ? 'primary.dark' : 'action.hover',
+                  transform: 'translateX(2px)',
+                  boxShadow: pathname === '/admin-restriction' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                  borderLeftColor: 'primary.main',
                 },
+                '&:active': { transform: 'translateX(1px) scale(0.99)' },
               }}
             >
-              <ListItemIcon sx={{ 
-                color: pathname === '/admin-restriction' ? 'white' : 'text.secondary', 
-                minWidth: 0, 
-                mr: isCollapsed ? 0 : 2,
+              <ListItemIcon sx={{
+                color: pathname === '/admin-restriction' ? 'white' : 'text.secondary',
+                minWidth: 0,
+                mr: isCollapsed ? 0 : 1.25,
                 justifyContent: 'center',
                 display: 'flex'
               }}>
                 <PeopleIcon fontSize="small" />
               </ListItemIcon>
               {!isCollapsed && (
-                <ListItemText 
-                  primary="Admin Restriction" 
-                  sx={{ 
-                    '& .MuiTypography-root': { 
-                      fontSize: '14px',
+                <ListItemText
+                  primary="Admin Restriction"
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontSize: '13.5px',
                       fontWeight: 500
-                    } 
-                  }} 
+                    }
+                  }}
                 />
               )}
             </ListItemButton>
           )}
 
           {/* Filters Dropdown */}
-          <ListItemButton 
-            onClick={handleClick} 
+          <ListItemButton
+            onClick={handleClick}
             sx={{
-              borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: 2,
-              transition: 'all 0.3s ease',
-              ...(pathname.startsWith('/category')||pathname.startsWith('/color')||pathname.startsWith('/content')||pathname.startsWith('/design')||pathname.startsWith('/finish')||pathname.startsWith('/groupcode')||pathname.startsWith('/structure')||pathname.startsWith('/subfinish')||pathname.startsWith('/substructure')||pathname.startsWith('/subsuitable')||pathname.startsWith('/suitablefor')||pathname.startsWith('/vendor')||pathname.startsWith('/motif') ? {
+              borderRadius: '10px',
+              mb: 0.5,
+              py: 1.1,
+              px: 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
+              borderLeft: '3px solid transparent',
+              ...(pathname.startsWith('/category') || pathname.startsWith('/color') || pathname.startsWith('/content') || pathname.startsWith('/design') || pathname.startsWith('/finish') || pathname.startsWith('/groupcode') || pathname.startsWith('/structure') || pathname.startsWith('/subfinish') || pathname.startsWith('/substructure') || pathname.startsWith('/subsuitable') || pathname.startsWith('/suitablefor') || pathname.startsWith('/vendor') || pathname.startsWith('/motif') ? {
                 backgroundColor: 'primary.main',
                 color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
                 '&:hover': {
                   backgroundColor: 'primary.dark',
                 }
               } : {}),
               '&:hover': {
-                backgroundColor: (pathname.startsWith('/category')||pathname.startsWith('/color')||pathname.startsWith('/content')||pathname.startsWith('/design')||pathname.startsWith('/finish')||pathname.startsWith('/groupcode')||pathname.startsWith('/structure')||pathname.startsWith('/subfinish')||pathname.startsWith('/substructure')||pathname.startsWith('/subsuitable')||pathname.startsWith('/suitablefor')||pathname.startsWith('/vendor')||pathname.startsWith('/motif')) ? 'primary.dark' : 'action.hover',
+                backgroundColor: (pathname.startsWith('/category') || pathname.startsWith('/color') || pathname.startsWith('/content') || pathname.startsWith('/design') || pathname.startsWith('/finish') || pathname.startsWith('/groupcode') || pathname.startsWith('/structure') || pathname.startsWith('/subfinish') || pathname.startsWith('/substructure') || pathname.startsWith('/subsuitable') || pathname.startsWith('/suitablefor') || pathname.startsWith('/vendor') || pathname.startsWith('/motif')) ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: (pathname.startsWith('/category') || pathname.startsWith('/color') || pathname.startsWith('/content') || pathname.startsWith('/design') || pathname.startsWith('/finish') || pathname.startsWith('/groupcode') || pathname.startsWith('/structure') || pathname.startsWith('/subfinish') || pathname.startsWith('/substructure') || pathname.startsWith('/subsuitable') || pathname.startsWith('/suitablefor') || pathname.startsWith('/vendor') || pathname.startsWith('/motif')) ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
               },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: (pathname.startsWith('/category')||pathname.startsWith('/color')||pathname.startsWith('/content')||pathname.startsWith('/design')||pathname.startsWith('/finish')||pathname.startsWith('/groupcode')||pathname.startsWith('/structure')||pathname.startsWith('/subfinish')||pathname.startsWith('/substructure')||pathname.startsWith('/subsuitable')||pathname.startsWith('/suitablefor')||pathname.startsWith('/vendor')||pathname.startsWith('/motif')) ? 'white' : 'text.secondary', 
-              minWidth: 0, 
-              mr: 2 
+            <ListItemIcon sx={{
+              color: (pathname.startsWith('/category') || pathname.startsWith('/color') || pathname.startsWith('/content') || pathname.startsWith('/design') || pathname.startsWith('/finish') || pathname.startsWith('/groupcode') || pathname.startsWith('/structure') || pathname.startsWith('/subfinish') || pathname.startsWith('/substructure') || pathname.startsWith('/subsuitable') || pathname.startsWith('/suitablefor') || pathname.startsWith('/vendor') || pathname.startsWith('/motif')) ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: 1.25
             }}>
               <FilterListIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="Filters" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
-                    fontSize: '14px',
+              <ListItemText
+                primary="Filters"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
             {!isCollapsed && (open ? <ExpandLess /> : <ExpandMore />)}
           </ListItemButton>
-          
+
           {/* Filter Submenu */}
           <Collapse in={open && !isCollapsed} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding sx={{ pl: 2 }}>
+            <List component="div" disablePadding sx={{ pl: 1.75 }}>
               {filterModels.map((model) => (
-                <ListItemButton 
-                  component={NextLink} 
-                  href={model.path} 
-                  key={model.name} 
+                <ListItemButton
+                  component={NextLink}
+                  href={model.path}
+                  key={model.name}
                   sx={{
-                    borderRadius: '6px',
-                    mb: 0.5,
-                    py: 1,
-                    px: 2,
-                    transition: 'all 0.3s ease',
+                    borderRadius: '10px',
+                    mb: 0.25,
+                    py: 0.85,
+                    px: 1.5,
+                    transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
+                    borderLeft: '3px solid transparent',
                     ...(pathname === model.path && {
                       backgroundColor: 'primary.dark',
                       color: 'white',
+                      borderLeftColor: 'primary.main',
+                      boxShadow: '0 4px 12px rgba(115,103,240,0.18)',
                       '&:hover': {
                         backgroundColor: 'primary.main',
                       }
                     }),
                     '&:hover': {
                       backgroundColor: pathname === model.path ? 'primary.main' : 'action.hover',
+                      transform: 'translateX(2px)',
+                      boxShadow: pathname === model.path ? '0 6px 14px rgba(115,103,240,0.22)' : '0 3px 8px rgba(0,0,0,0.05)',
+                      borderLeftColor: 'primary.main',
                     },
+                    '&:active': { transform: 'translateX(1px) scale(0.99)' },
                   }}
                 >
-                  <ListItemText 
-                    primary={model.name} 
-                    sx={{ 
-                      '& .MuiTypography-root': { 
+                  <ListItemText
+                    primary={model.name}
+                    sx={{
+                      '& .MuiTypography-root': {
                         fontSize: '13px',
                         fontWeight: 400
-                      } 
-                    }} 
+                      }
+                    }}
                   />
                 </ListItemButton>
               ))}
             </List>
           </Collapse>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 1 }} />
 
           {/* Logout */}
-          <ListItemButton 
+          <ListItemButton
             onClick={handleLogout}
             sx={{
               borderRadius: '6px',
-              mb: 1,
-              py: 1.5,
-              px: 2,
+              mb: 0.5,
+              py: 1.1,
+              px: 1.5,
               transition: 'all 0.3s ease',
               color: 'error.main',
               '&:hover': {
@@ -578,22 +630,22 @@ const Sidebar = React.memo(() => {
               },
             }}
           >
-            <ListItemIcon sx={{ 
-              color: 'inherit', 
-              minWidth: 0, 
-              mr: 2 
+            <ListItemIcon sx={{
+              color: 'inherit',
+              minWidth: 0,
+              mr: 1.25
             }}>
               <LogoutIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
-              <ListItemText 
-                primary="Logout" 
-                sx={{ 
-                  '& .MuiTypography-root': { 
+              <ListItemText
+                primary="Logout"
+                sx={{
+                  '& .MuiTypography-root': {
                     fontSize: '14px',
                     fontWeight: 500
-                  } 
-                }} 
+                  }
+                }}
               />
             )}
           </ListItemButton>
@@ -610,7 +662,7 @@ const Header = React.memo(() => {
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
   const [userEmail, setUserEmail] = useState('');
   const { isCollapsed, toggleSidebar } = useSidebar();
-  
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setUserEmail(localStorage.getItem('admin-email') || '');
@@ -786,7 +838,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
- <head>
+      <head>
         {/* 🔥 Preconnect & DNS prefetch to speed up first API call */}
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL!} crossOrigin="" />
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL!} />

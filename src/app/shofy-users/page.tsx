@@ -53,14 +53,14 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
   onDelete: (id: string) => void;
   viewOnly: boolean;
 }) => (
-  <TableRow 
-    hover 
-    sx={{ 
+  <TableRow
+    hover
+    sx={{
       transition: 'all 0.2s ease-in-out',
       '&:nth-of-type(odd)': {
         backgroundColor: '#f8f9fa',
       },
-      '&:hover': { 
+      '&:hover': {
         backgroundColor: '#e9f5ff',
         transform: 'translateY(-1px)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -70,24 +70,24 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
       }
     }}
   >
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box 
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
           sx={{
             position: 'relative',
-            width: 40,
-            height: 40,
+            width: 32,
+            height: 32,
           }}
         >
-          <Avatar 
+          <Avatar
             src={user.userImage || undefined}
             alt={user.name}
-            sx={{ 
+            sx={{
               width: '100%',
               height: '100%',
               bgcolor: 'primary.main',
               color: 'white',
-              fontSize: '1rem',
+              fontSize: '0.85rem',
               fontWeight: 600,
               border: '2px solid',
               borderColor: 'divider',
@@ -125,53 +125,55 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
           </Avatar>
         </Box>
         <Box>
-          <Typography variant="subtitle2" fontWeight={600} color="text.primary">
+          <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ lineHeight: 1.2 }}>
             {user.name || 'No Name'}
           </Typography>
-          <Typography variant="body2" color="text.secondary">{user.email}</Typography>
+          <Typography variant="caption" color="text.secondary">{user.email}</Typography>
         </Box>
       </Box>
     </TableCell>
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.phone || 'N/A'}</TableCell>
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.organisation || 'N/A'}</TableCell>
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{user.companytaxid || 'N/A'}</TableCell>
-    <TableCell sx={{ borderRight: '1px solid #e0e0e0', maxWidth: '200px' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-        {user.address && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.address}</Typography>}
-        {user.city && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.city}</Typography>}
-        {user.state && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.state}</Typography>}
-        {user.country && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.country}</Typography>}
-        {user.pincode && <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>{user.pincode}</Typography>}
-        {!user.address && !user.city && !user.state && !user.country && !user.pincode && 
-          <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem' }}>N/A</Typography>}
-      </Box>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25 }}>{user.phone || 'N/A'}</TableCell>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25 }}>{user.organisation || 'N/A'}</TableCell>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25 }}>{user.companytaxid || 'N/A'}</TableCell>
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', maxWidth: 240, py: 0.75, px: 1.25 }}>
+      {(() => {
+        const addressParts = [user.address, user.city, user.state, user.country, user.pincode].filter(Boolean).join(', ');
+        return (
+          <Typography variant="caption" color="text.secondary" noWrap title={addressParts || 'N/A'} sx={{ display: 'block' }}>
+            {addressParts || 'N/A'}
+          </Typography>
+        );
+      })()}
     </TableCell>
-    <TableCell>
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <IconButton 
-          color="info" 
+    <TableCell sx={{ py: 0.5, px: 1 }}>
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <IconButton
+          size="small"
+          color="info"
           onClick={() => onView(user)}
           title="View User"
-          sx={{ 
+          sx={{
             color: 'primary.main',
-            '&:hover': { 
-              backgroundColor: 'rgba(25, 118, 210, 0.04)' 
+            '&:hover': {
+              backgroundColor: 'rgba(25, 118, 210, 0.04)'
             }
           }}
         >
           <VisibilityIcon />
         </IconButton>
-        <IconButton 
-          color="primary" 
-          onClick={() => onEdit(user)} 
+        <IconButton
+          size="small"
+          color="primary"
+          onClick={() => onEdit(user)}
           disabled={viewOnly}
           title="Edit User"
         >
           <EditIcon />
         </IconButton>
-        <IconButton 
-          color="error" 
-          onClick={() => onDelete(user._id || "")} 
+        <IconButton
+          size="small"
+          color="error"
+          onClick={() => onDelete(user._id || "")}
           disabled={viewOnly}
           title="Delete User"
         >
@@ -184,13 +186,13 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
 
 UserRow.displayName = 'UserRow';
 
-const UserForm = React.memo(({ 
-  open, 
-  onClose, 
-  form, 
-  setForm, 
-  onSubmit, 
-  submitting, 
+const UserForm = React.memo(({
+  open,
+  onClose,
+  form,
+  setForm,
+  onSubmit,
+  submitting,
   editId,
   viewOnly,
   onImageChange,
@@ -216,14 +218,14 @@ const UserForm = React.memo(({
       }));
     };
   }, [setForm]);
-  
+
   if (!open) return null;
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       disableEscapeKeyDown={submitting}
     >
@@ -234,9 +236,9 @@ const UserForm = React.memo(({
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 3 }}>
           <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-              <Avatar 
-                src={form.userImage} 
-                alt={form.name} 
+              <Avatar
+                src={form.userImage}
+                alt={form.name}
                 sx={{ width: 100, height: 100, mb: 1 }}
               />
               <Button
@@ -246,16 +248,16 @@ const UserForm = React.memo(({
                 disabled={submitting || viewOnly}
               >
                 Upload Image
-                <VisuallyHiddenInput 
-                  type="file" 
+                <VisuallyHiddenInput
+                  type="file"
                   accept="image/*"
                   onChange={onImageChange}
                 />
               </Button>
               {form.userImage && (
-                <Button 
-                  color="error" 
-                  size="small" 
+                <Button
+                  color="error"
+                  size="small"
                   onClick={onRemoveImage}
                   disabled={submitting || viewOnly}
                 >
@@ -363,17 +365,17 @@ const UserForm = React.memo(({
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={onClose} 
-            sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }} 
+          <Button
+            onClick={onClose}
+            sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }}
             disabled={submitting}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }} 
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }}
             disabled={submitting || viewOnly}
           >
             {submitting ? (
@@ -391,25 +393,25 @@ const UserForm = React.memo(({
 });
 
 // User View Dialog Component
-const UserViewDialog = React.memo(({ open, user, onClose }: { 
-  open: boolean; 
-  user: User | null; 
+const UserViewDialog = React.memo(({ open, user, onClose }: {
+  open: boolean;
+  user: User | null;
   onClose: () => void;
 }) => {
   if (!user) return null;
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
+    <Dialog
+      open={open}
+      onClose={onClose}
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle sx={{ 
-        fontWeight: 700, 
-        fontSize: 24, 
-        background: 'linear-gradient(90deg,#396afc,#2948ff)', 
-        WebkitBackgroundClip: 'text', 
+      <DialogTitle sx={{
+        fontWeight: 700,
+        fontSize: 24,
+        background: 'linear-gradient(90deg,#396afc,#2948ff)',
+        WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         display: 'flex',
         alignItems: 'center',
@@ -419,12 +421,12 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-          <Avatar 
-            src={user.userImage} 
+          <Avatar
+            src={user.userImage}
             alt={user.name}
-            sx={{ 
-              width: 120, 
-              height: 120, 
+            sx={{
+              width: 120,
+              height: 120,
               mb: 2,
               border: '3px solid',
               borderColor: 'primary.main'
@@ -442,9 +444,9 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
             <ListItemIcon>
               <EmailIcon color="primary" />
             </ListItemIcon>
-            <ListItemText 
-              primary="Email" 
-              secondary={user.email || 'Not provided'} 
+            <ListItemText
+              primary="Email"
+              secondary={user.email || 'Not provided'}
               secondaryTypographyProps={{ color: 'text.primary' }}
             />
           </ListItem>
@@ -453,9 +455,9 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
             <ListItemIcon>
               <PhoneIcon color="primary" />
             </ListItemIcon>
-            <ListItemText 
-              primary="Phone" 
-              secondary={user.phone || 'Not provided'} 
+            <ListItemText
+              primary="Phone"
+              secondary={user.phone || 'Not provided'}
               secondaryTypographyProps={{ color: 'text.primary' }}
             />
           </ListItem>
@@ -464,9 +466,9 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
             <ListItemIcon>
               <BusinessIcon color="primary" />
             </ListItemIcon>
-            <ListItemText 
-              primary="Organization" 
-              secondary={user.organisation || 'Not provided'} 
+            <ListItemText
+              primary="Organization"
+              secondary={user.organisation || 'Not provided'}
               secondaryTypographyProps={{ color: 'text.primary' }}
             />
           </ListItem>
@@ -476,8 +478,8 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
               <ListItemIcon>
                 <ReceiptIcon color="primary" />
               </ListItemIcon>
-              <ListItemText 
-                primary="Tax ID" 
+              <ListItemText
+                primary="Tax ID"
                 secondary={user.companytaxid}
                 secondaryTypographyProps={{ color: 'text.primary' }}
               />
@@ -489,8 +491,8 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
               <ListItemIcon>
                 <LocationOnIcon color="primary" sx={{ alignSelf: 'flex-start', mt: 1 }} />
               </ListItemIcon>
-              <ListItemText 
-                primary="Address" 
+              <ListItemText
+                primary="Address"
                 secondary={
                   <>
                     {user.address && <div>{user.address}</div>}
@@ -501,7 +503,7 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
                     </div>
                   </>
                 }
-                secondaryTypographyProps={{ 
+                secondaryTypographyProps={{
                   component: 'div',
                   color: 'text.primary',
                   sx: { '& > div': { marginBottom: 0.5 } }
@@ -512,9 +514,9 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
         </List>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button 
-          onClick={onClose} 
-          variant="contained" 
+        <Button
+          onClick={onClose}
+          variant="contained"
           color="primary"
           fullWidth
         >
@@ -547,7 +549,7 @@ export default function ShopyUsersPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<Omit<User, '_id'>>({ 
+  const [form, setForm] = useState<Omit<User, '_id'>>({
     name: '',
     email: '',
     userImage: '',
@@ -574,21 +576,21 @@ export default function ShopyUsersPage() {
       setIsLoading(true);
       const url = '/users';
       const params = new URLSearchParams();
-      
+
       if (searchTerm) {
         params.append('search', searchTerm);
       }
-      
+
       // Add pagination parameters
       params.append('page', currentPage.toString());
       params.append('limit', rowsPerPage.toString());
-      
+
       const queryString = params.toString();
       const fullUrl = `${url}?${queryString}`;
-      
+
       const res = await apiFetch(fullUrl);
       const data = await res.json();
-      
+
       if (data.success) {
         setUsers(data.data || []);
         // Update total users count if provided by the backend
@@ -625,7 +627,7 @@ export default function ShopyUsersPage() {
 
     return () => clearTimeout(timer);
   }, [search, fetchUsers]);
-  
+
   // Handle page change
   useEffect(() => {
     fetchUsers(search.trim(), page);
@@ -636,12 +638,12 @@ export default function ShopyUsersPage() {
     const checkPermissions = async () => {
       const permission = getUsersPagePermission();
       setPageAccess(permission);
-      
+
       if (permission !== 'no access') {
         await fetchUsers('', 1);
       }
     };
-    
+
     checkPermissions();
   }, [fetchUsers]);
 
@@ -695,26 +697,44 @@ export default function ShopyUsersPage() {
     }
   }, []);
 
-  const handleRemoveImage = useCallback(() => {
-    setForm(prev => ({ ...prev, userImage: '' }));
-    setImageFile(null);
-  }, []);
+  const handleRemoveImage = useCallback(async () => {
+    try {
+      // If editing an existing user, delete from backend immediately
+      if (editId) {
+        setSubmitting(true);
+        const res = await apiFetch(`/users/${editId}/image`, { method: 'DELETE' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Failed to delete image');
+        }
+      }
+      // Clear local state regardless (new user form or after successful delete)
+      setForm(prev => ({ ...prev, userImage: '' }));
+      setImageFile(null);
+      setError(null);
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete image');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [editId]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    
+
     try {
       const formData = new FormData();
-      
+
       // Add user data
       Object.entries(form).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           formData.append(key, value);
         }
       });
-      
+
       // Add image file if it's a new file
       if (imageFile) {
         formData.append('userImage', imageFile);
@@ -722,7 +742,7 @@ export default function ShopyUsersPage() {
 
       const method = editId ? 'PUT' : 'POST';
       const url = editId ? `/users/${editId}` : '/users/register';
-      
+
       const response = await apiFetch(url, {
         method,
         body: formData,
@@ -734,7 +754,7 @@ export default function ShopyUsersPage() {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         fetchUsers();
         handleClose();
@@ -752,17 +772,17 @@ export default function ShopyUsersPage() {
 
   const handleDelete = useCallback(async () => {
     if (!deleteId) return;
-    
+
     try {
       setSubmitting(true);
       const res = await apiFetch(`/users/${deleteId}`, { method: 'DELETE' });
-      
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.message || 'Failed to delete user');
         return;
       }
-      
+
       setDeleteId(null);
       fetchUsers();
     } catch (err) {
@@ -818,7 +838,7 @@ export default function ShopyUsersPage() {
           </Paper>
         </Box>
       )}
-      
+
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link href="/dashboard" color="inherit" sx={{ display: 'flex', alignItems: 'center' }}>
@@ -828,16 +848,16 @@ export default function ShopyUsersPage() {
         <Typography color="text.primary">Users</Typography>
       </Breadcrumbs>
 
-      <Card elevation={0} sx={{ borderRadius: 2, mb: 3 }}>
-        <CardContent>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+      <Card elevation={0} sx={{ borderRadius: 2, mb: 2 }}>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
               Manage Users
             </Typography>
           </Box>
 
           {/* Search Bar */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
               variant="outlined"
@@ -856,10 +876,10 @@ export default function ShopyUsersPage() {
               {error}
             </Alert>
           )}
-          
+
           {/* Users Table */}
-          <TableContainer 
-            component={Paper} 
+          <TableContainer
+            component={Paper}
             elevation={0}
             variant="outlined"
             sx={{
@@ -869,15 +889,15 @@ export default function ShopyUsersPage() {
               border: '1px solid #e0e0e0'
             }}
           >
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>User</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Contact</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Organization</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Tax ID</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Address</TableCell>
-                  <TableCell sx={{ fontWeight: 700, width: 160 }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>User</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Contact</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Organization</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Tax ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Address</TableCell>
+                  <TableCell sx={{ fontWeight: 700, width: 140, py: 1 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -907,7 +927,7 @@ export default function ShopyUsersPage() {
 
           {/* Pagination */}
           {totalUsers > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
               <Pagination
                 count={Math.ceil(totalUsers / rowsPerPage)}
                 page={page}
@@ -924,12 +944,12 @@ export default function ShopyUsersPage() {
 
       {/* Add/Edit User Dialog */}
       {open && (
-        <UserForm 
-          open={open} 
-          onClose={handleClose} 
-          form={form} 
-          setForm={setForm} 
-          onSubmit={handleSubmit} 
+        <UserForm
+          open={open}
+          onClose={handleClose}
+          form={form}
+          setForm={setForm}
+          onSubmit={handleSubmit}
           onImageChange={handleImageChange}
           submitting={submitting}
           onRemoveImage={handleRemoveImage}
@@ -937,14 +957,14 @@ export default function ShopyUsersPage() {
           viewOnly={pageAccess === 'only view'}
         />
       )}
-      
+
       {/* View User Dialog */}
-      <UserViewDialog 
+      <UserViewDialog
         open={viewOpen}
-        user={selectedUser} 
+        user={selectedUser}
         onClose={handleClose}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={!!deleteId}
@@ -962,17 +982,17 @@ export default function ShopyUsersPage() {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={() => setDeleteId(null)} 
+          <Button
+            onClick={() => setDeleteId(null)}
             disabled={submitting}
             sx={{ fontWeight: 600 }}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleDelete} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
             disabled={submitting}
             sx={{ fontWeight: 600 }}
           >

@@ -27,6 +27,7 @@ import BrushIcon from '@mui/icons-material/Brush';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import BusinessIcon from '@mui/icons-material/Business';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import PersonIcon from '@mui/icons-material/Person';
 import { keyframes } from '@mui/system';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -45,60 +46,60 @@ const StatCard = React.memo(({ value, subtitle, icon, color }: {
   return (
     <Card sx={{
       background: `linear-gradient(135deg, #fff 60%, ${color}10 100%)`,
-      borderRadius: '18px',
-      boxShadow: '0 6px 32px 0 rgba(34, 41, 47, 0.10)',
+      borderRadius: '12px',
+      boxShadow: '0 4px 20px 0 rgba(34, 41, 47, 0.10)',
       border: 'none',
       transition: 'all 0.3s cubic-bezier(.4,2,.3,1)',
       animation: `${fadeIn} 0.7s cubic-bezier(.4,2,.3,1)`,
       '&:hover': {
-        boxShadow: '0 12px 40px 0 rgba(34, 41, 47, 0.18)',
-        transform: 'scale(1.045)',
-        background: `linear-gradient(135deg, #fff 40%, ${color}22 100%)`,
+        boxShadow: '0 8px 28px 0 rgba(34, 41, 47, 0.16)',
+        transform: 'translateY(-2px)',
+        background: `linear-gradient(135deg, #fff 50%, ${color}18 100%)`,
       },
-      m: 1,
+      m: 0.75,
     }}>
-      <CardContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-            <Box sx={{ 
-            width: 64,
-            height: 64,
+      <CardContent sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5 }}>
+          <Box sx={{
+            width: 48,
+            height: 48,
             borderRadius: '50%',
             background: `radial-gradient(circle at 60% 40%, ${color} 60%, #fff 100%)`,
-              display: 'flex', 
-              alignItems: 'center', 
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: `0 2px 12px 0 ${color}33`,
+            boxShadow: `0 2px 8px 0 ${color}33`,
             position: 'relative',
           }}>
             <Box sx={{
               position: 'absolute',
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               borderRadius: '50%',
               background: `conic-gradient(${color}33 0% 40%, transparent 40% 100%)`,
               zIndex: 0,
-              top: '-8px',
-              left: '-8px',
+              top: '-6px',
+              left: '-6px',
               filter: 'blur(2px)',
             }} />
-            <Box sx={{ position: 'relative', zIndex: 1, color: '#fff', fontSize: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ position: 'relative', zIndex: 1, color: '#fff', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {icon}
             </Box>
           </Box>
         </Box>
-        <Typography variant="h3" sx={{ 
-          fontWeight: 800, 
+        <Typography variant="h4" sx={{
+          fontWeight: 800,
           color: color,
-          mb: 0.5,
+          mb: 0.25,
           textAlign: 'center',
           letterSpacing: 1,
         }}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </Typography>
-        <Typography variant="subtitle1" sx={{ 
+        <Typography variant="body2" sx={{
           color: 'text.secondary',
           fontWeight: 500,
-          fontSize: '16px',
+          fontSize: '13px',
           textAlign: 'center',
           letterSpacing: 0.5,
         }}>
@@ -125,29 +126,29 @@ const ProgressCard = React.memo(({ title, value, progress, color }: {
       border: '1px solid',
       borderColor: 'divider',
     }}>
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
             {title}
           </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: color }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: color }}>
             {value}
           </Typography>
         </Box>
-        <LinearProgress 
-          variant="determinate" 
-          value={progress} 
-      sx={{
-            height: 8, 
-            borderRadius: 4,
+        <LinearProgress
+          variant="determinate"
+          value={progress}
+          sx={{
+            height: 6,
+            borderRadius: 3,
             backgroundColor: 'rgba(115, 103, 240, 0.12)',
             '& .MuiLinearProgress-bar': {
               backgroundColor: color,
-              borderRadius: 4,
+              borderRadius: 3,
             }
-          }} 
+          }}
         />
-        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+        <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>
           {progress}% Complete
         </Typography>
       </CardContent>
@@ -167,24 +168,24 @@ const RecentActivityCard = React.memo(() => {
       borderColor: 'divider',
     }}>
       <CardContent sx={{ p: 0 }}>
-        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
             Recent Activity
           </Typography>
         </Box>
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 2 }}>
           {[
             { user: 'John Doe', action: 'added a new product', time: '2 minutes ago', color: '#7367f0' },
             { user: 'Jane Smith', action: 'updated category', time: '1 hour ago', color: '#28c76f' },
             { user: 'Mike Johnson', action: 'deleted vendor', time: '3 hours ago', color: '#ea5455' },
             { user: 'Sarah Wilson', action: 'created new design', time: '5 hours ago', color: '#ff9f43' },
           ].map((activity, index) => (
-            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: activity.color, fontSize: '12px' }}>
+            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Avatar sx={{ width: 28, height: 28, bgcolor: activity.color, fontSize: '11px' }}>
                 {activity.user.split(' ').map(n => n[0]).join('')}
               </Avatar>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', lineHeight: 1.3 }}>
                   <strong>{activity.user}</strong> {activity.action}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -211,19 +212,19 @@ const ProductsTable = React.memo(() => {
       borderColor: 'divider',
     }}>
       <CardContent sx={{ p: 0 }}>
-        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
             Recent Products
           </Typography>
         </Box>
         <TableContainer>
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Product</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Category</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary', py: 1 }}>Product</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary', py: 1 }}>Category</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary', py: 1 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary', py: 1 }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -234,21 +235,21 @@ const ProductsTable = React.memo(() => {
                 { name: 'Product D', category: 'Sports', status: 'Active' },
               ].map((product, index) => (
                 <TableRow key={index}>
-                  <TableCell sx={{ color: 'text.primary' }}>{product.name}</TableCell>
-                  <TableCell sx={{ color: 'text.secondary' }}>{product.category}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={product.status} 
+                  <TableCell sx={{ color: 'text.primary', py: 0.75 }}>{product.name}</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', py: 0.75 }}>{product.category}</TableCell>
+                  <TableCell sx={{ py: 0.75 }}>
+                    <Chip
+                      label={product.status}
                       size="small"
-                      sx={{ 
+                      sx={{
                         bgcolor: product.status === 'Active' ? 'success.main' : 'error.main',
                         color: 'white',
                         fontWeight: 500
                       }}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TableCell sx={{ py: 0.5 }}>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
                       <IconButton size="small" sx={{ color: 'primary.main' }}>
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
@@ -283,21 +284,21 @@ export default function DashboardPage() {
     const checkAuth = () => {
       const hasAuthCookie = document.cookie.includes('admin-auth=true');
       const hasLocalStorage = localStorage.getItem('admin-auth') === 'true';
-      
+
       if (!hasAuthCookie && !hasLocalStorage) {
         router.push('/login');
         return;
       }
-      
+
       setIsAuthenticated(true);
     };
-    
+
     checkAuth();
   }, [router]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const fetchData = async () => {
       try {
         const base = process.env.NEXT_PUBLIC_API_URL;
@@ -322,7 +323,8 @@ export default function DashboardPage() {
           locationres,
           contactRes,
           aboutUsRes,
-          officeInfoRes
+          officeInfoRes,
+          usersRes
 
         ] = await Promise.all([
           apiFetch(`${base}/product`),
@@ -345,7 +347,8 @@ export default function DashboardPage() {
           apiFetch(`${base}/locations`),
           apiFetch(`${base}/contacts`),
           apiFetch(`${base}/aboutus`),
-          apiFetch(`${base}/officeinformation`)
+          apiFetch(`${base}/officeinformation`),
+          apiFetch(`${base}/users`)
         ]);
         const results = await Promise.all([
           productsRes.json(),
@@ -368,14 +371,15 @@ export default function DashboardPage() {
           locationres.json(),
           contactRes.json(),
           aboutUsRes.json(),
-          officeInfoRes.json()
+          officeInfoRes.json(),
+          usersRes.json()
         ]);
-        
+
         // Debug log for about us response
         console.log('Full About Us Response:', JSON.stringify(results[19], null, 2));
         console.log('About Us Data Type:', typeof results[19]?.data);
         console.log('About Us Data Keys:', results[19]?.data ? Object.keys(results[19].data) : 'No data');
-        
+
         const newCounts: { [key: string]: number } = {};
         newCounts['product'] = Array.isArray(results[0].data) ? results[0].data.length : 0;
         newCounts['category'] = Array.isArray(results[1].data) ? results[1].data.length : 0;
@@ -390,34 +394,38 @@ export default function DashboardPage() {
         newCounts['subsuitable'] = Array.isArray(results[10].data) ? results[10].data.length : 0;
         newCounts['suitablefor'] = Array.isArray(results[11].data) ? results[11].data.length : 0;
         newCounts['vendor'] = Array.isArray(results[12].data) ? results[12].data.length : 0;
-  newCounts['countries'] = Array.isArray(results[14].data.countries) ? results[14].data.countries.length : 0;
-  newCounts['states'] = Array.isArray(results[15].data.states) ? results[15].data.states.length : 0;
-  newCounts['cities'] = Array.isArray(results[16].data.cities) ? results[16].data.cities.length : 0;
-  newCounts['locations'] = Array.isArray(results[17].data.locations) ? results[17].data.locations.length : 0;
-  // Contact data is in results[18].data as an array
-  const contactResponse = results[18] || {};
-  const contactData = contactResponse.data || [];
-  newCounts['contacts'] = Array.isArray(contactData) ? contactData.length : 0;
-  // Handle different possible response structures for about us
-  const aboutUsResponse = results[19] || {};
-  let aboutUsCount = 0;
-  
-  if (Array.isArray(aboutUsResponse)) {
-    aboutUsCount = aboutUsResponse.length;
-  } else if (aboutUsResponse && typeof aboutUsResponse === 'object') {
-    if (Array.isArray(aboutUsResponse.data)) {
-      aboutUsCount = aboutUsResponse.data.length;
-    } else if (aboutUsResponse.data && typeof aboutUsResponse.data === 'object') {
-      aboutUsCount = Object.keys(aboutUsResponse.data).length;
-    } else if (aboutUsResponse.count !== undefined) {
-      aboutUsCount = aboutUsResponse.count;
-    } else if (aboutUsResponse.length !== undefined) {
-      aboutUsCount = aboutUsResponse.length;
-    }
-  }
-  newCounts['aboutus'] = aboutUsCount;
-  newCounts['officeInfo'] = Array.isArray(results[20]?.data) ? results[20].data.length : 0;
-        
+        newCounts['countries'] = Array.isArray(results[14].data.countries) ? results[14].data.countries.length : 0;
+        newCounts['states'] = Array.isArray(results[15].data.states) ? results[15].data.states.length : 0;
+        newCounts['cities'] = Array.isArray(results[16].data.cities) ? results[16].data.cities.length : 0;
+        newCounts['locations'] = Array.isArray(results[17].data.locations) ? results[17].data.locations.length : 0;
+        // Contact data is in results[18].data as an array
+        const contactResponse = results[18] || {};
+        const contactData = contactResponse.data || [];
+        newCounts['contacts'] = Array.isArray(contactData) ? contactData.length : 0;
+        // Handle different possible response structures for about us
+        const aboutUsResponse = results[19] || {};
+        let aboutUsCount = 0;
+
+        if (Array.isArray(aboutUsResponse)) {
+          aboutUsCount = aboutUsResponse.length;
+        } else if (aboutUsResponse && typeof aboutUsResponse === 'object') {
+          if (Array.isArray(aboutUsResponse.data)) {
+            aboutUsCount = aboutUsResponse.data.length;
+          } else if (aboutUsResponse.data && typeof aboutUsResponse.data === 'object') {
+            aboutUsCount = Object.keys(aboutUsResponse.data).length;
+          } else if (aboutUsResponse.count !== undefined) {
+            aboutUsCount = aboutUsResponse.count;
+          } else if (aboutUsResponse.length !== undefined) {
+            aboutUsCount = aboutUsResponse.length;
+          }
+        }
+        newCounts['aboutus'] = aboutUsCount;
+        newCounts['officeInfo'] = Array.isArray(results[20]?.data) ? results[20].data.length : 0;
+        // Users may return { data: array, total }
+        const usersPayload = results[21] || {};
+        const usersTotal = typeof usersPayload.total === 'number' ? usersPayload.total : (Array.isArray(usersPayload.data) ? usersPayload.data.length : 0);
+        newCounts['users'] = usersTotal;
+
         setCounts(newCounts);
         setProductCount(Array.isArray(results[0].data) ? results[0].data.length : 0);
         setSeoCount(Array.isArray(results[13].data) ? results[13].data.length : 0);
@@ -430,15 +438,15 @@ export default function DashboardPage() {
 
   if (isAuthenticated === null) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         background: 'linear-gradient(135deg, #7367f0 0%, #9c8cfc 100%)'
       }}>
-        <Box sx={{ 
-          textAlign: 'center', 
+        <Box sx={{
+          textAlign: 'center',
           color: 'white',
           fontSize: '18px',
           fontWeight: '500'
@@ -455,6 +463,14 @@ export default function DashboardPage() {
 
   // Card data for dashboard
   const cardData = [
+    {
+      title: 'Users',
+      value: counts['users'] || 0,
+      subtitle: 'Total Users',
+      icon: <PersonIcon />,
+      color: '#1976d2',
+      href: '/shofy-users',
+    },
     {
       title: 'Products',
       value: productCount,
@@ -628,23 +644,23 @@ export default function DashboardPage() {
   return (
     <Box sx={{ p: 0 }}>
       {/* Header Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ 
-          fontWeight: 600, 
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" sx={{
+          fontWeight: 600,
           color: 'text.primary',
-          mb: 1
+          mb: 0.5
         }}>
           AGE
         </Typography>
-        <Typography variant="body1" sx={{ 
+        <Typography variant="body2" sx={{
           color: 'text.secondary',
-          fontSize: '16px'
+          fontSize: '14px'
         }}>
           Overview of your product, SEO, and filter data.
         </Typography>
       </Box>
       {/* Main Cards */}
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {cardData.map((card, idx) => (
           // @ts-expect-error MUI Grid type workaround
           <Grid component="div" item xs={12} sm={6} md={4} lg={3} key={card.title + idx}>
@@ -665,29 +681,29 @@ export default function DashboardPage() {
               }}
               onClick={() => router.push(card.href)}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Avatar sx={{ 
-                    bgcolor: card.color, 
-                    color: 'white', 
-                    width: 48, 
-                    height: 48,
-                    fontSize: '20px'
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Avatar sx={{
+                    bgcolor: card.color,
+                    color: 'white',
+                    width: 40,
+                    height: 40,
+                    fontSize: '18px'
                   }}>
                     {card.icon}
                   </Avatar>
                 </Box>
-                <Typography variant="h4" sx={{ 
-                  fontWeight: 700, 
+                <Typography variant="h5" sx={{
+                  fontWeight: 700,
                   color: 'text.primary',
-                  mb: 1
+                  mb: 0.5
                 }}>
                   {card.value}
                 </Typography>
-                <Typography variant="body2" sx={{ 
+                <Typography variant="body2" sx={{
                   color: 'text.secondary',
                   fontWeight: 500,
-                  fontSize: '14px'
+                  fontSize: '13px'
                 }}>
                   {card.subtitle}
                 </Typography>
@@ -696,6 +712,6 @@ export default function DashboardPage() {
           </Grid>
         ))}
       </Grid>
-      </Box>
+    </Box>
   );
 } 

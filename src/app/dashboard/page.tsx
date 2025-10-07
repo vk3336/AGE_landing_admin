@@ -8,6 +8,8 @@ import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import LinearProgress from '@mui/material/LinearProgress';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -18,6 +20,11 @@ import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PeopleIcon from '@mui/icons-material/People';
 
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -273,12 +280,18 @@ const ProductsTable = React.memo(() => {
 
 ProductsTable.displayName = 'ProductsTable';
 
+
 export default function DashboardPage() {
   const router = useRouter();
   const [counts, setCounts] = useState<{ [key: string]: number }>({});
   const [productCount, setProductCount] = useState<number>(0);
   const [seoCount, setSeoCount] = useState<number>(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   useEffect(() => {
     const checkAuth = () => {
@@ -641,6 +654,51 @@ export default function DashboardPage() {
     },
   ];
 
+  // Group cards into categories
+  const cardCategories = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: <DashboardIcon />,
+      cards: cardData.filter(card => 
+        ['Users', 'Products', 'Categories', 'Vendors', 'SEO', 'Contacts', 'About Us', 'Office Info'].includes(card.title)
+      )
+    },
+    {
+      id: 'products',
+      label: 'Products',
+      icon: <InventoryIcon />,
+      cards: cardData.filter(card => 
+        ['Products', 'Categories', 'Vendors', 'Designs', 'Colors', 'Finishes', 'Sub Finishes', 'Structures', 'Sub Structures', 'Suitable For', 'Sub Suitables', 'Group Codes'].includes(card.title)
+      )
+    },
+    {
+      id: 'locations',
+      label: 'Locations',
+      icon: <LocationOnIcon />,
+      cards: cardData.filter(card => 
+        ['Countries', 'States', 'Cities', 'Locations'].includes(card.title)
+      )
+    },
+    {
+      id: 'content',
+      label: 'Content',
+      icon: <DescriptionIcon />,
+      cards: cardData.filter(card => 
+        ['SEO', 'Contents', 'About Us', 'Office Info', 'Contacts'].includes(card.title)
+      )
+    },
+    {
+      id: 'users',
+      label: 'Users',
+      icon: <PeopleIcon />,
+      cards: cardData.filter(card => 
+        ['Users'].includes(card.title)
+      )
+    }
+  ];
+
+
   return (
     <Box sx={{ p: 0 }}>
       {/* Header Section */}
@@ -650,68 +708,154 @@ export default function DashboardPage() {
           color: 'text.primary',
           mb: 0.5
         }}>
-          AGE
+          AGE Dashboard
         </Typography>
         <Typography variant="body2" sx={{
           color: 'text.secondary',
-          fontSize: '14px'
+          fontSize: '14px',
+          mb: 2
         }}>
           Overview of your product, SEO, and filter data.
         </Typography>
-      </Box>
-      {/* Main Cards */}
-      <Grid container spacing={2}>
-        {cardData.map((card, idx) => (
-          // @ts-expect-error MUI Grid type workaround
-          <Grid component="div" item xs={12} sm={6} md={4} lg={3} key={card.title + idx}>
-            <Card
+        
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            mb: 3,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: '3px 3px 0 0',
+            },
+          }}
+        >
+          {cardCategories.map((category) => (
+            <Tab 
+              key={category.id}
+              label={category.label}
+              icon={category.icon}
+              iconPosition="start"
               sx={{
-                background: 'background.paper',
-                borderRadius: '6px',
-                boxShadow: '0 4px 24px 0 rgba(34, 41, 47, 0.24)',
-                border: '1px solid',
-                borderColor: 'divider',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-                '&:hover': {
-                  boxShadow: '0 4px 25px 0 rgba(34, 41, 47, 0.24)',
-                  transform: 'translateY(-2px)',
-                  background: 'rgba(115, 103, 240, 0.04)',
+                minHeight: 48,
+                textTransform: 'none',
+                fontWeight: 600,
+                '&.Mui-selected': {
+                  color: 'primary.main',
                 },
               }}
-              onClick={() => router.push(card.href)}
-            >
-              <CardContent sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                  <Avatar sx={{
-                    bgcolor: card.color,
-                    color: 'white',
-                    width: 40,
-                    height: 40,
-                    fontSize: '18px'
-                  }}>
-                    {card.icon}
-                  </Avatar>
-                </Box>
-                <Typography variant="h5" sx={{
-                  fontWeight: 700,
-                  color: 'text.primary',
-                  mb: 0.5
-                }}>
-                  {card.value}
-                </Typography>
-                <Typography variant="body2" sx={{
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  fontSize: '13px'
-                }}>
-                  {card.subtitle}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+            />
+          ))}
+        </Tabs>
+      </Box>
+
+      {/* Tab Content */}
+      <Box sx={{ mt: 2 }}>
+        {cardCategories.map((category, index) => (
+          <Box 
+            key={category.id}
+            role="tabpanel"
+            hidden={activeTab !== index}
+            id={`dashboard-tabpanel-${index}`}
+            aria-labelledby={`dashboard-tab-${index}`}
+          >
+            {activeTab === index && (
+              <Grid container spacing={2}>
+                {category.cards.map((card, idx) => (
+                  <div 
+                    key={card.title + idx}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      boxSizing: 'border-box'
+                    }}
+                    className="grid-item"
+                  >
+                    <Card
+                      sx={{
+                        height: '100%',
+                        background: 'background.paper',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 12px 0 rgba(0,0,0,0.05)',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)',
+                          transform: 'translateY(-2px)',
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                      onClick={() => router.push(card.href)}
+                    >
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Box sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '8px',
+                            bgcolor: `${card.color}15`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mr: 1.5,
+                            color: card.color
+                          }}>
+                            {React.cloneElement(card.icon, { fontSize: 'small' })}
+                          </Box>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h5" sx={{
+                              fontWeight: 700,
+                              color: 'text.primary',
+                              lineHeight: 1.2,
+                              fontSize: '1.5rem'
+                            }}>
+                              {card.value}
+                            </Typography>
+                            <Typography variant="body2" sx={{
+                              color: 'text.secondary',
+                              fontWeight: 500,
+                              fontSize: '0.8125rem',
+                              mt: 0.25
+                            }}>
+                              {card.subtitle}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{
+                          mt: 1.5,
+                          pt: 1.5,
+                          borderTop: '1px solid',
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <Typography variant="caption" sx={{
+                            color: 'primary.main',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            '&:hover': {
+                              textDecoration: 'underline'
+                            }
+                          }}>
+                            View Details
+                            <ArrowForwardIcon sx={{ fontSize: '1rem', ml: 0.5 }} />
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+              </Grid>
+            )}
+          </Box>
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
 } 

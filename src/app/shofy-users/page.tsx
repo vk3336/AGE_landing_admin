@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, Divider, List, ListItem, ListItemIcon, ListItemText
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, Alert, Divider, List, ListItem, ListItemIcon, ListItemText, FormControlLabel, Switch
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -31,6 +31,7 @@ interface User {
   state?: string;
   country?: string;
   pincode?: string;
+  invalidUser?: 'yes' | 'no';
 }
 
 
@@ -70,6 +71,43 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
       }
     }}
   >
+    <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25, textAlign: 'center' }}>
+      {user.invalidUser === 'yes' ? (
+        <Box sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: '#ffebee',
+          color: '#c62828',
+          borderRadius: 1,
+          px: 1,
+          py: 0.5,
+          fontSize: '0.7rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          Invalid
+        </Box>
+      ) : (
+        <Box sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: '#e8f5e9',
+          color: '#2e7d32',
+          borderRadius: 1,
+          px: 1,
+          py: 0.5,
+          fontSize: '0.7rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          Valid
+        </Box>
+      )}
+    </TableCell>
     <TableCell sx={{ borderRight: '1px solid #e0e0e0', py: 0.75, px: 1.25 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Box
@@ -288,14 +326,51 @@ const UserForm = React.memo(({
                 InputProps={{ readOnly: viewOnly || !!editId }}
               />
               <TextField
-                label="Phone"
-                name="phone"
-                value={form.phone || ''}
-                onChange={createChangeHandler('phone')}
+                label="Pincode"
+                name="pincode"
+                value={form.pincode || ''}
+                onChange={createChangeHandler('pincode')}
                 fullWidth
                 disabled={submitting || viewOnly}
                 InputProps={{ readOnly: viewOnly }}
               />
+              {!viewOnly && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.invalidUser === 'yes'}
+                      onChange={(e) => {
+                        setForm(prev => ({
+                          ...prev,
+                          invalidUser: e.target.checked ? 'yes' : 'no'
+                        }));
+                      }}
+                      color="error"
+                      disabled={submitting}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color={form.invalidUser === 'yes' ? 'error' : 'textSecondary'}>
+                      Mark as {form.invalidUser === 'yes' ? 'Invalid' : 'Valid'}
+                    </Typography>
+                  }
+                  labelPlacement="start"
+                  sx={{
+                    ml: 0,
+                    mr: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    gridColumn: '1 / -1',
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: form.invalidUser === 'yes' ? '#ffebee' : 'transparent',
+                    '&:hover': {
+                      bgcolor: form.invalidUser === 'yes' ? '#ffcdd2' : 'action.hover',
+                    },
+                  }}
+                />
+              )}
             </Box>
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 2 }}>
@@ -464,6 +539,43 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
 
           <ListItem>
             <ListItemIcon>
+              <Box sx={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                bgcolor: user.invalidUser === 'yes' ? '#ffebee' : '#e8f5e9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mr: 1
+              }}>
+                {user.invalidUser === 'yes' ? (
+                  <Typography variant="caption" color="error" fontWeight="bold">!</Typography>
+                ) : (
+                  <Typography variant="caption" color="success" fontWeight="bold">✓</Typography>
+                )}
+              </Box>
+            </ListItemIcon>
+            <ListItemText
+              primary="Account Status"
+              secondary={
+                <Typography 
+                  component="span" 
+                  color={user.invalidUser === 'yes' ? 'error' : 'success.main'}
+                  fontWeight={500}
+                >
+                  {user.invalidUser === 'yes' ? 'Invalid' : 'Valid'}
+                </Typography>
+              }
+              secondaryTypographyProps={{ 
+                component: 'div',
+                color: 'text.primary' 
+              }}
+            />
+          </ListItem>
+
+          <ListItem>
+            <ListItemIcon>
               <BusinessIcon color="primary" />
             </ListItemIcon>
             <ListItemText
@@ -559,7 +671,8 @@ export default function ShopyUsersPage() {
     city: '',
     state: '',
     country: '',
-    pincode: ''
+    pincode: '',
+    invalidUser: 'no'
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -892,6 +1005,7 @@ export default function ShopyUsersPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Status</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>User</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>Contact</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>Organization</TableCell>
@@ -914,7 +1028,7 @@ export default function ShopyUsersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                       <Typography variant="body1" color="text.secondary">
                         {search ? 'No users found matching your search.' : 'No users found.'}
                       </Typography>

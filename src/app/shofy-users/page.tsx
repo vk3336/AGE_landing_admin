@@ -326,6 +326,16 @@ const UserForm = React.memo(({
                 InputProps={{ readOnly: viewOnly || !!editId }}
               />
               <TextField
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                value={form.phone || ''}
+                onChange={createChangeHandler('phone')}
+                fullWidth
+                disabled={submitting || viewOnly}
+                InputProps={{ readOnly: viewOnly }}
+              />
+              <TextField
                 label="Pincode"
                 name="pincode"
                 value={form.pincode || ''}
@@ -424,15 +434,6 @@ const UserForm = React.memo(({
               name="country"
               value={form.country || ''}
               onChange={createChangeHandler('country')}
-              fullWidth
-              disabled={submitting || viewOnly}
-              InputProps={{ readOnly: viewOnly }}
-            />
-            <TextField
-              label="Pincode"
-              name="pincode"
-              value={form.pincode || ''}
-              onChange={createChangeHandler('pincode')}
               fullWidth
               disabled={submitting || viewOnly}
               InputProps={{ readOnly: viewOnly }}

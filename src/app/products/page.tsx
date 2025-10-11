@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, MenuItem, Select, InputLabel, FormControl, CircularProgress, Pagination, Chip, Autocomplete, InputAdornment
+  Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, MenuItem, Select, InputLabel, FormControl, CircularProgress, Pagination, Chip, Autocomplete, InputAdornment, AppBar, Toolbar
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -950,9 +950,40 @@ export default function ProductPage() {
       </Paper>
 
       {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, fontSize: 28 }}>{editId ? "Edit Product" : "Add Product"}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, pt: 2 }}>
+      <Dialog
+        fullScreen
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <AppBar position="relative" color="default" elevation={1}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleClose}
+              aria-label="close"
+              sx={{ mr: 2 }}
+            >
+              <ClearIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flex: 1 }}>
+              {editId ? 'Edit' : 'Add'} Product
+            </Typography>
+            <Button
+              autoFocus
+              color="primary"
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={submitting}
+              startIcon={submitting ? <CircularProgress size={20} /> : null}
+            >
+              {submitting ? 'Saving...' : 'Save'}
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <DialogContent sx={{ p: 0, '&.MuiDialogContent-root': { overflowY: 'auto' } }}>
+          <Box sx={{ p: 3, '& > *:not(:last-child)': { mb: 2.5 } }}>
           {/* Product selection dropdown for duplication/quick fill */}
           <Autocomplete
             options={products.map((p: Product) => ({ label: p.name, value: p._id }))}
@@ -1564,37 +1595,22 @@ export default function ProductPage() {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
             </Box>
-          </DialogContent>
-        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
-          <Button onClick={handleClose} sx={{ color: '#7f8c8d' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={pageAccess === 'only view' || submitting}
-            sx={{
-              bgcolor: '#3498db',
-              '&:hover': { bgcolor: '#2980b9' },
-              borderRadius: '8px',
-              px: 3
-            }}
-          >
-            {submitting ? 'Saving...' : (editId ? 'Update' : 'Create')}
-          </Button>
-        </DialogActions>
+            </Box>
+        </DialogContent>
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={viewOpen} onClose={handleViewClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ 
-          bgcolor: '#f8f9fa', 
-          borderBottom: '1px solid #ecf0f1',
-          fontWeight: 600,
-          color: '#2c3e50'
-        }}>
-          Product Details
-        </DialogTitle>
+      <Dialog open={viewOpen} onClose={handleViewClose} fullScreen>
+        <AppBar sx={{ position: 'relative', bgcolor: '#f8f9fa', color: '#2c3e50', borderBottom: '1px solid #ecf0f1' }}>
+          <Toolbar>
+            <IconButton edge="start" color="inherit" onClick={handleViewClose} aria-label="Close">
+              <ClearIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ ml: 2, flex: 1, fontWeight: 600 }}>
+              Product Details
+            </Typography>
+          </Toolbar>
+        </AppBar>
         <DialogContent sx={{ p: 3 }}>
           {selectedProduct && (
             <Box sx={{ display: 'grid', gap: 3 }}>

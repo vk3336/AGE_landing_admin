@@ -155,7 +155,8 @@ const SEO_FIELDS = [
     key: "canonical_url", 
     label: "Canonical URL", 
     type: "text",
-    helperText: "Preferred URL if this content appears in multiple places"
+    helperText: "This field is auto-generated",
+    disabled: true
   },
   { 
     key: "robots", 
@@ -568,7 +569,13 @@ const SEO_FIELDS = [
   { key: "description_html", label: "Description HTML", type: "textarea" },
   { key: "rating_value", label: "Rating Value (1-5)", type: "number", min: 0, max: 5 },
   { key: "rating_count", label: "Rating Count", type: "number", min: 0 },
-  { key: "hreflang", label: "Hreflang", type: "text" },
+  { 
+    key: "hreflang", 
+    label: "Hreflang", 
+    type: "text",
+    helperText: "This field is auto-generated",
+    disabled: true 
+  },
   { key: "x_default", label: "X-Default", type: "text" },
   { key: "author_name", label: "Author Name", type: "text" }
 ];
@@ -1214,14 +1221,250 @@ function SeoPage() {
 
       {/* Dialogs remain unchanged */}
       {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, fontSize: 28 }}>{editId ? "Edit SEO" : "Add SEO"}</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, pt: 2 }}>
-            {SEO_FIELDS.map(field => {
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth={false}
+        fullWidth
+        scroll="paper"
+        sx={{
+          '& .MuiDialog-container': {
+            height: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'flex-start',
+            padding: '16px 0',
+            '@media (max-width: 600px)': {
+              padding: 0,
+            },
+          },
+          '& .MuiDialog-paper': {
+            width: '95%',
+            maxWidth: '1800px',
+            maxHeight: '95vh',
+            margin: 0,
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            '@media (max-width: 600px)': {
+              width: '100%',
+              maxHeight: '100vh',
+              borderRadius: 0,
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ 
+          flexShrink: 0,
+          fontWeight: 700, 
+          fontSize: '1.5rem',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+          padding: '20px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#f8fafc',
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        }}>
+          {editId ? "Edit SEO Settings" : "Add New SEO Settings"}
+        </DialogTitle>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <DialogContent sx={{
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '32px',
+            '& > div': {
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              padding: '24px',
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              marginBottom: '16px',
+              '&:last-child': {
+                marginBottom: 0
+              }
+            },
+            '& .MuiFormControl-root': {
+              width: '100%',
+              margin: '8px 0',
+              '& .MuiFormLabel-root': {
+                marginBottom: '8px',
+                display: 'block',
+                color: '#333',
+                fontSize: '0.9rem',
+                fontWeight: 500
+              },
+              '& .MuiInputBase-root': {
+                width: '100%',
+                '& input, & .MuiSelect-select': {
+                  padding: '14px 16px',
+                  fontSize: '0.95rem',
+                  height: 'auto',
+                  minHeight: '24px',
+                },
+                '& fieldset': {
+                  borderColor: '#e0e0e0',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#bdbdbd',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                  borderWidth: '1px',
+                },
+              },
+              '& .MuiAutocomplete-root': {
+                '& .MuiOutlinedInput-root': {
+                  padding: '0',
+                },
+                '& .MuiAutocomplete-inputRoot': {
+                  padding: '0 14px',
+                },
+                '& .MuiAutocomplete-endAdornment': {
+                  right: '14px',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'text.secondary',
+                fontSize: '0.95rem',
+                '&.Mui-focused': {
+                  color: 'primary.main',
+                },
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: '14px 16px',
+                fontSize: '0.95rem',
+              },
+              // Helper text styling
+              '& .MuiFormHelperText-root': {
+                margin: '6px 0 0',
+                fontSize: '0.9rem',
+                lineHeight: 1.4,
+                color: 'rgba(0, 0, 0, 0.7)',
+                '&.Mui-error': {
+                  color: '#d32f2f',
+                },
+              },
+            },
+            // Checkbox and radio button styling
+            '& .MuiFormControlLabel-root': {
+              margin: 0,
+              padding: '12px 8px',
+              backgroundColor: 'rgba(0, 0, 0, 0.01)',
+              borderRadius: '6px',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+              },
+              '& .MuiCheckbox-root, & .MuiRadio-root': {
+                color: 'primary.main',
+                padding: '8px',
+                '&.Mui-checked': {
+                  color: 'primary.main',
+                },
+              },
+              '& .MuiFormControlLabel-label': {
+                fontSize: '0.95rem',
+                color: 'text.primary',
+              },
+            },
+            // Helper text styling
+            '& .MuiFormHelperText-root': {
+              margin: '6px 0 0 4px',
+              fontSize: '0.75rem',
+              lineHeight: 1.4,
+              color: 'text.secondary',
+            },
+            // Section headers
+            '& > .MuiBox-root': {
+              gridColumn: '1 / -1',
+              margin: { xs: '8px 0', sm: '16px 0 8px' },
+              padding: { xs: '8px 12px', sm: '12px 16px' },
+              borderBottom: '2px solid',
+              borderColor: 'divider',
+              position: 'relative',
+              backgroundColor: '#f8fafc',
+              borderRadius: '6px',
+              '&:first-of-type': {
+                marginTop: 0,
+              },
+              '& h6': {
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                fontWeight: 600,
+                color: 'primary.main',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                '&:before': {
+                  content: '""',
+                  display: 'inline-block',
+                  width: '4px',
+                  height: '20px',
+                  backgroundColor: 'primary.main',
+                  marginRight: '12px',
+                  borderRadius: '2px',
+                },
+              },
+            },
+            // Grid item wrapper
+            '& > .MuiGrid-item': {
+              padding: '0 8px',
+            },
+            // Scrollbar styling
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'rgba(0, 0, 0, 0.02)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              '&:hover': {
+                background: 'rgba(0, 0, 0, 0.3)',
+              },
+            },
+            '@media (max-width: 600px)': {
+              padding: '16px 12px !important',
+              gap: '24px',
+              '& > div': {
+                padding: '20px 16px',
+                gap: '16px',
+                marginBottom: '16px !important',
+              },
+              '& .MuiFormControl-root': {
+                margin: '12px 0',
+                '& .MuiInputBase-root': {
+                  '& input, & .MuiSelect-select': {
+                    padding: '12px 14px',
+                  },
+                },
+              },
+            },
+          }}>
+            {SEO_FIELDS.map((field, index) => {
               if (field.section) {
                 return (
-                  <Box key={field.section} sx={{ width: '100%', mt: 3, mb: 1 }}>
+                  <Box key={field.section} sx={{ 
+                    width: '100%', 
+                    mt: index === 0 ? 0 : 4,
+                    mb: 2,
+                    paddingBottom: 1,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider'
+                  }}>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
                       {field.section}
                     </Typography>
@@ -2404,7 +2647,7 @@ function SeoPage() {
                         let current: Record<string, SeoFormValue> = updated as Record<string, SeoFormValue>;
                         
                         // Handle nested fields
-                        for (let i = 0; i < keys.length - 1; i++) {
+                        for (let i = 0; i <keys.length - 1; i++) {
                           const key = keys[i];
                           if (typeof key !== 'string' || !key) continue;
                           if (!current[key]) {
@@ -2447,25 +2690,135 @@ function SeoPage() {
                       }
                     }
                   }}
-                  disabled={pageAccess === 'only view' || field.key === 'ogTitle'}
-                  InputProps={field.key === 'ogTitle' ? {
-                    readOnly: true,
-                  } : undefined}
+                  disabled={pageAccess === 'only view' || field.key === 'ogTitle' || field.key === 'canonical_url' || field.key === 'hreflang'}
+                  InputProps={{
+                    readOnly: field.key === 'ogTitle' || field.key === 'canonical_url' || field.key === 'hreflang',
+                    sx: field.key === 'canonical_url' || field.key === 'hreflang' ? {
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                      }
+                    } : undefined
+                  }}
                 />
                 );
               }
             })}
           </DialogContent>
-          <DialogActions sx={{ pr: 3, pb: 2 }}>
-            <Button onClick={handleClose} sx={{ fontWeight: 700, borderRadius: 3 }} disabled={pageAccess === 'only view'}>Cancel</Button>
-            <Button type="submit" variant="contained" sx={{ fontWeight: 900, borderRadius: 3 }} disabled={pageAccess === 'only view' || submitting}>{editId ? "Update" : "Add"}</Button>
+          <DialogActions sx={{ 
+            padding: '16px 24px', 
+            borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+            justifyContent: 'flex-end',
+            gap: 2,
+            '& > button': {
+              minWidth: '120px',
+              padding: '8px 24px',
+            }
+          }}>
+            <Button 
+              onClick={handleClose} 
+              variant="outlined"
+              sx={{ 
+                fontWeight: 700, 
+                borderRadius: 3,
+                color: 'text.primary',
+                borderColor: 'divider',
+                '&:hover': {
+                  borderColor: 'text.primary',
+                  backgroundColor: 'action.hover',
+                }
+              }} 
+              disabled={pageAccess === 'only view'}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              sx={{ 
+                fontWeight: 900, 
+                borderRadius: 3,
+                backgroundColor: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'action.disabledBackground',
+                  color: 'text.disabled',
+                }
+              }} 
+              disabled={pageAccess === 'only view' || submitting}
+            >
+              {submitting ? 'Saving...' : editId ? 'Update' : 'Add'}
+            </Button>
           </DialogActions>
         </form>
       </Dialog>
+      
       {/* View Dialog */}
-      <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, fontSize: 28 }}>SEO Details</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+      <Dialog 
+        open={viewOpen} 
+        onClose={() => setViewOpen(false)} 
+        maxWidth="lg" 
+        fullWidth
+        scroll="paper"
+        sx={{
+          '& .MuiDialog-container': {
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          '& .MuiDialog-paper': {
+            width: '90%',
+            maxWidth: '1600px',
+            maxHeight: '90vh',
+            margin: 0,
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <DialogTitle sx={{ 
+          flexShrink: 0,
+          fontWeight: 900, 
+          fontSize: 28,
+          borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+          padding: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: 'background.paper',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+        }}>
+          SEO Details
+        </DialogTitle>
+        <DialogContent sx={{ 
+          flex: '1 1 auto',
+          overflowY: 'auto',
+          padding: 3,
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#888',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#555',
+          },
+          // Ensure content takes full height
+          '& > *': {
+            minHeight: 'min-content',
+          },
+        }}>
           {selectedSeo && (
             <Box>
               {/* Product Info at the top */}
@@ -2698,8 +3051,31 @@ function SeoPage() {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ pr: 3, pb: 2 }}>
-          <Button onClick={() => setViewOpen(false)} sx={{ fontWeight: 700, borderRadius: 3 }}>Close</Button>
+        <DialogActions sx={{ 
+          padding: '16px 24px', 
+          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+          justifyContent: 'flex-end',
+          '& > button': {
+            minWidth: '120px',
+            padding: '8px 24px',
+          }
+        }}>
+          <Button 
+            onClick={() => setViewOpen(false)} 
+            variant="outlined"
+            sx={{ 
+              fontWeight: 700, 
+              borderRadius: 3,
+              color: 'text.primary',
+              borderColor: 'divider',
+              '&:hover': {
+                borderColor: 'text.primary',
+                backgroundColor: 'action.hover',
+              }
+            }}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -11,6 +11,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 interface AboutUs {
@@ -341,12 +342,40 @@ export default function AboutUsPage() {
       </Card>
 
       {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {viewMode ? 'View About Us' : editId ? 'Edit About Us' : 'Add New About Us'}
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth="xl"
+        fullWidth
+        fullScreen
+        PaperProps={{
+          style: {
+            margin: '16px',
+            width: 'calc(100% - 32px)',
+            height: 'calc(100% - 32px)',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            borderRadius: '8px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ m: 0, p: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">
+              {viewMode ? 'View About Us' : editId ? 'Edit About Us' : 'Add New About Us'}
+            </Typography>
+            <IconButton
+              edge="end"
+              color="inherit"
+              onClick={handleClose}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <DialogContent sx={{ flex: 1, overflow: 'auto', p: 3 }}>
             {viewMode ? (
               <>
                 <div style={{ marginBottom: '16px' }}>

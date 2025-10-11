@@ -732,31 +732,23 @@ export default function CategoryPage() {
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow sx={{ backgroundColor: 'rgba(115, 103, 240, 0.04)' }}>
-                  <TableCell sx={{ 
+                <TableRow sx={{ 
+                  backgroundColor: 'rgba(115, 103, 240, 0.04)',
+                  '& th': {
                     fontWeight: 600, 
                     color: 'text.primary',
                     borderBottom: '1px solid',
-                    borderColor: 'divider'
-                  }}>
-                    Category Name
-                  </TableCell>
-                  <TableCell sx={{ 
-                    fontWeight: 600, 
-                    color: 'text.primary',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider'
-                  }}>
-                    Image
-                  </TableCell>
-                  <TableCell sx={{ 
-                    fontWeight: 600, 
-                    color: 'text.primary',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider'
-                  }}>
-                    Actions
-                  </TableCell>
+                    borderColor: 'divider',
+                    py: 2,
+                    fontSize: '0.875rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }
+                }}>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Details</TableCell>
+                  <TableCell>Image</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

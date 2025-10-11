@@ -415,22 +415,34 @@ export default function LocationPage() {
     setError(null);
     setSuccess(null);
 
+    // Basic validation - only require name and slug
+    if (!form.name || !form.slug) {
+      setError('Name and slug are required fields');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const url = editId ? `/locations/${editId}` : '/locations';
       const method = editId ? 'PUT' : 'POST';
       
+      // Prepare the request body with only the fields that have values
+      const requestBody: Partial<Location> & { country_name?: string; state_name?: string; city_name?: string } = {
+        name: form.name,
+        slug: form.slug,
+      };
+
+      // Add optional fields only if they have values
+      if (form.pincode) requestBody.pincode = form.pincode;
+      if (form.country) requestBody.country = form.country;
+      if (form.state) requestBody.state = form.state;
+      if (form.city) requestBody.city = form.city;
+      if (form.timezone) requestBody.timezone = form.timezone;
+      if (form.language) requestBody.language = form.language;
+      
       const response = await apiFetch(url, {
         method,
-        body: JSON.stringify({
-          name: form.name,
-          slug: form.slug,
-          pincode: form.pincode,
-          country: form.country,
-          state: form.state,
-          city: form.city,
-          timezone: form.timezone,
-          language: form.language,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();

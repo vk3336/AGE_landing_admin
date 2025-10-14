@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
+import Image from 'next/image';
 import {
   Card, 
   CardContent, 
@@ -365,12 +366,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                   onClick={() => !viewOnly && document.getElementById('category-image-upload')?.click()}
                 >
                   {form.image || imagePreview ? (
-                    <img 
+                    <Image 
                       src={typeof form.image === 'string' ? form.image : imagePreview || ''} 
                       alt={form.altimg || 'Category preview'}
+                      width={200}
+                      height={200}
                       style={{
-                        maxWidth: '100%',
-                        maxHeight: '100%',
+                        width: '100%',
+                        height: '100%',
                         objectFit: 'contain'
                       }}
                     />

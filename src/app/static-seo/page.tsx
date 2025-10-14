@@ -2,10 +2,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, 
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Chip, FormControl, 
+  Dialog, DialogContent, DialogActions, TextField, IconButton, Chip, FormControl, 
   InputLabel, Select, MenuItem, Pagination, Snackbar, Alert, InputBase,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon, 
+  Search as SearchIcon, 
+  Visibility as VisibilityIcon,
+  Close as CloseIcon 
+} from '@mui/icons-material';
 import { apiFetch } from '../../utils/apiFetch';
 
 // Removed unused BaseField and SectionField interfaces
@@ -539,13 +546,43 @@ export default function StaticSeoPage() {
         />
       </Box>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth={true} scroll="paper">
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        fullScreen
+        maxWidth="xl"
+      >
         <form onSubmit={handleSubmit}>
-          <DialogTitle>
-            {editingSeo?._id ? 'Edit Static SEO' : 'Create New Static SEO'}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2, maxHeight: '70vh', overflowY: 'auto', p: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'primary.main', color: 'white' }}>
+            <Typography variant="h6">
+              {editingSeo?._id ? 'Edit Static SEO' : 'Create New Static SEO'}
+            </Typography>
+            <IconButton color="inherit" onClick={handleClose} edge="end">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <DialogContent sx={{ p: 3, height: 'calc(100vh - 120px)' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 2,
+              height: '100%',
+              overflowY: 'auto',
+              pr: 1,
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#555',
+              }
+            }}>
               {STATIC_SEO_FIELDS.map((field, index) => {
                 if ('section' in field) {
                   return (
@@ -673,15 +710,36 @@ export default function StaticSeoPage() {
       {/* View Dialog */}
       <Dialog 
         open={viewOpen} 
-        onClose={handleViewClose} 
-        maxWidth="md" 
-        fullWidth
-        scroll="paper"
+        onClose={handleViewClose}
+        fullScreen
+        maxWidth="xl"
       >
-        <DialogTitle>View SEO Details</DialogTitle>
-        <DialogContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'primary.main', color: 'white' }}>
+          <Typography variant="h6">View SEO Details</Typography>
+          <IconButton color="inherit" onClick={handleViewClose} edge="end">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{ p: 3, height: 'calc(100vh - 120px)' }}>
           {selectedSeo ? (
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ 
+              height: '100%',
+              overflowY: 'auto',
+              pr: 1,
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#555',
+              }
+            }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                 Basic Information
               </Typography>

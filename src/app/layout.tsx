@@ -474,7 +474,7 @@ const Sidebar = React.memo(() => {
               justifyContent: isCollapsed ? 'center' : 'flex-start',
               minHeight: 42,
               borderLeft: '3px solid transparent',
-              ...(pathname === '/static-seo' && {
+              ...(pathname === '/public-seo' && {
                 backgroundColor: 'primary.main',
                 color: 'white',
                 borderLeftColor: 'primary.dark',
@@ -484,9 +484,9 @@ const Sidebar = React.memo(() => {
                 }
               }),
               '&:hover': {
-                backgroundColor: pathname === '/static-seo' ? 'primary.dark' : 'action.hover',
+                backgroundColor: pathname === '/public-seo' ? 'primary.dark' : 'action.hover',
                 transform: 'translateX(2px)',
-                boxShadow: pathname === '/static-seo' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                boxShadow: pathname === '/public-seo' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
                 borderLeftColor: 'primary.main',
               },
               '&:active': { transform: 'translateX(1px) scale(0.99)' },

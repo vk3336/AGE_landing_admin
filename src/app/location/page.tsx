@@ -8,7 +8,13 @@ import {
   IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete,
   Select, MenuItem, Pagination
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon, 
+  Search as SearchIcon,
+  Close as CloseIcon 
+} from '@mui/icons-material';
 import apiFetch from '../../utils/apiFetch';
 
 // Location data with name, slug, and pincode
@@ -317,7 +323,6 @@ export default function LocationPage() {
   
   // Data state
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -435,18 +440,33 @@ export default function LocationPage() {
   };
 
   // Handle location selection from dropdown
-  const handleLocationSelect = (locationName: string | null) => {
-    if (!locationName) return;
+  const handleLocationSelect = (value: string | null) => {
+    if (!value) return;
     
-    const selectedLocation = locationData.find(loc => loc.name === locationName);
-    if (selectedLocation) {
+    const location = locationData.find(loc => loc.name === value);
+    if (location) {
       setForm(prev => ({
         ...prev,
-        name: selectedLocation.name,
-        slug: selectedLocation.slug,
-        pincode: selectedLocation.pincode
+        name: location.name,
+        slug: location.slug,
+        pincode: location.pincode
       }));
     }
+  };
+
+  // Type guard for Autocomplete change event
+  const handleAutocompleteChange = (_: React.SyntheticEvent, value: string | null) => {
+    if (value) {
+      handleLocationSelect(value);
+    }
+  };
+
+  // Type guard for Autocomplete input change
+  const handleAutocompleteInputChange = (_: React.SyntheticEvent, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      name: value
+    }));
   };
 
   // Helper function to clean form data before submission
@@ -467,7 +487,6 @@ export default function LocationPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    setSuccess(null);
 
     // Basic validation - only require name and slug
     if (!form.name || !form.slug) {
@@ -524,7 +543,6 @@ export default function LocationPage() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      setSuccess(editId ? 'Location updated successfully' : 'Location added successfully');
       setSnackbar({
         open: true,
         message: editId ? 'Location updated successfully' : 'Location added successfully',
@@ -921,6 +939,7 @@ export default function LocationPage() {
         <TextField
           fullWidth
           variant="outlined"
+          label="Search locations"
           placeholder="Search locations..."
           value={search}
           onChange={handleSearch}
@@ -937,44 +956,33 @@ export default function LocationPage() {
           <Select
             size="small"
             value={pagination.limit}
-            onChange={(e) => setPagination(prev => ({
-              ...prev,
-              limit: Number(e.target.value),
-              page: 1 // Reset to first page when changing page size
-            }))}
+            onChange={(e) => {
+              setPagination(prev => ({
+                ...prev,
+                limit: Number(e.target.value),
+                page: 1
+              }));
+            }}
             sx={{ minWidth: 80 }}
           >
-            <MenuItem value={5}>5</MenuItem>
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={25}>25</MenuItem>
-            <MenuItem value={50}>50</MenuItem>
+            {[10, 25, 50, 100].map((rows) => (
+              <MenuItem key={rows} value={rows}>
+                {rows}
+              </MenuItem>
+            ))}
           </Select>
         </Box>
       </Box>
 
-      {/* Loading state */}
-      {loading && (
-        <Box display="flex" justifyContent="center" my={4}>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      )}
-
-      {/* Error state */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+      ) : error ? (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
-      )}
-
-      {/* Success message */}
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
-          {success}
-        </Alert>
-      )}
-
-      {/* Locations table */}
-      {!loading && (
+      ) : (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -1056,326 +1064,345 @@ export default function LocationPage() {
       )}
 
       {/* Add/Edit Location Dialog */}
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>{editId ? 'Edit' : 'Add'} Location</DialogTitle>
-          <DialogContent>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        fullWidth 
+        maxWidth="xl"
+        fullScreen
+        sx={{ '& .MuiDialog-container': { height: '100%' } }}
+      >
+        <form onSubmit={handleSubmit} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <DialogTitle sx={{ m: 0, p: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6" component="div">
+                {editId ? 'Edit' : 'Add'} Location
+              </Typography>
+              <IconButton onClick={handleClose}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent dividers sx={{ flexGrow: 1, overflow: 'auto' }}>
             {error && (
               <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
                 {error}
               </Alert>
             )}
             
-            <Autocomplete
-              freeSolo
-              options={locationData.map(loc => loc.name)}
-              value={form.name}
-              onChange={(_, newValue) => handleLocationSelect(newValue)}
-              onInputChange={(_, newInputValue) => {
-                setForm(prev => ({
-                  ...prev,
-                  name: newInputValue
-                }));
-              }}
-              renderInput={(params) => (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3, mb: 3 }}>
+              {/* Basic Information */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography variant="h6" gutterBottom>Basic Information</Typography>
+                <Autocomplete<string, false, false, true>
+                  freeSolo
+                  options={locationData.map(loc => loc.name)}
+                  value={form.name}
+                  onChange={handleAutocompleteChange}
+                  onInputChange={handleAutocompleteInputChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      fullWidth
+                      label="Location Name"
+                      name="name"
+                      placeholder="Search for a location..."
+                      required
+                    />
+                  )}
+                  renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: string) => (
+                    <li {...props} key={option}>
+                      {option}
+                    </li>
+                  )}
+                />
+              
                 <TextField
-                  {...params}
                   margin="normal"
                   fullWidth
-                  label="Location Name"
-                  name="name"
-                  placeholder="Search for a location..."
+                  label="Slug"
+                  name="slug"
+                  value={form.slug}
+                  onChange={handleChange}
+                  helperText="Auto-generated from name but can be edited"
                 />
-              )}
-              renderOption={(props, option) => (
-                <li {...props} key={option}>
-                  {option}
-                </li>
-              )}
-            />
-            
-            <TextField
-              margin="normal"
-              fullWidth
-              label="Slug"
-              name="slug"
-              value={form.slug}
-              onChange={handleChange}
-              helperText="Auto-generated from name but can be edited"
-            />
-            
-            <Autocomplete
-              options={Array.isArray(countries) ? countries : []}
-              getOptionLabel={(option) => option?.name || ''}
-              value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
-              onChange={(_, newValue) => handleCountryChange(newValue?._id || '')}
-              renderInput={(params) => (
+                
+                <Autocomplete
+                  options={Array.isArray(countries) ? countries : []}
+                  getOptionLabel={(option) => option?.name || ''}
+                  value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
+                  onChange={(_, newValue) => handleCountryChange(newValue?._id || '')}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      label="Country"
+                      error={!Array.isArray(countries)}
+                      helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
+                    />
+                  )}
+                />
+                
+                <Autocomplete
+                  options={Array.isArray(states) ? states : []}
+                  getOptionLabel={(option) => option?.name || ''}
+                  value={Array.isArray(states) ? (states.find(s => s._id === form.state) || null) : null}
+                  onChange={(_, newValue) => handleStateChange(newValue?._id || '')}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      label="State"
+                      error={!Array.isArray(states)}
+                      helperText={!Array.isArray(states) ? 'Error loading states' : ''}
+                    />
+                  )}
+                />
+                
+                <Autocomplete
+                  options={Array.isArray(cities) ? cities : []}
+                  getOptionLabel={(option) => option?.name || ''}
+                  value={Array.isArray(cities) ? (cities.find(c => c._id === form.city) || null) : null}
+                  onChange={handleCityChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      label="City"
+                      error={!Array.isArray(cities)}
+                      helperText={!Array.isArray(cities) ? 'Error loading cities' : ''}
+                    />
+                  )}
+                />
+                
                 <TextField
-                  {...params}
                   margin="normal"
-                  label="Country"
-                  error={!Array.isArray(countries)}
-                  helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
+                  fullWidth
+                  label="Pincode"
+                  name="pincode"
+                  value={form.pincode}
+                  onChange={handlePincodeChange}
+                  inputProps={{
+                    pattern: '^[0-9]*$',
+                    title: 'Please enter a valid pincode (numbers only)'
+                  }}
                 />
-              )}
-            />
-            
-            <Autocomplete
-              options={Array.isArray(states) ? states : []}
-              getOptionLabel={(option) => option?.name || ''}
-              value={Array.isArray(states) ? (states.find(s => s._id === form.state) || null) : null}
-              onChange={(_, newValue) => handleStateChange(newValue?._id || '')}
-              renderInput={(params) => (
+                
+                <Autocomplete
+                  options={filteredTimezones}
+                  getOptionLabel={(option) => option.label}
+                  value={allTimezones.find(tz => tz.value === form.timezone) || null}
+                  onChange={(_, newValue) => {
+                    setForm(prev => ({
+                      ...prev,
+                      timezone: newValue?.value || ''
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      label="Timezone"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimezoneSearch(e.target.value)}
+                      value={timezoneSearch}
+                    />
+                  )}
+                />
+                
+                <Autocomplete
+                  options={filteredLanguages}
+                  getOptionLabel={(option) => `${option.name} (${option.code})`}
+                  value={allLanguages.find(lang => lang.code === form.language) || null}
+                  onChange={(_, newValue) => {
+                    setForm(prev => ({
+                      ...prev,
+                      language: newValue?.code || ''
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      margin="normal"
+                      label="Language"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLanguageSearch(e.target.value)}
+                      value={languageSearch}
+                    />
+                  )}
+                />
+              </Box>
+              
+              {/* LocalBusinessJsonLd Section */}
+              <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
+                
                 <TextField
-                  {...params}
                   margin="normal"
-                  label="State"
-                  error={!Array.isArray(states)}
-                  helperText={!Array.isArray(states) ? 'Error loading states' : ''}
+                  fullWidth
+                  label="Local Business JSON"
+                  name="LocalBusinessJsonLd"
+                  value={form.LocalBusinessJsonLd || ''}
+                  onChange={handleChange}
+                  multiline
+                  rows={3}
+                  helperText="Raw JSON for Local Business"
                 />
-              )}
-            />
-            
-            <Autocomplete
-              options={Array.isArray(cities) ? cities : []}
-              getOptionLabel={(option) => option?.name || ''}
-              value={Array.isArray(cities) ? (cities.find(c => c._id === form.city) || null) : null}
-              onChange={handleCityChange}
-              renderInput={(params) => (
+                
                 <TextField
-                  {...params}
                   margin="normal"
-                  label="City"
-                  error={!Array.isArray(cities)}
-                  helperText={!Array.isArray(cities) ? 'Error loading cities' : ''}
+                  fullWidth
+                  label="Local Business Type"
+                  name="LocalBusinessJsonLdtype"
+                  value={form.LocalBusinessJsonLdtype || ''}
+                  onChange={handleChange}
                 />
-              )}
-            />
-            
-            <TextField
-              margin="normal"
-              fullWidth
-              label="Pincode"
-              name="pincode"
-              value={form.pincode}
-              onChange={handlePincodeChange}
-              inputProps={{
-                pattern: '^[0-9]*$',
-                title: 'Please enter a valid pincode (numbers only)'
-              }}
-            />
-            
-            <Autocomplete
-              options={filteredTimezones}
-              getOptionLabel={(option) => option.label}
-              value={allTimezones.find(tz => tz.value === form.timezone) || null}
-              onChange={(_, newValue) => {
-                setForm(prev => ({
-                  ...prev,
-                  timezone: newValue?.value || ''
-                }));
-              }}
-              renderInput={(params) => (
+                
                 <TextField
-                  {...params}
                   margin="normal"
-                  label="Timezone"
-                  onChange={(e) => setTimezoneSearch(e.target.value)}
-                  value={timezoneSearch}
+                  fullWidth
+                  label="Context"
+                  name="LocalBusinessJsonLdcontext"
+                  value={form.LocalBusinessJsonLdcontext || ''}
+                  onChange={handleChange}
                 />
-              )}
-            />
-            
-            <Autocomplete
-              options={filteredLanguages}
-              getOptionLabel={(option) => `${option.name} (${option.code})`}
-              value={allLanguages.find(lang => lang.code === form.language) || null}
-              onChange={(_, newValue) => {
-                setForm(prev => ({
-                  ...prev,
-                  language: newValue?.code || ''
-                }));
-              }}
-              renderInput={(params) => (
+                
                 <TextField
-                  {...params}
                   margin="normal"
-                  label="Language"
-                  onChange={(e) => setLanguageSearch(e.target.value)}
-                  value={languageSearch}
+                  fullWidth
+                  label="Business Name"
+                  name="LocalBusinessJsonLdname"
+                  value={form.LocalBusinessJsonLdname || ''}
+                  onChange={handleChange}
                 />
-              )}
-            />
-            
-            {/* LocalBusinessJsonLd Section */}
-            <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-              <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Local Business JSON"
-                name="LocalBusinessJsonLd"
-                value={form.LocalBusinessJsonLd || ''}
-                onChange={handleChange}
-                multiline
-                rows={3}
-                helperText="Raw JSON for Local Business"
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Local Business Type"
-                name="LocalBusinessJsonLdtype"
-                value={form.LocalBusinessJsonLdtype || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Context"
-                name="LocalBusinessJsonLdcontext"
-                value={form.LocalBusinessJsonLdcontext || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Business Name"
-                name="LocalBusinessJsonLdname"
-                value={form.LocalBusinessJsonLdname || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Telephone"
-                name="LocalBusinessJsonLdtelephone"
-                value={form.LocalBusinessJsonLdtelephone || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Area Served"
-                name="LocalBusinessJsonLdareaserved"
-                value={form.LocalBusinessJsonLdareaserved || ''}
-                onChange={handleChange}
-              />
-              
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Address</Typography>
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Address JSON"
-                name="LocalBusinessJsonLdaddress"
-                value={form.LocalBusinessJsonLdaddress || ''}
-                onChange={handleChange}
-                multiline
-                rows={3}
-                helperText="Raw JSON for Address"
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Address Type"
-                name="LocalBusinessJsonLdaddresstype"
-                value={form.LocalBusinessJsonLdaddresstype || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Street Address"
-                name="LocalBusinessJsonLdaddressstreetAddress"
-                value={form.LocalBusinessJsonLdaddressstreetAddress || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Address Locality"
-                name="LocalBusinessJsonLdaddressaddressLocality"
-                value={form.LocalBusinessJsonLdaddressaddressLocality || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Address Region"
-                name="LocalBusinessJsonLdaddressaddressRegion"
-                value={form.LocalBusinessJsonLdaddressaddressRegion || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Postal Code"
-                name="LocalBusinessJsonLdaddresspostalCode"
-                value={form.LocalBusinessJsonLdaddresspostalCode || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Address Country"
-                name="LocalBusinessJsonLdaddressaddressCountry"
-                value={form.LocalBusinessJsonLdaddressaddressCountry || ''}
-                onChange={handleChange}
-              />
-              
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Geo Coordinates</Typography>
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Geo JSON"
-                name="LocalBusinessJsonLdgeo"
-                value={form.LocalBusinessJsonLdgeo || ''}
-                onChange={handleChange}
-                multiline
-                rows={3}
-                helperText="Raw JSON for Geo Coordinates"
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Geo Type"
-                name="LocalBusinessJsonLdgeotype"
-                value={form.LocalBusinessJsonLdgeotype || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Latitude"
-                name="LocalBusinessJsonLdgeolatitude"
-                value={form.LocalBusinessJsonLdgeolatitude || ''}
-                onChange={handleChange}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Longitude"
-                name="LocalBusinessJsonLdgeolongitude"
-                value={form.LocalBusinessJsonLdgeolongitude || ''}
-                onChange={handleChange}
-              />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Telephone"
+                  name="LocalBusinessJsonLdtelephone"
+                  value={form.LocalBusinessJsonLdtelephone || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Area Served"
+                  name="LocalBusinessJsonLdareaserved"
+                  value={form.LocalBusinessJsonLdareaserved || ''}
+                  onChange={handleChange}
+                />
+                
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Address</Typography>
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Address JSON"
+                  name="LocalBusinessJsonLdaddress"
+                  value={form.LocalBusinessJsonLdaddress || ''}
+                  onChange={handleChange}
+                  multiline
+                  rows={3}
+                  helperText="Raw JSON for Address"
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Address Type"
+                  name="LocalBusinessJsonLdaddresstype"
+                  value={form.LocalBusinessJsonLdaddresstype || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Street Address"
+                  name="LocalBusinessJsonLdaddressstreetAddress"
+                  value={form.LocalBusinessJsonLdaddressstreetAddress || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Address Locality"
+                  name="LocalBusinessJsonLdaddressaddressLocality"
+                  value={form.LocalBusinessJsonLdaddressaddressLocality || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Address Region"
+                  name="LocalBusinessJsonLdaddressaddressRegion"
+                  value={form.LocalBusinessJsonLdaddressaddressRegion || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Postal Code"
+                  name="LocalBusinessJsonLdaddresspostalCode"
+                  value={form.LocalBusinessJsonLdaddresspostalCode || ''}
+                  onChange={handleChange}
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Address Country"
+                  name="LocalBusinessJsonLdaddressaddressCountry"
+                  value={form.LocalBusinessJsonLdaddressaddressCountry || ''}
+                  onChange={handleChange}
+                />
+                
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Geo Coordinates</Typography>
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Geo JSON"
+                  name="LocalBusinessJsonLdgeo"
+                  value={form.LocalBusinessJsonLdgeo || ''}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  helperText="Raw JSON for Geo Coordinates"
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Geo Type"
+                  name="LocalBusinessJsonLdgeotype"
+                  value={form.LocalBusinessJsonLdgeotype || ''}
+                  onChange={handleChange}
+                />
+                
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Latitude"
+                    name="LocalBusinessJsonLdgeolatitude"
+                    value={form.LocalBusinessJsonLdgeolatitude || ''}
+                    onChange={handleChange}
+                  />
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Longitude"
+                    name="LocalBusinessJsonLdgeolongitude"
+                    value={form.LocalBusinessJsonLdgeolongitude || ''}
+                    onChange={handleChange}
+                  />
+                </Box>
+              </Box>
             </Box>
           </DialogContent>
           <DialogActions>

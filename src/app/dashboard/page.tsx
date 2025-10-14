@@ -618,7 +618,7 @@ export default function DashboardPage() {
       subtitle: 'Locations',
       icon: <BrushIcon />,
       color: '#00cfe8',
-      href: '/locations',
+      href: '/location',
     },
     {
       title: 'Office Info',

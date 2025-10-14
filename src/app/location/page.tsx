@@ -166,6 +166,24 @@ interface Location {
   city: string | { _id: string; name: string };
   timezone: string;
   language: string;
+  // Local Business JSON-LD fields
+  LocalBusinessJsonLd?: string;
+  LocalBusinessJsonLdtype?: string;
+  LocalBusinessJsonLdcontext?: string;
+  LocalBusinessJsonLdname?: string;
+  LocalBusinessJsonLdtelephone?: string;
+  LocalBusinessJsonLdareaserved?: string;
+  LocalBusinessJsonLdaddress?: string;
+  LocalBusinessJsonLdaddresstype?: string;
+  LocalBusinessJsonLdaddressstreetAddress?: string;
+  LocalBusinessJsonLdaddressaddressLocality?: string;
+  LocalBusinessJsonLdaddressaddressRegion?: string;
+  LocalBusinessJsonLdaddresspostalCode?: string;
+  LocalBusinessJsonLdaddressaddressCountry?: string;
+  LocalBusinessJsonLdgeo?: string;
+  LocalBusinessJsonLdgeotype?: string;
+  LocalBusinessJsonLdgeolatitude?: string;
+  LocalBusinessJsonLdgeolongitude?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -198,6 +216,24 @@ interface FormState {
   city: string;
   timezone: string;
   language: string;
+  // Local Business JSON-LD fields
+  LocalBusinessJsonLd?: string;
+  LocalBusinessJsonLdtype?: string;
+  LocalBusinessJsonLdcontext?: string;
+  LocalBusinessJsonLdname?: string;
+  LocalBusinessJsonLdtelephone?: string;
+  LocalBusinessJsonLdareaserved?: string;
+  LocalBusinessJsonLdaddress?: string;
+  LocalBusinessJsonLdaddresstype?: string;
+  LocalBusinessJsonLdaddressstreetAddress?: string;
+  LocalBusinessJsonLdaddressaddressLocality?: string;
+  LocalBusinessJsonLdaddressaddressRegion?: string;
+  LocalBusinessJsonLdaddresspostalCode?: string;
+  LocalBusinessJsonLdaddressaddressCountry?: string;
+  LocalBusinessJsonLdgeo?: string;
+  LocalBusinessJsonLdgeotype?: string;
+  LocalBusinessJsonLdgeolatitude?: string;
+  LocalBusinessJsonLdgeolongitude?: string;
   country_name?: string;
   state_name?: string;
   city_name?: string;
@@ -236,6 +272,24 @@ export default function LocationPage() {
     city: '',
     timezone: '',
     language: '',
+    // Initialize LocalBusinessJsonLd fields
+    LocalBusinessJsonLd: '',
+    LocalBusinessJsonLdtype: '',
+    LocalBusinessJsonLdcontext: '',
+    LocalBusinessJsonLdname: '',
+    LocalBusinessJsonLdtelephone: '',
+    LocalBusinessJsonLdareaserved: '',
+    LocalBusinessJsonLdaddress: '',
+    LocalBusinessJsonLdaddresstype: '',
+    LocalBusinessJsonLdaddressstreetAddress: '',
+    LocalBusinessJsonLdaddressaddressLocality: '',
+    LocalBusinessJsonLdaddressaddressRegion: '',
+    LocalBusinessJsonLdaddresspostalCode: '',
+    LocalBusinessJsonLdaddressaddressCountry: '',
+    LocalBusinessJsonLdgeo: '',
+    LocalBusinessJsonLdgeotype: '',
+    LocalBusinessJsonLdgeolatitude: '',
+    LocalBusinessJsonLdgeolongitude: ''
   });
   const [editId, setEditId] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -440,6 +494,25 @@ export default function LocationPage() {
       if (form.timezone) requestBody.timezone = form.timezone;
       if (form.language) requestBody.language = form.language;
       
+      // Add LocalBusinessJsonLd fields
+      if (form.LocalBusinessJsonLd !== undefined) requestBody.LocalBusinessJsonLd = form.LocalBusinessJsonLd;
+      if (form.LocalBusinessJsonLdtype !== undefined) requestBody.LocalBusinessJsonLdtype = form.LocalBusinessJsonLdtype;
+      if (form.LocalBusinessJsonLdcontext !== undefined) requestBody.LocalBusinessJsonLdcontext = form.LocalBusinessJsonLdcontext;
+      if (form.LocalBusinessJsonLdname !== undefined) requestBody.LocalBusinessJsonLdname = form.LocalBusinessJsonLdname;
+      if (form.LocalBusinessJsonLdtelephone !== undefined) requestBody.LocalBusinessJsonLdtelephone = form.LocalBusinessJsonLdtelephone;
+      if (form.LocalBusinessJsonLdareaserved !== undefined) requestBody.LocalBusinessJsonLdareaserved = form.LocalBusinessJsonLdareaserved;
+      if (form.LocalBusinessJsonLdaddress !== undefined) requestBody.LocalBusinessJsonLdaddress = form.LocalBusinessJsonLdaddress;
+      if (form.LocalBusinessJsonLdaddresstype !== undefined) requestBody.LocalBusinessJsonLdaddresstype = form.LocalBusinessJsonLdaddresstype;
+      if (form.LocalBusinessJsonLdaddressstreetAddress !== undefined) requestBody.LocalBusinessJsonLdaddressstreetAddress = form.LocalBusinessJsonLdaddressstreetAddress;
+      if (form.LocalBusinessJsonLdaddressaddressLocality !== undefined) requestBody.LocalBusinessJsonLdaddressaddressLocality = form.LocalBusinessJsonLdaddressaddressLocality;
+      if (form.LocalBusinessJsonLdaddressaddressRegion !== undefined) requestBody.LocalBusinessJsonLdaddressaddressRegion = form.LocalBusinessJsonLdaddressaddressRegion;
+      if (form.LocalBusinessJsonLdaddresspostalCode !== undefined) requestBody.LocalBusinessJsonLdaddresspostalCode = form.LocalBusinessJsonLdaddresspostalCode;
+      if (form.LocalBusinessJsonLdaddressaddressCountry !== undefined) requestBody.LocalBusinessJsonLdaddressaddressCountry = form.LocalBusinessJsonLdaddressaddressCountry;
+      if (form.LocalBusinessJsonLdgeo !== undefined) requestBody.LocalBusinessJsonLdgeo = form.LocalBusinessJsonLdgeo;
+      if (form.LocalBusinessJsonLdgeotype !== undefined) requestBody.LocalBusinessJsonLdgeotype = form.LocalBusinessJsonLdgeotype;
+      if (form.LocalBusinessJsonLdgeolatitude !== undefined) requestBody.LocalBusinessJsonLdgeolatitude = form.LocalBusinessJsonLdgeolatitude;
+      if (form.LocalBusinessJsonLdgeolongitude !== undefined) requestBody.LocalBusinessJsonLdgeolongitude = form.LocalBusinessJsonLdgeolongitude;
+      
       const response = await apiFetch(url, {
         method,
         body: JSON.stringify(requestBody),
@@ -471,6 +544,24 @@ export default function LocationPage() {
         city: '',
         timezone: '',
         language: '',
+        // Reset LocalBusinessJsonLd fields
+        LocalBusinessJsonLd: '',
+        LocalBusinessJsonLdtype: '',
+        LocalBusinessJsonLdcontext: '',
+        LocalBusinessJsonLdname: '',
+        LocalBusinessJsonLdtelephone: '',
+        LocalBusinessJsonLdareaserved: '',
+        LocalBusinessJsonLdaddress: '',
+        LocalBusinessJsonLdaddresstype: '',
+        LocalBusinessJsonLdaddressstreetAddress: '',
+        LocalBusinessJsonLdaddressaddressLocality: '',
+        LocalBusinessJsonLdaddressaddressRegion: '',
+        LocalBusinessJsonLdaddresspostalCode: '',
+        LocalBusinessJsonLdaddressaddressCountry: '',
+        LocalBusinessJsonLdgeo: '',
+        LocalBusinessJsonLdgeotype: '',
+        LocalBusinessJsonLdgeolatitude: '',
+        LocalBusinessJsonLdgeolongitude: ''
       });
       setEditId(null);
       setOpen(false);
@@ -570,6 +661,24 @@ export default function LocationPage() {
       city: getId(location.city),
       timezone: location.timezone || '',
       language: location.language || '',
+      // Set LocalBusinessJsonLd fields
+      LocalBusinessJsonLd: location.LocalBusinessJsonLd || '',
+      LocalBusinessJsonLdtype: location.LocalBusinessJsonLdtype || '',
+      LocalBusinessJsonLdcontext: location.LocalBusinessJsonLdcontext || '',
+      LocalBusinessJsonLdname: location.LocalBusinessJsonLdname || '',
+      LocalBusinessJsonLdtelephone: location.LocalBusinessJsonLdtelephone || '',
+      LocalBusinessJsonLdareaserved: location.LocalBusinessJsonLdareaserved || '',
+      LocalBusinessJsonLdaddress: location.LocalBusinessJsonLdaddress || '',
+      LocalBusinessJsonLdaddresstype: location.LocalBusinessJsonLdaddresstype || '',
+      LocalBusinessJsonLdaddressstreetAddress: location.LocalBusinessJsonLdaddressstreetAddress || '',
+      LocalBusinessJsonLdaddressaddressLocality: location.LocalBusinessJsonLdaddressaddressLocality || '',
+      LocalBusinessJsonLdaddressaddressRegion: location.LocalBusinessJsonLdaddressaddressRegion || '',
+      LocalBusinessJsonLdaddresspostalCode: location.LocalBusinessJsonLdaddresspostalCode || '',
+      LocalBusinessJsonLdaddressaddressCountry: location.LocalBusinessJsonLdaddressaddressCountry || '',
+      LocalBusinessJsonLdgeo: location.LocalBusinessJsonLdgeo || '',
+      LocalBusinessJsonLdgeotype: location.LocalBusinessJsonLdgeotype || '',
+      LocalBusinessJsonLdgeolatitude: location.LocalBusinessJsonLdgeolatitude || '',
+      LocalBusinessJsonLdgeolongitude: location.LocalBusinessJsonLdgeolongitude || '',
       country_name: countryName,
       state_name: getName(location.state),
       city_name: getName(location.city)
@@ -660,6 +769,24 @@ export default function LocationPage() {
       city: '',
       timezone: 'Asia/Kolkata',
       language: 'en',
+      // Initialize LocalBusinessJsonLd fields
+      LocalBusinessJsonLd: '',
+      LocalBusinessJsonLdtype: '',
+      LocalBusinessJsonLdcontext: '',
+      LocalBusinessJsonLdname: '',
+      LocalBusinessJsonLdtelephone: '',
+      LocalBusinessJsonLdareaserved: '',
+      LocalBusinessJsonLdaddress: '',
+      LocalBusinessJsonLdaddresstype: '',
+      LocalBusinessJsonLdaddressstreetAddress: '',
+      LocalBusinessJsonLdaddressaddressLocality: '',
+      LocalBusinessJsonLdaddressaddressRegion: '',
+      LocalBusinessJsonLdaddresspostalCode: '',
+      LocalBusinessJsonLdaddressaddressCountry: '',
+      LocalBusinessJsonLdgeo: '',
+      LocalBusinessJsonLdgeotype: '',
+      LocalBusinessJsonLdgeolatitude: '',
+      LocalBusinessJsonLdgeolongitude: ''
     });
     setEditId(null);
     setOpen(true);
@@ -1079,6 +1206,177 @@ export default function LocationPage() {
                 />
               )}
             />
+            
+            {/* LocalBusinessJsonLd Section */}
+            <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+              <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Local Business JSON"
+                name="LocalBusinessJsonLd"
+                value={form.LocalBusinessJsonLd || ''}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                helperText="Raw JSON for Local Business"
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Local Business Type"
+                name="LocalBusinessJsonLdtype"
+                value={form.LocalBusinessJsonLdtype || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Context"
+                name="LocalBusinessJsonLdcontext"
+                value={form.LocalBusinessJsonLdcontext || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Business Name"
+                name="LocalBusinessJsonLdname"
+                value={form.LocalBusinessJsonLdname || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Telephone"
+                name="LocalBusinessJsonLdtelephone"
+                value={form.LocalBusinessJsonLdtelephone || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Area Served"
+                name="LocalBusinessJsonLdareaserved"
+                value={form.LocalBusinessJsonLdareaserved || ''}
+                onChange={handleChange}
+              />
+              
+              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Address</Typography>
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address JSON"
+                name="LocalBusinessJsonLdaddress"
+                value={form.LocalBusinessJsonLdaddress || ''}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                helperText="Raw JSON for Address"
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address Type"
+                name="LocalBusinessJsonLdaddresstype"
+                value={form.LocalBusinessJsonLdaddresstype || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Street Address"
+                name="LocalBusinessJsonLdaddressstreetAddress"
+                value={form.LocalBusinessJsonLdaddressstreetAddress || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address Locality"
+                name="LocalBusinessJsonLdaddressaddressLocality"
+                value={form.LocalBusinessJsonLdaddressaddressLocality || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address Region"
+                name="LocalBusinessJsonLdaddressaddressRegion"
+                value={form.LocalBusinessJsonLdaddressaddressRegion || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Postal Code"
+                name="LocalBusinessJsonLdaddresspostalCode"
+                value={form.LocalBusinessJsonLdaddresspostalCode || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address Country"
+                name="LocalBusinessJsonLdaddressaddressCountry"
+                value={form.LocalBusinessJsonLdaddressaddressCountry || ''}
+                onChange={handleChange}
+              />
+              
+              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Geo Coordinates</Typography>
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Geo JSON"
+                name="LocalBusinessJsonLdgeo"
+                value={form.LocalBusinessJsonLdgeo || ''}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                helperText="Raw JSON for Geo Coordinates"
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Geo Type"
+                name="LocalBusinessJsonLdgeotype"
+                value={form.LocalBusinessJsonLdgeotype || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Latitude"
+                name="LocalBusinessJsonLdgeolatitude"
+                value={form.LocalBusinessJsonLdgeolatitude || ''}
+                onChange={handleChange}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Longitude"
+                name="LocalBusinessJsonLdgeolongitude"
+                value={form.LocalBusinessJsonLdgeolongitude || ''}
+                onChange={handleChange}
+              />
+            </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose} disabled={submitting}>

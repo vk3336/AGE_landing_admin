@@ -35,6 +35,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import CloseIcon from '@mui/icons-material/Close';
 import { apiFetch } from '../../utils/apiFetch';
 
 interface Category {
@@ -157,209 +158,308 @@ const CategoryRow = React.memo(({ category, onEdit, onDelete, viewOnly }: {
 
 CategoryRow.displayName = 'CategoryRow';
 
-const CategoryForm = React.memo(({ 
-  open, 
-  onClose, 
-  form, 
-  setForm, 
-  onSubmit, 
-  submitting, 
-  editId, 
-  imagePreview, 
-  onImageChange, 
-  onDeleteImage,
-  viewOnly,
-  formError
-}: {
+interface CategoryFormProps {
   open: boolean;
   onClose: () => void;
-  form: Category;
-  setForm: (form: Category) => void;
   onSubmit: (e: React.FormEvent) => void;
-  submitting: boolean;
+  form: Category;
+  setForm: React.Dispatch<React.SetStateAction<Category>>;
+  loading: boolean;
   editId: string | null;
   imagePreview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteImage: () => void;
   viewOnly: boolean;
   formError: string | null;
+}
+
+const CategoryForm: React.FC<CategoryFormProps> = ({
+  open,
+  onClose,
+  onSubmit,
+  form,
+  setForm,
+  loading,
+  editId,
+  imagePreview,
+  onImageChange,
+  onDeleteImage,
+  viewOnly,
+  formError
 }) => {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }, [form, setForm]);
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  }, [setForm]);
 
   return (
     <Dialog 
       open={open} 
       onClose={onClose} 
-      maxWidth="sm" 
-      fullWidth
+      maxWidth="md"
+      fullScreen
       PaperProps={{
         sx: {
-          borderRadius: '6px',
-          boxShadow: '0 4px 24px 0 rgba(34, 41, 47, 0.24)',
+          borderRadius: 0,
+          height: '100vh',
+          maxHeight: '100vh',
+          width: '100%',
+          maxWidth: '100%',
+          m: 0,
+          bgcolor: 'background.default'
         }
       }}
     >
-      <DialogTitle sx={{ 
-        fontWeight: 600, 
-        fontSize: 20, 
-        color: 'text.primary',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        pb: 2
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden'
       }}>
-        {editId ? "Edit Category" : "Add New Category"}
-      </DialogTitle>
-      <form onSubmit={onSubmit}>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 3 }}>
-          <TextField 
-            label="Category Name" 
-            name="name" 
-            value={form.name} 
-            onChange={handleChange} 
-            required 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            InputProps={{ readOnly: viewOnly }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '6px',
-                '& fieldset': {
-                  borderColor: 'divider',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'primary.main',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
-            }}
-          />
-          <TextField 
-            label="Image Alt Text" 
-            name="altimg" 
-            value={form.altimg || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            InputProps={{ readOnly: viewOnly }}
-            helperText="Alternative text for the category image (for accessibility)"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '6px',
-                '& fieldset': {
-                  borderColor: 'divider',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'primary.main',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
-            }}
-          />
-          {formError && (
-            <Typography sx={{ color: 'error.main', fontSize: 14 }}>
-              {formError}
-            </Typography>
-          )}
-          <Box display="flex" alignItems="center" gap={2}>
-            <Button 
-              variant="outlined" 
-              component="label" 
-              sx={{ 
-                borderRadius: '6px', 
-                fontWeight: 500,
-                borderColor: 'divider',
-                color: 'text.primary',
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  backgroundColor: 'rgba(115, 103, 240, 0.08)',
-                }
-              }} 
-              disabled={submitting || viewOnly}
-              startIcon={<ImageIcon />}
-            >
-              {form.image ? 'Change Image' : 'Upload Image'}
-              <input type="file" accept="image/*" hidden onChange={onImageChange} disabled={viewOnly} />
-            </Button>
-            {imagePreview && (
-              <Box sx={{ position: 'relative' }}>
-                <Avatar 
-                  variant="rounded" 
-                  src={imagePreview} 
-                  sx={{ 
-                    width: 56, 
-                    height: 56,
-                    border: '2px solid',
-                    borderColor: 'divider'
+        <DialogTitle sx={{ 
+          fontWeight: 600, 
+          fontSize: 24, 
+          color: 'text.primary',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          py: 2,
+          px: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: 'background.paper',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          {editId ? "Edit Category" : "Add New Category"}
+          <IconButton onClick={onClose} size="large" sx={{ color: 'text.secondary' }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <form onSubmit={onSubmit} style={{ flex: 1, overflow: 'auto' }}>
+          <DialogContent sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 4, 
+            p: 4,
+            maxWidth: 1200,
+            margin: '0 auto',
+            width: '100%',
+            boxSizing: 'border-box',
+            flex: 1
+          }}>
+            <Box sx={{ 
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 4,
+              alignItems: 'flex-start',
+              maxWidth: 1200,
+              width: '100%',
+              margin: '0 auto'
+            }}>
+              <Box sx={{ 
+                bgcolor: 'background.paper', 
+                p: 3, 
+                borderRadius: 2,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
+                  Category Information
+                </Typography>
+                
+                <TextField 
+                  fullWidth
+                  label="Category Name" 
+                  name="name" 
+                  value={form.name} 
+                  onChange={handleChange}
+                  required
+                  disabled={loading || viewOnly}
+                  sx={{ mb: 3 }}
+                  InputLabelProps={{
+                    shrink: true,
                   }}
-                >
-                  <ImageIcon />
-                </Avatar>
-                {!viewOnly && (
-                  <IconButton
-                    size="small"
-                    onClick={onDeleteImage}
-                    sx={{
-                      position: 'absolute',
-                      top: -8,
-                      right: -8,
-                      backgroundColor: 'error.main',
-                      color: 'white',
-                      width: 24,
-                      height: 24,
-                      '&:hover': {
-                        backgroundColor: 'error.dark',
-                      },
-                    }}
-                    disabled={submitting}
+                />
+                
+                <TextField 
+                  fullWidth
+                  label="Alt Text (For SEO)" 
+                  name="altimg" 
+                  value={form.altimg || ''} 
+                  onChange={handleChange}
+                  helperText="Describe the image for search engines and accessibility"
+                  disabled={loading || viewOnly}
+                  sx={{ mb: 3 }}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+                
+                {formError && (
+                  <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+                    {formError}
+                  </Typography>
+                )}
+                
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 2, 
+                  mt: 4, 
+                  pt: 2, 
+                  borderTop: '1px solid', 
+                  borderColor: 'divider' 
+                }}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={onClose}
+                    disabled={loading}
+                    sx={{ textTransform: 'none' }}
                   >
-                    <DeleteIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
+                    Cancel
+                  </Button>
+                  {!viewOnly && (
+                    <Button 
+                      type="submit" 
+                      variant="contained"
+                      disabled={loading || !form.name}
+                      sx={{ textTransform: 'none', minWidth: 120 }}
+                    >
+                      {loading ? <CircularProgress size={24} /> : (editId ? 'Update' : 'Create')}
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+              
+              <Box sx={{ 
+                bgcolor: 'background.paper', 
+                p: 3, 
+                borderRadius: 2,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
+                  Category Image
+                </Typography>
+                
+                <Box 
+                  sx={{
+                    width: '100%',
+                    height: 300,
+                    border: '2px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    bgcolor: 'background.paper',
+                    '&:hover': {
+                      borderColor: viewOnly ? 'divider' : 'primary.main',
+                      cursor: viewOnly ? 'default' : 'pointer',
+                    },
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => !viewOnly && document.getElementById('category-image-upload')?.click()}
+                >
+                  {form.image || imagePreview ? (
+                    <img 
+                      src={typeof form.image === 'string' ? form.image : imagePreview || ''} 
+                      alt={form.altimg || 'Category preview'}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon sx={{ 
+                        fontSize: 40, 
+                        color: 'text.secondary', 
+                        mb: 1,
+                        opacity: viewOnly ? 0.5 : 1
+                      }} />
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        textAlign="center"
+                        sx={{ opacity: viewOnly ? 0.7 : 1 }}
+                      >
+                        {viewOnly ? 'No image' : 'Click to upload an image or drag and drop'}
+                      </Typography>
+                      {!viewOnly && (
+                        <Typography variant="caption" color="text.disabled">
+                          Recommended: 800x800px, PNG/JPG/JPEG
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    id="category-image-upload"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={onImageChange}
+                    disabled={viewOnly}
+                  />
+                </Box>
+                
+                {(form.image || imagePreview) && !viewOnly && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={onDeleteImage}
+                    size="small"
+                    sx={{ mt: 2 }}
+                    fullWidth
+                    disabled={loading}
+                  >
+                    Remove Image
+                  </Button>
                 )}
               </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={onClose} 
-            sx={{ 
-              fontWeight: 500, 
-              borderRadius: '6px',
-              color: 'text.secondary',
-              '&:hover': {
-                backgroundColor: 'rgba(108, 117, 125, 0.08)',
-              }
-            }} 
-            disabled={submitting || viewOnly}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            sx={{ 
-              fontWeight: 500, 
-              borderRadius: '6px',
-              backgroundColor: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.dark',
-              }
-            }} 
-            disabled={submitting || viewOnly}
-          >
-            {editId ? "Update" : "Add Category"}
-          </Button>
-        </DialogActions>
-      </form>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button 
+              onClick={onClose} 
+              sx={{ 
+                fontWeight: 500, 
+                borderRadius: '6px',
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: 'rgba(108, 117, 125, 0.08)',
+                }
+              }} 
+              disabled={loading || viewOnly}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              sx={{ 
+                fontWeight: 500, 
+                borderRadius: '6px',
+                backgroundColor: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }} 
+              disabled={loading || viewOnly}
+            >
+              {editId ? "Update" : "Add Category"}
+            </Button>
+          </DialogActions>
+        </form>
+      </Box>
     </Dialog>
   );
-});
+};
 
 CategoryForm.displayName = 'CategoryForm';
 
@@ -799,7 +899,7 @@ export default function CategoryPage() {
         form={form}
         setForm={setForm}
         onSubmit={handleSubmit}
-        submitting={submitting}
+        loading={submitting}
         editId={editId}
         imagePreview={imagePreview}
         onImageChange={handleImageChange}

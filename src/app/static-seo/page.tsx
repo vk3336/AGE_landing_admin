@@ -30,8 +30,6 @@ interface StaticSEO {
   xUaCompatible?: string;
   viewport?: string;
   contentLanguage?: string;
-  googleSiteVerification?: string;
-  msValidate?: string;
   themeColor?: string;
   mobileWebAppCapable?: string;
   appleStatusBarStyle?: string;
@@ -70,13 +68,16 @@ interface StaticSEO {
   
   // Internationalization
   hreflang?: string;
-  x_default?: string;
   
   // JSON-LD
   VideoJsonLd?: string;
   LogoJsonLd?: string;
+  LogoJsonLdcontext?: string;
+  LogoJsonLdtype?: string;
+  logoJsonLdurl?: string;
+  logoJsonLdwidth?: string;
+  logoJsonLdheight?: string;
   BreadcrumbJsonLd?: string;
-  LocalBusinessJsonLd?: string;
   
   // Status
   status?: 'draft' | 'published' | 'archived';
@@ -155,8 +156,6 @@ export default function StaticSeoPage() {
     { key: "xUaCompatible", label: "X-UA-Compatible", type: "text", placeholder: "e.g., IE=edge" },
     { key: "viewport", label: "Viewport", type: "text", placeholder: "e.g., width=device-width, initial-scale=1" },
     { key: "contentLanguage", label: "Content Language", type: "text", placeholder: "e.g., en-US" },
-    { key: "googleSiteVerification", label: "Google Site Verification", type: "text", placeholder: "Enter verification code" },
-    { key: "msValidate", label: "MS Validate", type: "text", placeholder: "Enter validation ID" },
     { key: "themeColor", label: "Theme Color", type: "text", placeholder: "e.g., #ffffff" },
     { key: "mobileWebAppCapable", label: "Mobile Web App Capable", type: "text", placeholder: "e.g., yes" },
     { key: "appleStatusBarStyle", label: "Apple Status Bar Style", type: "text", placeholder: "e.g., black-translucent" },
@@ -186,12 +185,15 @@ export default function StaticSeoPage() {
     { key: "twitter.player_height", label: "Twitter Player Height", type: "number", placeholder: "Enter player height" },
     { section: "Hreflang" },
     { key: "hreflang", label: "Hreflang", type: "text", placeholder: "e.g., en-US" },
-    { key: "x_default", label: "X-Default Hreflang", type: "text", placeholder: "e.g., en" },
     { section: "Structured Data" },
     { key: "VideoJsonLd", label: "Video JSON-LD", type: "textarea", placeholder: "Enter Video JSON-LD script" },
     { key: "LogoJsonLd", label: "Logo JSON-LD", type: "textarea", placeholder: "Enter Logo JSON-LD script" },
+    { key: "LogoJsonLdcontext", label: "Logo JSON-LD @context", type: "text", placeholder: "e.g., https://schema.org" },
+    { key: "LogoJsonLdtype", label: "Logo JSON-LD @type", type: "text", placeholder: "e.g., Organization" },
+    { key: "logoJsonLdurl", label: "Logo URL", type: "text", placeholder: "Enter logo URL" },
+    { key: "logoJsonLdwidth", label: "Logo Width", type: "text", placeholder: "Enter logo width in pixels" },
+    { key: "logoJsonLdheight", label: "Logo Height", type: "text", placeholder: "Enter logo height in pixels" },
     { key: "BreadcrumbJsonLd", label: "Breadcrumb JSON-LD", type: "textarea", placeholder: "Enter Breadcrumb JSON-LD script" },
-    { key: "LocalBusinessJsonLd", label: "Local Business JSON-LD", type: "textarea", placeholder: "Enter Local Business JSON-LD script" },
     { section: "Status" },
     { 
       key: "status", 
@@ -822,7 +824,7 @@ export default function StaticSeoPage() {
               )}
 
               {/* JSON-LD Section */}
-              {(selectedSeo.VideoJsonLd || selectedSeo.LogoJsonLd || selectedSeo.BreadcrumbJsonLd || selectedSeo.LocalBusinessJsonLd) && (
+              {(selectedSeo.VideoJsonLd || selectedSeo.LogoJsonLd || selectedSeo.BreadcrumbJsonLd) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Structured Data
@@ -832,9 +834,9 @@ export default function StaticSeoPage() {
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Video JSON-LD</Typography>
                         <Box component="pre" sx={{ 
+                          bgcolor: 'grey.100', 
                           p: 2, 
-                          bgcolor: '#f5f5f5', 
-                          borderRadius: 1, 
+                          borderRadius: 1,
                           overflow: 'auto',
                           maxHeight: '200px',
                           fontSize: '0.8rem'
@@ -847,9 +849,9 @@ export default function StaticSeoPage() {
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Logo JSON-LD</Typography>
                         <Box component="pre" sx={{ 
+                          bgcolor: 'grey.100', 
                           p: 2, 
-                          bgcolor: '#f5f5f5', 
-                          borderRadius: 1, 
+                          borderRadius: 1,
                           overflow: 'auto',
                           maxHeight: '200px',
                           fontSize: '0.8rem'
@@ -862,29 +864,14 @@ export default function StaticSeoPage() {
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Breadcrumb JSON-LD</Typography>
                         <Box component="pre" sx={{ 
+                          bgcolor: 'grey.100', 
                           p: 2, 
-                          bgcolor: '#f5f5f5', 
-                          borderRadius: 1, 
+                          borderRadius: 1,
                           overflow: 'auto',
                           maxHeight: '200px',
                           fontSize: '0.8rem'
                         }}>
                           {selectedSeo.BreadcrumbJsonLd}
-                        </Box>
-                      </Box>
-                    )}
-                    {selectedSeo.LocalBusinessJsonLd && (
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">Local Business JSON-LD</Typography>
-                        <Box component="pre" sx={{ 
-                          p: 2, 
-                          bgcolor: '#f5f5f5', 
-                          borderRadius: 1, 
-                          overflow: 'auto',
-                          maxHeight: '200px',
-                          fontSize: '0.8rem'
-                        }}>
-                          {selectedSeo.LocalBusinessJsonLd}
                         </Box>
                       </Box>
                     )}

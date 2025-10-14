@@ -46,6 +46,7 @@ interface SeoData {
   ogImage?: string;
   ogLocale?: string;
   ogVideoUrl?: string;
+  ogVideoSecureUrl?: string;
   ogVideoType?: string;
   ogVideoWidth?: number;
   ogVideoHeight?: number;
@@ -62,7 +63,6 @@ interface SeoData {
   
   // Internationalization
   hreflang?: string;
-  x_default?: string;
   author_name?: string;
   locationCode?: string;
   
@@ -71,56 +71,12 @@ interface SeoData {
   VideoJsonLdcontext?: string;
   VideoJsonLdtype?: string;
   
-  LogoJsonLd?: {
-    url: string;
-    width?: number;
-    height?: number;
-  };
-  logoJsonLdwidth?: number;
-  logoJsonLdheight?: number;
-  
   BreadcrumbJsonLd?: {
     itemListElement: Array<{
       position: number;
       name: string;
       item: string;
     }>;
-  };
-  
-  LocalBusinessJsonLd?: {
-    '@type': string;
-    name: string;
-    address: {
-      '@type': string;
-      streetAddress?: string;
-      addressLocality?: string;
-      addressRegion?: string;
-      postalCode?: string;
-      addressCountry: string;
-    };
-    geo?: {
-      '@type': string;
-      latitude: string | number;
-      longitude: string | number;
-    };
-    url?: string;
-    telephone?: string;
-    openingHours?: string;
-    priceRange?: string;
-  };
-  LocalBusinessJsonLdname?: string;
-  LocalBusinessJsonLdtype?: string;
-  LocalBusinessJsonLdtelephone?: string;
-  LocalBusinessJsonLdaddress?: {
-    streetAddress?: string;
-    addressLocality?: string;
-    addressRegion?: string;
-    postalCode?: string;
-    addressCountry?: string;
-  };
-  LocalBusinessJsonLdgeo?: {
-    latitude?: string | number;
-    longitude?: string | number;
   };
   
   // Product Information
@@ -836,6 +792,16 @@ const paginatedData = sortedData.slice(
                         <TableCell>{selectedSeo.ogVideoType || 'N/A'}</TableCell>
                       </TableRow>
                       <TableRow>
+                        <TableCell><strong>OG Video Secure URL</strong></TableCell>
+                        <TableCell>
+                          {selectedSeo.ogVideoSecureUrl ? (
+                            <a href={selectedSeo.ogVideoSecureUrl} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
+                              {selectedSeo.ogVideoSecureUrl}
+                            </a>
+                          ) : 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
                         <TableCell><strong>OG Video Dimensions</strong></TableCell>
                         <TableCell>
                           {selectedSeo.ogVideoWidth && selectedSeo.ogVideoHeight 
@@ -906,10 +872,6 @@ const paginatedData = sortedData.slice(
                         <TableCell>{selectedSeo.hreflang || 'N/A'}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell><strong>X-Default</strong></TableCell>
-                        <TableCell>{selectedSeo.x_default || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
                         <TableCell><strong>Author</strong></TableCell>
                         <TableCell>{selectedSeo.author_name || 'N/A'}</TableCell>
                       </TableRow>
@@ -950,21 +912,9 @@ const paginatedData = sortedData.slice(
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell><strong>Logo JSON-LD</strong></TableCell>
-                        <TableCell style={{ wordBreak: 'break-all' }}>
-                          {selectedSeo.LogoJsonLd ? '✓ Set' : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
                         <TableCell><strong>Breadcrumb JSON-LD</strong></TableCell>
                         <TableCell style={{ wordBreak: 'break-all' }}>
                           {selectedSeo.BreadcrumbJsonLd ? '✓ Set' : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Local Business JSON-LD</strong></TableCell>
-                        <TableCell style={{ wordBreak: 'break-all' }}>
-                          {selectedSeo.LocalBusinessJsonLd ? '✓ Set' : 'N/A'}
                         </TableCell>
                       </TableRow>
                       
@@ -998,6 +948,22 @@ const paginatedData = sortedData.slice(
                       <TableRow>
                         <TableCell><strong>Apple Status Bar Style</strong></TableCell>
                         <TableCell>{selectedSeo.appleStatusBarStyle || 'N/A'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell><strong>Format Detection</strong></TableCell>
+                        <TableCell>{selectedSeo.formatDetection || 'N/A'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell><strong>Google Site Verification</strong></TableCell>
+                        <TableCell style={{ wordBreak: 'break-all' }}>
+                          {selectedSeo.googleSiteVerification || 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell><strong>MS Validate</strong></TableCell>
+                        <TableCell style={{ wordBreak: 'break-all' }}>
+                          {selectedSeo.msValidate || 'N/A'}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell><strong>Format Detection</strong></TableCell>
@@ -1054,63 +1020,8 @@ const paginatedData = sortedData.slice(
                         <TableCell colSpan={2} sx={{ backgroundColor: '#f5f5f5' }}>
                           <Typography variant="subtitle2">JSON-LD Details</Typography>
                         </TableCell>
-                      </TableRow>
-                      <TableRow>
                         <TableCell><strong>Video JSON-LD Context</strong></TableCell>
                         <TableCell>{selectedSeo.VideoJsonLdcontext || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Video JSON-LD Type</strong></TableCell>
-                        <TableCell>{selectedSeo.VideoJsonLdtype || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Logo Dimensions</strong></TableCell>
-                        <TableCell>
-                          {selectedSeo.logoJsonLdwidth && selectedSeo.logoJsonLdheight 
-                            ? `${selectedSeo.logoJsonLdwidth} × ${selectedSeo.logoJsonLdheight}px` 
-                            : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-
-                      {/* Local Business Details */}
-                      <TableRow>
-                        <TableCell colSpan={2} sx={{ backgroundColor: '#f5f5f5' }}>
-                          <Typography variant="subtitle2">Local Business Details</Typography>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Business Name</strong></TableCell>
-                        <TableCell>{selectedSeo.LocalBusinessJsonLdname || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Business Type</strong></TableCell>
-                        <TableCell>{selectedSeo.LocalBusinessJsonLdtype || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Business Phone</strong></TableCell>
-                        <TableCell>{selectedSeo.LocalBusinessJsonLdtelephone || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Business Address</strong></TableCell>
-                        <TableCell>
-                          {selectedSeo.LocalBusinessJsonLdaddress?.streetAddress || 'N/A'}
-                          {selectedSeo.LocalBusinessJsonLdaddress?.addressLocality && 
-                            `, ${selectedSeo.LocalBusinessJsonLdaddress.addressLocality}`}
-                          {selectedSeo.LocalBusinessJsonLdaddress?.addressRegion && 
-                            `, ${selectedSeo.LocalBusinessJsonLdaddress.addressRegion}`}
-                          {selectedSeo.LocalBusinessJsonLdaddress?.postalCode && 
-                            `, ${selectedSeo.LocalBusinessJsonLdaddress.postalCode}`}
-                          {selectedSeo.LocalBusinessJsonLdaddress?.addressCountry && 
-                            `, ${selectedSeo.LocalBusinessJsonLdaddress.addressCountry}`}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Business Geo</strong></TableCell>
-                        <TableCell>
-                          {selectedSeo.LocalBusinessJsonLdgeo?.latitude && selectedSeo.LocalBusinessJsonLdgeo?.longitude
-                            ? `Lat: ${selectedSeo.LocalBusinessJsonLdgeo.latitude}, Lng: ${selectedSeo.LocalBusinessJsonLdgeo.longitude}`
-                            : 'N/A'}
-                        </TableCell>
                       </TableRow>
 
                       {/* Timestamps */}

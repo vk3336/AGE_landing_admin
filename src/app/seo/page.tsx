@@ -359,46 +359,6 @@ const SEO_FIELDS = [
     helperText: "Structured data for video content in JSON-LD format"
   },
   
-  { section: "Logo JSON-LD" },
-  { 
-    key: "LogoJsonLd", 
-    label: "Logo JSON-LD", 
-    type: "textarea",
-    helperText: "Structured data for organization logo in JSON-LD format"
-  },
-  { 
-    key: "LogoJsonLdcontext", 
-    label: "@context", 
-    type: "text",
-    helperText: "The context for the JSON-LD (usually https://schema.org)",
-    defaultValue: "https://schema.org"
-  },
-  { 
-    key: "LogoJsonLdtype", 
-    label: "@type", 
-    type: "text",
-    helperText: "The type of the item (usually Organization)",
-    defaultValue: "Organization"
-  },
-  { 
-    key: "logoJsonLdurl", 
-    label: "Logo URL", 
-    type: "url",
-    helperText: "URL of the logo image"
-  },
-  { 
-    key: "logoJsonLdwidth", 
-    label: "Logo Width", 
-    type: "text",
-    helperText: "Width of the logo in pixels"
-  },
-  { 
-    key: "logoJsonLdheight", 
-    label: "Logo Height", 
-    type: "text",
-    helperText: "Height of the logo in pixels"
-  },
-  
   { section: "Breadcrumb JSON-LD" },
   { 
     key: "BreadcrumbJsonLd", 
@@ -433,132 +393,6 @@ const SEO_FIELDS = [
     helperText: "Array of breadcrumb items in JSON format"
   },
   
-  { section: "Local Business JSON-LD" },
-  { 
-    key: "LocalBusinessJsonLd", 
-    label: "Local Business JSON-LD", 
-    type: "textarea",
-    helperText: "Structured data for local business information in JSON-LD format"
-  },
-  { 
-    key: "LocalBusinessJsonLdtype", 
-    label: "@type", 
-    type: "text",
-    helperText: "The type of business (e.g., Store, Restaurant, LocalBusiness)",
-    defaultValue: "Store"
-  },
-  { 
-    key: "LocalBusinessJsonLdcontext", 
-    label: "@context", 
-    type: "text",
-    helperText: "The context for the JSON-LD (usually https://schema.org)",
-    defaultValue: "https://schema.org"
-  },
-  { 
-    key: "LocalBusinessJsonLdname", 
-    label: "Business Name", 
-    type: "text",
-    helperText: "The name of your business"
-  },
-  { 
-    key: "LocalBusinessJsonLdtelephone", 
-    label: "Telephone", 
-    type: "tel",
-    helperText: "Business phone number in international format"
-  },
-  { 
-    key: "LocalBusinessJsonLdareaserved", 
-    label: "Area Served", 
-    type: "text",
-    helperText: "Geographic areas where the business provides service"
-  },
-  
-  { section: "Local Business Address" },
-  { 
-    key: "LocalBusinessJsonLdaddress", 
-    label: "Address JSON", 
-    type: "textarea",
-    helperText: "Complete address information in JSON format"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddresstype", 
-    label: "Address @type", 
-    type: "text",
-    helperText: "The type of the address (usually PostalAddress)",
-    defaultValue: "PostalAddress"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddressstreetAddress", 
-    label: "Street Address", 
-    type: "text",
-    helperText: "Street number and name"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddressaddressLocality", 
-    label: "Locality", 
-    type: "text",
-    helperText: "City or town name"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddressaddressRegion", 
-    label: "Region", 
-    type: "text",
-    helperText: "State or province (use 2-letter code if in US/Canada)"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddresspostalCode", 
-    label: "Postal Code", 
-    type: "text",
-    helperText: "ZIP or postal code"
-  },
-  { 
-    key: "LocalBusinessJsonLdaddressaddressCountry", 
-    label: "Country", 
-    type: "country",
-    helperText: "Select the country where your business is located"
-  },
-  
-  { section: "Local Business Geo" },
-  { 
-    key: "LocalBusinessJsonLdgeo", 
-    label: "Geo JSON", 
-    type: "textarea",
-    helperText: "Geographic coordinates in JSON format"
-  },
-  { 
-    key: "LocalBusinessJsonLdgeotype", 
-    label: "Geo @type", 
-    type: "text",
-    helperText: "The type of the geographic coordinates (usually GeoCoordinates)",
-    defaultValue: "GeoCoordinates"
-  },
-  { 
-    key: "LocalBusinessJsonLdgeolatitude", 
-    label: "Latitude", 
-    type: "text",
-    helperText: "The latitude of the business location (e.g., 37.42242)"
-  },
-  { 
-    key: "LocalBusinessJsonLdgeolongitude", 
-    label: "Longitude", 
-    type: "text",
-    helperText: "The longitude of the business location (e.g., -122.08585)"
-  },
-  
-  { section: "Verification" },
-  { 
-    key: "googleSiteVerification", 
-    label: "Google Site Verification", 
-    type: "text",
-    helperText: "Google Search Console verification code"
-  },
-  { 
-    key: "msValidate", 
-    label: "Bing Webmaster Tools", 
-    type: "text",
-    helperText: "Bing Webmaster Tools verification code"
-  },
-  
   { section: "Miscellaneous" },
   { 
     key: "excerpt", 
@@ -576,7 +410,6 @@ const SEO_FIELDS = [
     helperText: "This field is auto-generated",
     disabled: true 
   },
-  { key: "x_default", label: "X-Default", type: "text" },
   { key: "author_name", label: "Author Name", type: "text" }
 ];
 

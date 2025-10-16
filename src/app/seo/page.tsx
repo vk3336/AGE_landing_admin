@@ -2784,6 +2784,20 @@ function SeoPage() {
                     else if (value === null || value === undefined || value === '') {
                       displayValue = '-';
                     }
+                    // Handle HTML content for product location descriptions
+                    else if ((field.key === 'productlocationdescription1' || field.key === 'productlocationdescription2') && typeof value === 'string') {
+                      displayValue = (
+                        <div 
+                          dangerouslySetInnerHTML={{ __html: value || '-' }}
+                          style={{ 
+                            padding: '8px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            backgroundColor: '#f9f9f9'
+                          }}
+                        />
+                      );
+                    }
                     // Handle arrays and objects
                     else if (Array.isArray(value) || (value && typeof value === 'object')) {
                       displayValue = JSON.stringify(value, null, 2);

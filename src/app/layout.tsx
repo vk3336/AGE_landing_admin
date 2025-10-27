@@ -76,6 +76,8 @@ const collapsedDrawerWidth = 60;
 
 const filterModels = [
   { name: "About Us", path: "/aboutus" },
+  { name: "Blog", path: "/blog" },
+  
   { name: "Category", path: "/category" },
   { name: "City", path: "/city" },
   { name: "Office Information", path: "/office-information" },
@@ -513,6 +515,59 @@ const Sidebar = React.memo(() => {
               />
             )}
           </ListItemButton>
+           {/* Products */}
+          <ListItemButton
+            component={NextLink}
+            href="/orders"
+            sx={{
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
+              ...(pathname === '/orders' && {
+                backgroundColor: 'primary.main',
+                color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }),
+              '&:hover': {
+                backgroundColor: pathname === '/orders' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/orders' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
+              },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
+            }}
+          >
+            <ListItemIcon sx={{
+              color: pathname === '/orders' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
+              justifyContent: 'center',
+              display: 'flex'
+            }}>
+              <InventoryIcon fontSize="small" />
+            </ListItemIcon>
+            {!isCollapsed && (
+              <ListItemText
+                primary="Orders"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
+                    fontWeight: 500
+                  }
+                }}
+              />
+            )}
+          </ListItemButton>
+
 
           {/* Admin Restriction */}
           {isSuperAdmin && (

@@ -654,14 +654,7 @@ const paginatedData = sortedData.slice(
                       </TableBody>
                     </Table>
                   </TableContainer>
-                  {selectedSeo.productlocationdescription1 && (
-                    <Box mt={2}>
-                      <Typography variant="subtitle2" gutterBottom>Additional Location Information</Typography>
-                      <Paper variant="outlined" sx={{ p: 2 }}>
-                        {selectedSeo.productlocationdescription1}
-                      </Paper>
-                    </Box>
-                  )}
+                  
                 </Box>
               )}
 
@@ -892,11 +885,19 @@ const paginatedData = sortedData.slice(
                       </TableRow>
                       <TableRow>
                         <TableCell><strong>Location Description 1</strong></TableCell>
-                        <TableCell>{selectedSeo.productlocationdescription1 || 'N/A'}</TableCell>
+                        <TableCell>
+                          {selectedSeo.productlocationdescription1 ? (
+                            <div dangerouslySetInnerHTML={{ __html: selectedSeo.productlocationdescription1 }} />
+                          ) : 'N/A'}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell><strong>Location Description 2</strong></TableCell>
-                        <TableCell>{selectedSeo.productlocationdescription2 || 'N/A'}</TableCell>
+                        <TableCell>
+                          {selectedSeo.productlocationdescription2 ? (
+                            <div dangerouslySetInnerHTML={{ __html: selectedSeo.productlocationdescription2 }} />
+                          ) : 'N/A'}
+                        </TableCell>
                       </TableRow>
 
                       {/* JSON-LD Data */}

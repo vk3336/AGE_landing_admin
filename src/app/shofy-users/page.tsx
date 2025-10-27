@@ -20,7 +20,8 @@ import { styled } from '@mui/material/styles';
 
 interface User {
   _id?: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   userImage?: string;
@@ -119,7 +120,7 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
         >
           <Avatar
             src={user.userImage || undefined}
-            alt={user.name}
+            alt={`${user.firstName} ${user.lastName}`}
             sx={{
               width: '100%',
               height: '100%',
@@ -159,12 +160,12 @@ const UserRow = React.memo(({ user, onEdit, onView, onDelete, viewOnly }: {
               }
             }}
           >
-            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
           </Avatar>
         </Box>
         <Box>
           <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ lineHeight: 1.2 }}>
-            {user.name || 'No Name'}
+            {user.firstName} {user.lastName}
           </Typography>
           <Typography variant="caption" color="text.secondary">{user.email}</Typography>
         </Box>
@@ -276,7 +277,7 @@ const UserForm = React.memo(({
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
               <Avatar
                 src={form.userImage}
-                alt={form.name}
+                alt={`${form.firstName} ${form.lastName}`}
                 sx={{ width: 100, height: 100, mb: 1 }}
               />
               <Button
@@ -305,10 +306,20 @@ const UserForm = React.memo(({
             </Box>
             <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <TextField
-                label="Full Name"
-                name="name"
-                value={form.name || ''}
-                onChange={createChangeHandler('name')}
+                label="First Name"
+                name="firstName"
+                value={form.firstName || ''}
+                onChange={createChangeHandler('firstName')}
+                required
+                fullWidth
+                disabled={submitting || viewOnly}
+                InputProps={{ readOnly: viewOnly }}
+              />
+              <TextField
+                label="Last Name"
+                name="lastName"
+                value={form.lastName || ''}
+                onChange={createChangeHandler('lastName')}
                 required
                 fullWidth
                 disabled={submitting || viewOnly}
@@ -319,7 +330,7 @@ const UserForm = React.memo(({
                 name="email"
                 type="email"
                 value={form.email || ''}
-                onChange={createChangeHandler('name')}
+                onChange={createChangeHandler('email')}
                 required
                 fullWidth
                 disabled={submitting || viewOnly || !!editId}
@@ -499,7 +510,7 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
           <Avatar
             src={user.userImage}
-            alt={user.name}
+            alt={`${user.firstName} ${user.lastName}`}
             sx={{
               width: 120,
               height: 120,
@@ -509,7 +520,7 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
             }}
           />
           <Typography variant="h5" fontWeight={700} gutterBottom>
-            {user.name}
+            {user.firstName} {user.lastName}
           </Typography>
         </Box>
 
@@ -589,6 +600,15 @@ const UserViewDialog = React.memo(({ open, user, onClose }: {
           {user.companytaxid && (
             <ListItem>
               <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="Name" secondary={`${user.firstName} ${user.lastName}`} />
+            </ListItem>
+          )}
+
+          {user.companytaxid && (
+            <ListItem>
+              <ListItemIcon>
                 <ReceiptIcon color="primary" />
               </ListItemIcon>
               <ListItemText
@@ -663,7 +683,8 @@ export default function ShopyUsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Omit<User, '_id'>>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     userImage: '',
     phone: '',

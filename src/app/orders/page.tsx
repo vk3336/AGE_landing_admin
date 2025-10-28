@@ -55,15 +55,15 @@ interface Order {
 }
 
 
-// Permission function similar to products page
+// Permission function matching products page
 function getOrderPagePermission() {
   if (typeof window === 'undefined') return 'no access';
   const email = localStorage.getItem('admin-email');
   const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
   if (email && superAdmin && email === superAdmin) return 'all access';
   const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
-  if (perms && perms.order) {
-    return perms.order;
+  if (perms && perms.product) {
+    return perms.product;
   }
   return 'no access';
 }

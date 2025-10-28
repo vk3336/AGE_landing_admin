@@ -5,6 +5,8 @@ import {
   Card, 
   CardContent, 
   Typography, 
+  Button, 
+  Box, 
   Table, 
   TableBody, 
   TableCell, 
@@ -12,21 +14,18 @@ import {
   TableHead, 
   TableRow, 
   Paper, 
-  Button, 
-  Box, 
-  Avatar, 
+  TextField, 
+  IconButton, 
   Dialog, 
   DialogTitle, 
   DialogContent, 
-  DialogActions, 
-  TextField, 
-  IconButton, 
-  Pagination,
+  DialogActions,
   InputAdornment,
-  Breadcrumbs,
-  Link,
   CircularProgress,
-  TextareaAutosize
+  TextareaAutosize,
+  Breadcrumbs,
+  Pagination
+
 } from '@mui/material';
 import ArticleIcon from '@mui/icons-material/Article';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,7 +35,10 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { apiFetch } from '../../utils/apiFetch';
+import { Avatar } from '@mui/material';
+import Link from 'next/link';
 
 interface Blog {
   _id?: string;
@@ -53,10 +55,11 @@ interface Blog {
   [key: string]: string | boolean | File | undefined; // Define specific types for dynamic properties
 }
 
-const BlogRow = React.memo(({ blog, onEdit, onDelete, viewOnly }: {
+const BlogRow = React.memo(({ blog, onEdit, onDelete, onView, viewOnly }: {
   blog: Blog;
   onEdit: () => void;
   onDelete: () => void;
+  onView: () => void;
   viewOnly: boolean;
 }) => (
   <TableRow>
@@ -65,7 +68,7 @@ const BlogRow = React.memo(({ blog, onEdit, onDelete, viewOnly }: {
         {blog.blogimage1 ? (
           <Image 
             src={blog.blogimage1} 
-            alt="Blog" 
+            alt={blog.title || 'Blog image'}
             width={50} 
             height={50} 
             style={{ objectFit: 'cover', borderRadius: 4 }}
@@ -104,18 +107,37 @@ const BlogRow = React.memo(({ blog, onEdit, onDelete, viewOnly }: {
     <TableCell>
       <Box sx={{ display: 'flex', gap: 1 }}>
         <IconButton 
-          onClick={onEdit} 
+          onClick={(e) => {
+            e.stopPropagation();
+            onView();
+          }}
+          color="info"
+          size="small"
+          title="View"
+        >
+          <VisibilityIcon fontSize="small" />
+        </IconButton>
+        <IconButton 
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
           color="primary"
           disabled={viewOnly}
           size="small"
+          title="Edit"
         >
           <EditIcon fontSize="small" />
         </IconButton>
         <IconButton 
-          onClick={onDelete} 
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
           color="error"
           disabled={viewOnly}
           size="small"
+          title="Delete"
         >
           <DeleteIcon fontSize="small" />
         </IconButton>
@@ -163,24 +185,70 @@ const BlogForm = React.memo(({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {editId ? (viewOnly ? 'View Blog' : 'Edit Blog') : 'Add New Blog'}
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="lg" 
+      fullWidth
+      fullScreen
+      PaperProps={{
+        sx: {
+          maxWidth: '100%',
+          width: '100%',
+          maxHeight: '100vh',
+          m: 0,
+          borderRadius: 0
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        bgcolor: 'primary.main',
+        color: 'white'
+      }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+          {editId ? (viewOnly ? 'View Blog Post' : 'Edit Blog Post') : 'Create New Blog Post'}
+        </Typography>
         <IconButton
           aria-label="close"
           onClick={onClose}
+          size="small"
           sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
+            color: 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+            }
           }}
         >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <form onSubmit={onSubmit}>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ 
+          p: 3,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#888',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#555',
+          },
+          maxHeight: 'calc(100vh - 180px)',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3
+        }}>
           {formError && (
             <Box color="error.main" mb={2}>
               {formError}
@@ -195,34 +263,44 @@ const BlogForm = React.memo(({
             onChange={handleChange}
             required
             disabled={viewOnly}
+            helperText="Enter a catchy title for your blog post (max 100 characters)"
+            inputProps={{ maxLength: 100 }}
           />
           <TextField
             name="author"
-            label="Author"
+            label="Author Name"
             fullWidth
             margin="normal"
             value={form.author}
             onChange={handleChange}
             required
             disabled={viewOnly}
+            helperText="Enter the name of the blog post author"
           />
           <TextField
             name="heading"
-            label="Heading"
+            label="Blog Subheading"
             fullWidth
             margin="normal"
             value={form.heading}
             onChange={handleChange}
             required
             disabled={viewOnly}
+            helperText="A short, attention-grabbing subheading that summarizes your blog post"
           />
+          
           <Box mt={2} mb={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Paragraph 1 *
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle2" gutterBottom>
+                Paragraph 1 *
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                Supports HTML formatting
+              </Typography>
+            </Box>
             <TextareaAutosize
               name="paragraph1"
-              value={form.paragraph1}
+              value={form.paragraph1 || ''}
               onChange={handleChange}
               style={{
                 width: '100%',
@@ -232,15 +310,21 @@ const BlogForm = React.memo(({
                 border: '1px solid rgba(0, 0, 0, 0.23)',
                 marginBottom: '16px',
               }}
+              placeholder="First paragraph..."
               disabled={viewOnly}
               required
             />
           </Box>
           
           <Box mb={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Paragraph 2
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle2" gutterBottom>
+                Paragraph 2 (Optional)
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                Supports HTML formatting
+              </Typography>
+            </Box>
             <TextareaAutosize
               name="paragraph2"
               value={form.paragraph2 || ''}
@@ -253,14 +337,20 @@ const BlogForm = React.memo(({
                 border: '1px solid rgba(0, 0, 0, 0.23)',
                 marginBottom: '16px',
               }}
+              placeholder="Second paragraph..."
               disabled={viewOnly}
             />
           </Box>
           
           <Box mb={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Paragraph 3
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle2" gutterBottom>
+                Paragraph 3 (Optional)
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                Supports HTML formatting
+              </Typography>
+            </Box>
             <TextareaAutosize
               name="paragraph3"
               value={form.paragraph3 || ''}
@@ -272,6 +362,7 @@ const BlogForm = React.memo(({
                 borderRadius: '4px',
                 border: '1px solid rgba(0, 0, 0, 0.23)',
               }}
+              placeholder="Third paragraph..."
               disabled={viewOnly}
             />
           </Box>
@@ -367,8 +458,22 @@ const BlogForm = React.memo(({
           </Box>
         </DialogContent>
         {!viewOnly && (
-          <DialogActions>
-            <Button onClick={onClose} disabled={loading}>
+          <DialogActions sx={{ 
+            p: 2, 
+            borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+            justifyContent: 'flex-end',
+            '& .MuiButton-root': {
+              textTransform: 'none',
+              minWidth: '100px',
+              ml: 1
+            }
+          }}>
+            <Button 
+              variant="outlined" 
+              onClick={onClose} 
+              disabled={loading}
+              startIcon={<CloseIcon />}
+            >
               Cancel
             </Button>
             <Button 
@@ -376,9 +481,9 @@ const BlogForm = React.memo(({
               variant="contained" 
               color="primary" 
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} /> : null}
+              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {editId ? 'Update' : 'Create'}
+              {editId ? 'Update Post' : 'Publish Post'}
             </Button>
           </DialogActions>
         )}
@@ -424,7 +529,19 @@ export default function BlogPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string>('no access');
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const rowsPerPage = 10;
+
+  const handleOpenViewDialog = (blog: Blog) => {
+    setSelectedBlog(blog);
+    setViewDialogOpen(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewDialogOpen(false);
+    setSelectedBlog(null);
+  };
 
   const fetchBlogs = useCallback(async () => {
     try {
@@ -683,13 +800,12 @@ export default function BlogPage() {
                     <TableRow>
                       <TableCell>Title & Author</TableCell>
                       <TableCell>Heading</TableCell>
-                      <TableCell>Content Preview</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {paginatedBlogs.length > 0 ? (
-                      paginatedBlogs.map((blog) => (
+                      paginatedBlogs.map(blog => (
                         <TableRow key={blog._id}>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -713,30 +829,42 @@ export default function BlogPage() {
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="subtitle2">{blog.heading || 'No heading'}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ maxWidth: '300px' }}>
-                            <Box sx={{ maxHeight: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              <Typography variant="body2" paragraph sx={{ margin: 0 }}>
-                                {blog.paragraph1?.substring(0, 100)}{blog.paragraph1 && blog.paragraph1.length > 100 ? '...' : ''}
-                              </Typography>
-                            </Box>
+                            <Typography variant="subtitle2">{blog.heading}</Typography>
                           </TableCell>
                           <TableCell>
                             <Box sx={{ display: 'flex', gap: 1 }}>
                               <IconButton 
-                                onClick={() => handleOpenForm(blog)}
-                                color="primary"
-                                disabled={permission === 'view'}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenViewDialog(blog);
+                                }}
+                                color="info"
                                 size="small"
+                                title="View"
+                              >
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenForm(blog);
+                                }}
+                                color="primary"
+                                disabled={viewOnly}
+                                size="small"
+                                title="Edit"
                               >
                                 <EditIcon fontSize="small" />
                               </IconButton>
                               <IconButton 
-                                onClick={() => handleDelete(blog._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(blog._id);
+                                }}
                                 color="error"
-                                disabled={permission === 'view'}
+                                disabled={viewOnly}
                                 size="small"
+                                title="Delete"
                               >
                                 <DeleteIcon fontSize="small" />
                               </IconButton>
@@ -746,7 +874,7 @@ export default function BlogPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} align="center">
+                        <TableCell colSpan={3} align="center">
                           No blogs found
                         </TableCell>
                       </TableRow>
@@ -769,6 +897,334 @@ export default function BlogPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* View Blog Dialog */}
+      <Dialog 
+        open={viewDialogOpen} 
+        onClose={handleCloseViewDialog} 
+        maxWidth="lg" 
+        fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            minHeight: '70vh',
+            width: '90%',
+            maxWidth: '1200px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px 24px',
+          bgcolor: 'primary.main',
+          color: 'white'
+        }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            Blog Post Details
+          </Typography>
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseViewDialog}
+            size="small"
+            sx={{
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent dividers sx={{ 
+          p: 3,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#888',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#555',
+          }
+        }}>
+          {selectedBlog && (
+            <Box>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { 
+                  xs: '1fr', 
+                  md: selectedBlog?.blogimage1 && selectedBlog?.blogimage2 ? 'repeat(2, 1fr)' : '1fr' 
+                },
+                gap: 2,
+                mb: 3
+              }}>
+                {/* Debug Info - Can be removed after fixing */}
+                <Box sx={{ 
+                  gridColumn: '1 / -1',
+                  mb: 2, 
+                  p: 2, 
+                  bgcolor: '#f5f5f5', 
+                  borderRadius: 1,
+                  display: 'none' // Set to 'block' to debug
+                }}>
+                  <Typography variant="subtitle2" gutterBottom>Debug Info:</Typography>
+                  <pre style={{ fontSize: '12px', overflowX: 'auto', margin: 0 }}>
+                    {JSON.stringify({
+                      hasBlogImage1: !!selectedBlog?.blogimage1,
+                      hasBlogImage2: !!selectedBlog?.blogimage2,
+                      blogImage1: selectedBlog?.blogimage1 ? `${selectedBlog.blogimage1.substring(0, 50)}...` : 'N/A',
+                      blogImage2: selectedBlog?.blogimage2 ? `${selectedBlog.blogimage2.substring(0, 50)}...` : 'N/A',
+                      image1Valid: selectedBlog?.blogimage1?.startsWith('http') || selectedBlog?.blogimage1?.startsWith('/') || selectedBlog?.blogimage1?.startsWith('data:image'),
+                      image2Valid: selectedBlog?.blogimage2?.startsWith('http') || selectedBlog?.blogimage2?.startsWith('/') || selectedBlog?.blogimage2?.startsWith('data:image')
+                    }, null, 2)}
+                  </pre>
+                </Box>
+                
+                {selectedBlog?.blogimage1 && (
+                  <Box sx={{ 
+                    border: '1px solid #eee',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    boxShadow: 1,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Box sx={{ 
+                      flexGrow: 1, 
+                      overflow: 'hidden', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      p: 2,
+                      minHeight: '200px',
+                      bgcolor: '#fafafa'
+                    }}>
+                      <Image 
+                        src={selectedBlog.blogimage1} 
+                        alt={`${selectedBlog.title || 'Blog'} - Main`}
+                        width={300}
+                        height={200}
+                        style={{ 
+                          objectFit: 'contain', 
+                          maxWidth: '100%', 
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto'
+                        }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const errorMsg = document.createElement('div');
+                            errorMsg.textContent = 'Image failed to load';
+                            errorMsg.style.color = '#f44336';
+                            errorMsg.style.textAlign = 'center';
+                            errorMsg.style.padding = '1rem';
+                            parent.appendChild(errorMsg);
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', textAlign: 'center' }}>
+                      <Typography variant="caption" color="textSecondary">
+                        Main Image
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                
+                {selectedBlog?.blogimage2 && (
+                  <Box sx={{ 
+                    border: '1px solid #eee',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    boxShadow: 1,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Box sx={{ 
+                      flexGrow: 1, 
+                      overflow: 'hidden', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      p: 2,
+                      minHeight: '200px',
+                      bgcolor: '#fafafa'
+                    }}>
+                      <Image 
+                        src={selectedBlog.blogimage2} 
+                        alt={`${selectedBlog.title || 'Blog'} - Secondary`}
+                        width={300}
+                        height={200}
+                        style={{ 
+                          objectFit: 'contain', 
+                          maxWidth: '100%', 
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto'
+                        }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const errorMsg = document.createElement('div');
+                            errorMsg.textContent = 'Image failed to load';
+                            errorMsg.style.color = '#f44336';
+                            errorMsg.style.textAlign = 'center';
+                            errorMsg.style.padding = '1rem';
+                            parent.appendChild(errorMsg);
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', textAlign: 'center' }}>
+                      <Typography variant="caption" color="textSecondary">
+                        Secondary Image
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              
+              </Box>
+              
+              {/* Content Section in Table */}
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                  Blog Content
+                </Typography>
+                <TableContainer component={Paper} elevation={2} sx={{ mb: 3 }}>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell component="th" scope="row" sx={{ width: '200px', fontWeight: 'bold' }}>Title</TableCell>
+                        <TableCell dangerouslySetInnerHTML={{ __html: selectedBlog?.title || 'No title' }} />
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>Author</TableCell>
+                        <TableCell>{selectedBlog?.author || 'Unknown author'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>Heading</TableCell>
+                        <TableCell dangerouslySetInnerHTML={{ __html: selectedBlog?.heading || 'N/A' }} />
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', verticalAlign: 'top' }}>Content</TableCell>
+                        <TableCell>
+                          <Box sx={{ '& > div': { mb: 3 } }}>
+                            <Box>
+                              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                Paragraph 1
+                              </Typography>
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: selectedBlog.paragraph1 || '<span style="color: #999; font-style: italic;">No content</span>' 
+                              }} 
+                              style={{ 
+                                padding: '12px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '4px',
+                                borderLeft: '3px solid #1976d2',
+                                minHeight: '60px'
+                              }} 
+                            />
+                            </Box>
+                            
+                            <Box>
+                              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                Paragraph 2 {!selectedBlog.paragraph2 && <span style={{ color: '#999', fontWeight: 'normal' }}>(Optional)</span>}
+                              </Typography>
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: selectedBlog.paragraph2 || '<span style="color: #999; font-style: italic;">No content provided</span>' 
+                              }} 
+                              style={{ 
+                                padding: '12px',
+                                backgroundColor: selectedBlog.paragraph2 ? '#f8f9fa' : 'transparent',
+                                borderRadius: '4px',
+                                borderLeft: `3px solid ${selectedBlog.paragraph2 ? '#4caf50' : '#e0e0e0'}`,
+                                minHeight: '60px'
+                              }} 
+                            />
+                            </Box>
+                            
+                            <Box>
+                              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                Paragraph 3 {!selectedBlog.paragraph3 && <span style={{ color: '#999', fontWeight: 'normal' }}>(Optional)</span>}
+                              </Typography>
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: selectedBlog.paragraph3 || '<span style="color: #999; font-style: italic;">No content provided</span>' 
+                              }} 
+                              style={{ 
+                                padding: '12px',
+                                backgroundColor: selectedBlog.paragraph3 ? '#f8f9fa' : 'transparent',
+                                borderRadius: '4px',
+                                borderLeft: `3px solid ${selectedBlog.paragraph3 ? '#9c27b0' : '#e0e0e0'}`,
+                                minHeight: '60px'
+                              }} 
+                            />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>Created</TableCell>
+                        <TableCell>
+                          {new Date().toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ 
+          p: 2, 
+          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+          justifyContent: 'flex-end',
+          '& .MuiButton-root': {
+            textTransform: 'none',
+            ml: 1
+          }
+        }}>
+          <Typography variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+            This is a preview of how your blog will appear to readers.
+          </Typography>
+          <Button 
+            onClick={handleCloseViewDialog} 
+            variant="contained" 
+            color="primary"
+            startIcon={<CloseIcon />}
+            sx={{
+              bgcolor: 'primary.main',
+              '&:hover': {
+                bgcolor: 'primary.dark',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+              }
+            }}
+          >
+            Close Preview
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <BlogForm
         open={openForm}

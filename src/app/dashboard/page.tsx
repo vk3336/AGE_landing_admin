@@ -337,7 +337,8 @@ export default function DashboardPage() {
           contactRes,
           aboutUsRes,
           officeInfoRes,
-          usersRes
+          usersRes,
+          blogRes
 
         ] = await Promise.all([
           apiFetch(`${base}/product`),
@@ -361,7 +362,8 @@ export default function DashboardPage() {
           apiFetch(`${base}/contacts`),
           apiFetch(`${base}/aboutus`),
           apiFetch(`${base}/officeinformation`),
-          apiFetch(`${base}/users`)
+          apiFetch(`${base}/users`),
+          apiFetch(`${base}/blogs`)
         ]);
         const results = await Promise.all([
           productsRes.json(),
@@ -385,13 +387,20 @@ export default function DashboardPage() {
           contactRes.json(),
           aboutUsRes.json(),
           officeInfoRes.json(),
-          usersRes.json()
+          usersRes.json(),
+          blogRes.json()
         ]);
 
-        // Debug log for about us response
-        console.log('Full About Us Response:', JSON.stringify(results[19], null, 2));
-        console.log('About Us Data Type:', typeof results[19]?.data);
-        console.log('About Us Data Keys:', results[19]?.data ? Object.keys(results[19].data) : 'No data');
+        // Debug logs
+        console.log('Blog API Response:', JSON.stringify(results[22], null, 2));
+        console.log('Blog Data Type:', typeof results[22]?.data);
+        console.log('Blog Data Keys:', results[22]?.data ? Object.keys(results[22].data) : 'No blog data');
+        console.log('Is Blog Data Array:', Array.isArray(results[22]?.data));
+        
+        // Log the structure of the first blog item if it exists
+        if (Array.isArray(results[22]?.data) && results[22].data.length > 0) {
+          console.log('First Blog Item:', results[22].data[0]);
+        }
 
         const newCounts: { [key: string]: number } = {};
         newCounts['product'] = Array.isArray(results[0].data) ? results[0].data.length : 0;
@@ -434,6 +443,25 @@ export default function DashboardPage() {
         }
         newCounts['aboutus'] = aboutUsCount;
         newCounts['officeInfo'] = Array.isArray(results[20]?.data) ? results[20].data.length : 0;
+        // Blog count - handle different possible response structures
+        const blogResponse = results[22] || {};
+        let blogCount = 0;
+        
+        if (Array.isArray(blogResponse)) {
+          blogCount = blogResponse.length;
+        } else if (blogResponse && typeof blogResponse === 'object') {
+          if (Array.isArray(blogResponse.data)) {
+            blogCount = blogResponse.data.length;
+          } else if (blogResponse.data && typeof blogResponse.data === 'object') {
+            blogCount = Object.keys(blogResponse.data).length;
+          } else if (blogResponse.count !== undefined) {
+            blogCount = blogResponse.count;
+          } else if (blogResponse.length !== undefined) {
+            blogCount = blogResponse.length;
+          }
+        }
+        newCounts['blog'] = blogCount;
+        
         // Users may return { data: array, total }
         const usersPayload = results[21] || {};
         const usersTotal = typeof usersPayload.total === 'number' ? usersPayload.total : (Array.isArray(usersPayload.data) ? usersPayload.data.length : 0);
@@ -581,6 +609,14 @@ export default function DashboardPage() {
       href: '/suitablefor',
     },
     {
+      title: 'Blogs',
+      value: counts['blog'] || 0,
+      subtitle: 'Blog Posts',
+      icon: <ArticleIcon />,
+      color: '#6c5ce7',
+      href: '/blog',
+    },
+    {
       title: 'Vendors',
       value: counts['vendor'] || 0,
       subtitle: 'Vendors',
@@ -685,7 +721,7 @@ export default function DashboardPage() {
       label: 'Content',
       icon: <DescriptionIcon />,
       cards: cardData.filter(card => 
-        ['SEO', 'Contents', 'About Us', 'Office Info', 'Contacts'].includes(card.title)
+        ['SEO', 'Contents', 'About Us', 'Office Info', 'Contacts', 'Blogs'].includes(card.title)
       )
     },
     {

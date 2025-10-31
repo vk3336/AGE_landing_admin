@@ -198,6 +198,7 @@ export default function OrdersPage() {
       if (result && result.status === 'success' && result.data?.orders) {
         const ordersData = Array.isArray(result.data.orders) ? result.data.orders : [result.data.orders];
         console.log('Raw orders data:', ordersData);
+        setOrders(ordersData);
         
         // Transform the data to include product and user details
         const ordersWithDetails = await Promise.all(ordersData.map(async (order: OrderData) => {
@@ -329,14 +330,28 @@ export default function OrdersPage() {
     }
   }, []);
 
-  // Check permissions on component mount
+  // Add this effect to fetch orders when the component mounts and when the page changes
   useEffect(() => {
-    const permission = getOrderPagePermission();
-    setPageAccess(permission);
-    if (permission !== 'no access') {
-      fetchOrders();
-    }
-  }, [fetchOrders]);
+    const checkAccess = () => {
+      const access = getOrderPagePermission();
+      setPageAccess(access);
+      if (access !== 'no access') {
+        fetchOrders();
+      }
+    };
+    
+    checkAccess();
+    
+    // Set up an interval to refresh orders every 30 seconds
+    const intervalId = setInterval(() => {
+      if (pageAccess !== 'no access') {
+        fetchOrders();
+      }
+    }, 30000);
+    
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchOrders, pageAccess]);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>) => {
@@ -393,6 +408,7 @@ export default function OrdersPage() {
           setOrders(orders.map(order => 
             order._id === selectedOrder._id ? { ...order, ...data.data } : order
           ));
+          await fetchOrders();
           handleClose();
         }
       } else {
@@ -407,6 +423,7 @@ export default function OrdersPage() {
         const data = await response.json();
         if (data && data.status === 'success') {
           setOrders(prevOrders => [...prevOrders, data.data]);
+          await fetchOrders();
           handleClose();
         }
       }
@@ -417,19 +434,25 @@ export default function OrdersPage() {
     }
   };
 
+  
+
   // Handle delete order
-  const handleDelete = async () => {
-    if (!deleteId || pageAccess !== 'all access') return;
+  const handleDeleteOrder = async () => {
+    if (!deleteId) return;
     
     setSubmitting(true);
     try {
       const response = await apiFetch(`/orders/${deleteId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
-      const data = await response.json();
-      if (data && data.success) {
-        setOrders(prevOrders => prevOrders.filter(order => order._id !== deleteId));
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        console.log('Order deleted successfully');
         setDeleteId(null);
+        // Refetch orders to ensure we have the latest data
+        await fetchOrders();
       }
     } catch (error) {
       console.error('Error deleting order:', error);
@@ -1196,7 +1219,7 @@ export default function OrdersPage() {
             Cancel
           </Button>
           <Button 
-            onClick={handleDelete} 
+            onClick={handleDeleteOrder} 
             color="error" 
             variant="contained"
             disabled={submitting}

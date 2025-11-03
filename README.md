@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-# For env details:
+# For env detail:
 
 NODE_ENV: this variable is use to disable the network cache.
 NEXT_PUBLIC_API_URL : Use the full API URL — for local development, it might be http://localhost:7000/api, and for production, it would be your deployed backend URL + /api

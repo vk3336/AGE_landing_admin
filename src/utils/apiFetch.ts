@@ -16,25 +16,8 @@ const isAbsoluteUrl = (s: string) => /^https?:\/\//i.test(s);
 const ensureLeadingSlash = (s: string) =>
   (s ? (s.startsWith("/") ? s.replace(/^\/+/, "/") : `/${s}`) : "/");
 
-// Endpoints to try as "simple requests" (no preflight) first.
-const SIMPLE_ENDPOINTS: RegExp[] = [
-  /^\/admin\/sendotp\b/i,
-  /^\/admin\/verifyotp\b/i,
-  /^\/auth\/login\b/i,
-];
-
-// Small helper: clone init with different headers/body
-const withOverrides = (init: RequestInit | undefined, overrides: Partial<RequestInit>): RequestInit => {
-  const merged: RequestInit = { ...(init || {}), ...overrides };
-  // Merge headers nicely
-  if (init?.headers || overrides.headers) {
-    const h = new Headers(init?.headers as HeadersInit | undefined);
-    const oh = new Headers(overrides.headers as HeadersInit | undefined);
-    oh.forEach((v, k) => h.set(k, v));
-    merged.headers = h;
-  }
-  return merged;
-};
+// Use consistent headers for all requests to avoid preflight issues
+const SIMPLE_ENDPOINTS: RegExp[] = []; // Empty array to disable simple request optimization
 
 export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   let raw = typeof input === "string" ? input : input.toString();
@@ -53,6 +36,18 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
 
   const finalUrl = urlObj.toString();
   const pathname = urlObj.pathname;
+  
+  // Skip for health check to prevent infinite loops
+  if (pathname.includes('/health')) {
+    return fetch(finalUrl, {
+      ...init,
+      method,
+      headers: {
+        'Accept': 'application/json',
+        ...(init?.headers || {})
+      }
+    });
+  }
 
   const isSimpleEndpoint = SIMPLE_ENDPOINTS.some((re) => re.test(pathname));
   const isFormData = init?.body instanceof FormData;
@@ -87,61 +82,55 @@ export const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
   // Let browser set boundary for FormData
   if (isFormData && headers1.has("Content-Type")) headers1.delete("Content-Type");
 
-  // First attempt options (no request Cache-Control/Pragma)
-  const opts1: RequestInit = {
-    mode: "cors",
-    cache: "no-store",
+  // Prepare headers with proper CORS and authentication
+  const headers = new Headers();
+  
+  // Set default headers
+  headers.set('Accept', 'application/json');
+  
+  // Only set Content-Type for non-GET requests and when not FormData
+  if (method !== 'GET' && !(init?.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  
+  // Add API key if available
+  if (API_KEY_NAME && API_KEY_VALUE) {
+    headers.set(API_KEY_NAME, API_KEY_VALUE);
+  }
+  
+  // Add role management header if needed
+  const isRoleApi = finalUrl.includes("/api/roles");
+  if (isRoleApi && ROLE_MANAGEMENT_HEADER && ROLE_MANAGEMENT_VALUE) {
+    headers.set(ROLE_MANAGEMENT_HEADER, ROLE_MANAGEMENT_VALUE);
+  }
+  
+  // Merge with any headers from init
+  if (init?.headers) {
+    const initHeaders = new Headers(init.headers);
+    initHeaders.forEach((value, key) => {
+      if (value) headers.set(key, value);
+    });
+  }
+  
+  // Prepare request options
+  const requestOptions: RequestInit = {
     ...init,
     method,
-    headers: headers1,
+    headers,
+    mode: 'cors',
+    credentials: 'include', // Important for cookies/auth
+    cache: 'no-store',
   };
 
-  // Helper to decide if we should retry as JSON
-  const shouldRetryAsJson = (res: Response, textSnippet: string) => {
-    if (!isSimpleEndpoint) return false;
-    // Common cases when server expects JSON
-    if (res.status === 415) return true; // Unsupported Media Type
-    if (res.status === 400 && /json|body/i.test(textSnippet)) return true;
-    return false;
-  };
 
   try {
-    // ---- First attempt (simple if login/otp)
-    let response = await fetch(finalUrl, opts1);
-
-    if (!response.ok) {
-      // Try to read a short text to decide on fallback
-      let snippet = "";
-      try {
-        const txt = await response.clone().text();
-        snippet = txt.slice(0, 300);
-      } catch {
-        /* ignore */
-      }
-
-      // ---- Auto-fallback: retry ONCE with application/json if server rejected text/plain
-      if (shouldRetryAsJson(response, snippet)) {
-        const headers2 = new Headers(init?.headers);
-        if (!headers2.has("Accept")) headers2.set("Accept", "application/json");
-        if (!isFormData) headers2.set("Content-Type", "application/json");
-
-        // Add auth headers like normal endpoints (this may cause preflight, but it's a one-time fallback)
-        const isRoleApi = finalUrl.includes("/api/roles");
-        if (isRoleApi && ROLE_MANAGEMENT_HEADER && ROLE_MANAGEMENT_VALUE) {
-          headers2.set(ROLE_MANAGEMENT_HEADER, ROLE_MANAGEMENT_VALUE);
-        } else if (API_KEY_NAME && API_KEY_VALUE) {
-          headers2.set(API_KEY_NAME, API_KEY_VALUE);
-        }
-        if (isFormData && headers2.has("Content-Type")) headers2.delete("Content-Type");
-
-        const opts2: RequestInit = {
-          mode: "cors",
-          cache: "no-store",
-          ...withOverrides(init, { headers: headers2, method }),
-        };
-
-        response = await fetch(finalUrl, opts2);
-      }
+    // Make the request with proper headers and options
+    const response = await fetch(finalUrl, requestOptions);
+    
+    // If we get a 401, try to refresh the token or handle auth
+    if (response.status === 401) {
+      // You might want to implement token refresh logic here if needed
+      console.warn('Authentication required, please log in again');
     }
 
     // Normalize 204

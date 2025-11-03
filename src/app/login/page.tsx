@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [year, setYear] = useState<number | null>(null);
-  const router = useRouter();
+  // const router = useRouter();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -55,15 +55,47 @@ export default function LoginPage() {
     localStorage.setItem("permissions", JSON.stringify(permissions));
   };
 
-  // Small helper for soft timeouts (prevents “hanging” request on first call)
-  const fetchWithTimeout = async (url: string, init: RequestInit, ms = 15000) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    try {
-      return await apiFetch(url, { ...init, signal: controller.signal });
-    } finally {
-      clearTimeout(timer);
+  // Enhanced fetch with timeout and retry logic
+  const fetchWithTimeout = async (url: string, init: RequestInit, ms = 10000) => {
+    const maxRetries = 2;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), ms);
+      
+      try {
+        const response = await apiFetch(url, { 
+          ...init, 
+          signal: controller.signal 
+        });
+        
+        // If we get a 401, no point in retrying
+        if (response.status === 401) {
+          return response;
+        }
+        
+        // If response is not ok, throw to trigger retry
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Request failed');
+        }
+        
+        return response;
+      } catch (error) {
+        lastError = error as Error;
+        if (attempt === maxRetries) break;
+        
+        // Add exponential backoff
+        await new Promise(resolve => 
+          setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt), 5000))
+        );
+      } finally {
+        clearTimeout(timer);
+      }
     }
+    
+    throw lastError || new Error('Request failed after multiple attempts');
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -116,29 +148,37 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // Add a small delay to ensure UI updates properly
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const res = await fetchWithTimeout(`/admin/verifyotp`, {
         method: "POST",
-        body: JSON.stringify({ email: email.trim().toLowerCase(), otp: cleanedOtp }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          otp: cleanedOtp 
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         const { isSuperAdmin, permissions } = data.data;
+        
+        // Set auth state in a single batch update
         setAuthCookie(isSuperAdmin, permissions);
-
-        // Store permissions in localStorage
-        localStorage.setItem(
-          "admin-permissions",
-          JSON.stringify({
-            ...permissions,
-            name: data.data.name || "Admin User",
-            email: email.trim().toLowerCase(),
-          })
-        );
-
-        // Use replace to avoid back button returning to login
-        router.replace("/dashboard");
+        const userData = {
+          ...permissions,
+          name: data.data.name || "Admin User",
+          email: email.trim().toLowerCase(),
+        };
+        
+        localStorage.setItem("admin-permissions", JSON.stringify(userData));
+        
+        // Force a full page reload to ensure all state is properly initialized
+        window.location.href = "/dashboard";
       } else {
         setError(data.message || "Invalid OTP. Please try again.");
       }

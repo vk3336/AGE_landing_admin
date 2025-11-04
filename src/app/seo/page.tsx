@@ -167,28 +167,36 @@ const SEO_FIELDS = [
   { 
     key: "viewport", 
     label: "Viewport", 
-    type: "text",
-    helperText: "Controls viewport settings for mobile devices (e.g., width=device-width, initial-scale=1)",
+    type: "autocomplete",
+    options: [
+      "width=device-width, initial-scale=1",
+      "width=device-width, initial-scale=1, maximum-scale=1",
+      "width=device-width, initial-scale=1, shrink-to-fit=no"
+    ],
+    helperText: "Controls viewport settings for mobile devices",
     defaultValue: "width=device-width, initial-scale=1"
   },
   { 
     key: "charset", 
     label: "Charset", 
-    type: "text",
+    type: "autocomplete",
+    options: ["UTF-8", "ISO-8859-1", "windows-1252"],
     helperText: "Character encoding (usually UTF-8)",
     defaultValue: "UTF-8"
   },
   { 
     key: "xUaCompatible", 
     label: "X-UA-Compatible", 
-    type: "text",
-    helperText: "Forces IE to use the latest rendering engine",
+    type: "autocomplete",
+    options: ["IE=edge", "IE=EmulateIE11", "IE=EmulateIE10", "IE=9"],
+    helperText: "Forces IE to use the specified rendering engine",
     defaultValue: "IE=edge"
   },
   { 
     key: "contentLanguage", 
     label: "Content Language", 
-    type: "text",
+    type: "autocomplete",
+    options: ["en-US", "en-GB", "es-ES", "fr-FR", "de-DE", "ja-JP", "zh-CN"],
     helperText: "Language of the content (e.g., en-US)",
     defaultValue: "en-US"
   },
@@ -213,7 +221,13 @@ const SEO_FIELDS = [
   { 
     key: "formatDetection", 
     label: "Format Detection", 
-    type: "text",
+    type: "autocomplete",
+    options: [
+      "telephone=no,date=no,address=no,email=no,url=no",
+      "telephone=yes,date=no,address=no,email=no,url=no",
+      "telephone=no,date=yes,address=no,email=no,url=no",
+      "telephone=no,date=no,address=yes,email=no,url=no"
+    ],
     helperText: "Controls automatic detection of phone numbers, addresses, etc.",
     defaultValue: "telephone=no,date=no,address=no,email=no,url=no"
   },
@@ -236,7 +250,21 @@ const SEO_FIELDS = [
   { 
     key: "ogType", 
     label: "OG Type", 
-    type: "text",
+    type: "autocomplete",
+    options: [
+      "website",
+      "article",
+      "book",
+      "profile",
+      "music.song",
+      "music.album",
+      "music.playlist",
+      "music.radio_station",
+      "video.movie",
+      "video.episode",
+      "video.tv_show",
+      "video.other"
+    ],
     helperText: "Type of content (e.g., website, article, product, video)",
     defaultValue: "website"
   },
@@ -255,7 +283,12 @@ const SEO_FIELDS = [
   { 
     key: "ogLocale", 
     label: "OG Locale", 
-    type: "text",
+    type: "autocomplete",
+    options: [
+      "en_US", "en_GB", "es_ES", "fr_FR", "de_DE", 
+      "it_IT", "pt_BR", "ru_RU", "ja_JP", "zh_CN", 
+      "ar_AR", "hi_IN"
+    ],
     helperText: "The locale of the content (e.g., en_US, en_GB)",
     defaultValue: "en_US"
   },
@@ -302,7 +335,8 @@ const SEO_FIELDS = [
   { 
     key: "twitterCard", 
     label: "Card Type", 
-    type: "text",
+    type: "autocomplete",
+    options: ["summary", "summary_large_image", "player", "app"],
     helperText: "Type of Twitter card (summary, summary_large_image, player, or app)",
     defaultValue: "summary_large_image"
   },
@@ -369,14 +403,16 @@ const SEO_FIELDS = [
   { 
     key: "BreadcrumbJsonLdtype", 
     label: "@type", 
-    type: "text",
+    type: "autocomplete",
+    options: ["BreadcrumbList", "ItemList", "WebPage"],
     helperText: "The type of the item (usually BreadcrumbList)",
     defaultValue: "BreadcrumbList"
   },
   { 
     key: "BreadcrumbJsonLdcontext", 
     label: "@context", 
-    type: "text",
+    type: "autocomplete",
+    options: ["https://schema.org"],
     helperText: "The context for the JSON-LD (usually https://schema.org)",
     defaultValue: "https://schema.org"
   },
@@ -1306,7 +1342,35 @@ function SeoPage() {
               }
               if (!field.key) return null;
               // Only use field.key as an index if it's defined
-              if (field.type === "select") {
+              if (field.type === "autocomplete") {
+                return (
+                  <Autocomplete
+                    key={field.key}
+                    freeSolo
+                    options={field.options || []}
+                    value={form[field.key] || ''}
+                    onChange={(_, newValue) => {
+                      handleChange({
+                        target: {
+                          name: field.key,
+                          value: newValue || ''
+                        }
+                      } as React.ChangeEvent<HTMLInputElement>);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={field.label}
+                        helperText={field.helperText}
+                        fullWidth
+                        variant="outlined"
+                        margin="normal"
+                        disabled={pageAccess === 'only view'}
+                      />
+                    )}
+                  />
+                );
+              } else if (field.type === "select") {
                 // Product field: use products list, no freeSolo
                 return (
                   <Autocomplete

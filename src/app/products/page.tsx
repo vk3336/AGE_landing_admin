@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, MenuItem, Select, InputLabel, FormControl, CircularProgress, Pagination, Chip, Autocomplete, InputAdornment, AppBar, Toolbar
+  Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, MenuItem, Select, InputLabel, FormControl, CircularProgress, Pagination, Chip, Autocomplete, InputAdornment, AppBar, Toolbar, Checkbox, FormControlLabel
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,7 +34,7 @@ interface Product {
   subsuitable: string;
   vendor: string;
   groupcode: string;
-  color: string | string[];  // Can be single string or array of strings
+  color: string | string[];
   motif?: string;
   um?: string;
   currency?: string;
@@ -46,6 +46,21 @@ interface Product {
   videoThumbnail?: string;
   altvideo?: string;
   quantity?: number;
+  purchasePrice?: number | string;
+  salesPrice?: number | string;
+  productIdentifier?: string;
+  leadtime?: string;
+  sku?: string;
+  popularproduct?: boolean;
+  topratedproduct?: boolean;
+  landingPageProduct?: boolean;
+  shopyProduct?: boolean;
+  rating_value?: string | number;
+  rating_count?: string | number;
+  productlocationtitle?: string;
+  productlocationtagline?: string;
+  productlocationdescription1?: string;
+  productlocationdescription2?: string;
 }
 
 interface Option { _id: string; name: string; }
@@ -122,6 +137,21 @@ export default function ProductPage() {
     videoThumbnail?: string;
     altvideo?: string;
     quantity?: number | string;
+    purchasePrice?: number | string;
+    salesPrice?: number | string;
+    productIdentifier?: string;
+    leadtime?: number | string;
+    sku?: string;
+    popularproduct?: boolean;
+    topratedproduct?: boolean;
+    landingPageProduct?: boolean;
+    shopyProduct?: boolean;
+    rating_value?: number | string;
+    rating_count?: number | string;
+    productlocationtitle?: string;
+    productlocationtagline?: string;
+    productlocationdescription1?: string;
+    productlocationdescription2?: string;
     [key: string]: string | number | boolean | File | string[] | null | undefined;
   };
 
@@ -154,6 +184,21 @@ export default function ProductPage() {
     video: undefined,
     altvideo: "",
     quantity: "",
+    purchasePrice: "",
+    salesPrice: "",
+    productIdentifier: "",
+    leadtime: "",
+    sku: "",
+    popularproduct: false,
+    topratedproduct: false,
+    landingPageProduct: false,
+    shopyProduct: false,
+    rating_value: "",
+    rating_count: "",
+    productlocationtitle: "",
+    productlocationtagline: "",
+    productlocationdescription1: "",
+    productlocationdescription2: "",
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -282,6 +327,18 @@ export default function ProductPage() {
 
   const handleOpen = useCallback((product?: Product) => {
     if (product) {
+      console.log('Editing product:', product); // Debug log
+      
+      // Helper function to safely get ID from either string or object
+      const getFieldValue = (field: string | { _id?: string } | null | undefined): string => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        if (field && typeof field === 'object' && '_id' in field) {
+          return field._id || '';
+        }
+        return '';
+      };
+
       // Handle colors - ensure we always have an array of color IDs
       let colors: string[] = [];
       if (product.color) {
@@ -303,22 +360,22 @@ export default function ProductPage() {
       // Generate slug from name if not exists
       const slug = product.slug || generateSlug(product.name);
       
-      setForm({
+      const formData = {
         name: product.name,
         slug: slug,
         productdescription: product.productdescription || '',
-        category: getId(product.category),
-        substructure: getId(product.substructure),
-        content: getId(product.content),
-        design: getId(product.design),
-        subfinish: getId(product.subfinish),
-        subsuitable: getId(product.subsuitable),
-        vendor: getId(product.vendor),
-        groupcode: getId(product.groupcode),
+        category: getFieldValue(product.category),
+        substructure: getFieldValue(product.substructure),
+        content: getFieldValue(product.content),
+        design: getFieldValue(product.design),
+        subfinish: getFieldValue(product.subfinish),
+        subsuitable: getFieldValue(product.subsuitable),
+        vendor: getFieldValue(product.vendor),
+        groupcode: getFieldValue(product.groupcode),
         colors: colors,
-        motif: getId(product.motif),
-        um: getId(product.um),
-        currency: getId(product.currency),
+        motif: getFieldValue(product.motif),
+        um: getFieldValue(product.um),
+        currency: getFieldValue(product.currency),
         gsm: product.gsm !== undefined && product.gsm !== null ? String(product.gsm) : "",
         oz: product.oz !== undefined && product.oz !== null ? String(product.oz) : "",
         cm: product.cm !== undefined && product.cm !== null ? String(product.cm) : "",
@@ -332,7 +389,25 @@ export default function ProductPage() {
         video: product.video,
         altvideo: product.altvideo || "",
         quantity: product.quantity !== undefined && product.quantity !== null ? String(product.quantity) : "",
-      });
+        purchasePrice: product.purchasePrice !== undefined ? String(product.purchasePrice) : "",
+        salesPrice: product.salesPrice !== undefined ? String(product.salesPrice) : "",
+        productIdentifier: product.productIdentifier || "",
+        leadtime: product.leadtime || "",
+        sku: product.sku || "",
+        popularproduct: product.popularproduct || false,
+        topratedproduct: product.topratedproduct || false,
+        landingPageProduct: product.landingPageProduct || false,
+        shopyProduct: product.shopyProduct || false,
+        rating_value: product.rating_value || "",
+        rating_count: product.rating_count || "",
+        productlocationtitle: product.productlocationtitle || "",
+        productlocationtagline: product.productlocationtagline || "",
+        productlocationdescription1: product.productlocationdescription1 || "",
+        productlocationdescription2: product.productlocationdescription2 || ""
+      };
+      
+      console.log('Form data to be set:', formData); // Debug log
+      setForm(formData);
       setEditId(product._id || null);
       setImagePreview(getSafeImageUrl(product.img));
       setImage1Preview(getSafeImageUrl(product.image1));
@@ -370,7 +445,7 @@ export default function ProductPage() {
       setVideoPreview(null);
     }
     setOpen(true);
-  }, [setForm, setEditId, setImagePreview, setImage1Preview, setImage2Preview, setVideoPreview, setOpen, getId]);
+  }, [setForm, setEditId, setImagePreview, setImage1Preview, setImage2Preview, setVideoPreview, setOpen]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -1253,6 +1328,179 @@ export default function ProductPage() {
               disabled={pageAccess === 'only view'}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
             />
+            <TextField
+              label="Purchase Price"
+              type="number"
+              value={form.purchasePrice || ""}
+              onChange={e => setForm(prev => ({ ...prev, purchasePrice: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {form.currency || '₹'}
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Sales Price"
+              type="number"
+              value={form.salesPrice || ""}
+              onChange={e => setForm(prev => ({ ...prev, salesPrice: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {form.currency || '₹'}
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Product Identifier"
+              value={form.productIdentifier || ""}
+              onChange={e => setForm(prev => ({ ...prev, productIdentifier: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              helperText="Unique identifier for the product"
+            />
+            <TextField
+              label="Lead Time (days)"
+              type="number"
+              value={form.leadtime || ""}
+              onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              helperText="Estimated delivery time in days"
+            />
+            <TextField
+              label="SKU"
+              value={form.sku || ""}
+              onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              helperText="Stock Keeping Unit"
+            />
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={Boolean(form.popularproduct)}
+                    onChange={e => setForm(prev => ({ ...prev, popularproduct: e.target.checked }))}
+                    disabled={pageAccess === 'only view'}
+                  />
+                }
+                label="Popular Product"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={Boolean(form.topratedproduct)}
+                    onChange={e => setForm(prev => ({ ...prev, topratedproduct: e.target.checked }))}
+                    disabled={pageAccess === 'only view'}
+                  />
+                }
+                label="Top Rated"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={Boolean(form.landingPageProduct)}
+                    onChange={e => setForm(prev => ({ ...prev, landingPageProduct: e.target.checked }))}
+                    disabled={pageAccess === 'only view'}
+                  />
+                }
+                label="Landing Page Product"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={Boolean(form.shopyProduct)}
+                    onChange={e => setForm(prev => ({ ...prev, shopyProduct: e.target.checked }))}
+                    disabled={pageAccess === 'only view'}
+                  />
+                }
+                label="Shopy Product"
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Rating Value"
+                type="number"
+                value={form.rating_value || ""}
+                onChange={e => {
+                  const value = parseFloat(e.target.value);
+                  if ((value >= 0 && value <= 5) || e.target.value === '') {
+                    setForm(prev => ({ ...prev, rating_value: e.target.value }));
+                  }
+                }}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                inputProps={{ min: 0, max: 5, step: 0.1 }}
+                helperText="Rating value (0-5)"
+              />
+              <TextField
+                label="Rating Count"
+                type="number"
+                value={form.rating_count || ""}
+                onChange={e => {
+                  const value = parseInt(e.target.value);
+                  if ((value >= 0) || e.target.value === '') {
+                    setForm(prev => ({ ...prev, rating_count: e.target.value }));
+                  }
+                }}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                inputProps={{ min: 0 }}
+                helperText="Number of ratings"
+              />
+            </Box>
+            <Typography variant="h6" sx={{ mt: 2, mb: 1, color: '#2c3e50', fontWeight: 600 }}>Product Location</Typography>
+            <TextField
+              label="Location Title"
+              value={form.productlocationtitle || ""}
+              onChange={e => setForm(prev => ({ ...prev, productlocationtitle: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
+            />
+            <TextField
+              label="Location Tagline"
+              value={form.productlocationtagline || ""}
+              onChange={e => setForm(prev => ({ ...prev, productlocationtagline: e.target.value }))}
+              fullWidth
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
+            />
+            <TextField
+              label="Location Description 1"
+              value={form.productlocationdescription1 || ""}
+              onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
+              fullWidth
+              multiline
+              rows={2}
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
+            />
+            <TextField
+              label="Location Description 2"
+              value={form.productlocationdescription2 || ""}
+              onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
+              fullWidth
+              multiline
+              rows={2}
+              disabled={pageAccess === 'only view'}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
+            />
             <Box>
               <input
                 type="file"
@@ -1843,7 +2091,11 @@ export default function ProductPage() {
                     })()}
                   </Box>
                 </Box>
-                {/* Motif and new fields */}
+                {/* Product Details - First Column */}
+                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Details</Typography>
+                </Box>
+                
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Motif</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{hasName(selectedProduct.motif) ? selectedProduct.motif.name || '-' : selectedProduct.motif || '-'}</Typography>
@@ -1852,6 +2104,146 @@ export default function ProductPage() {
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>UM</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.um || '-'}</Typography>
                 </Box>
+                
+                {/* Pricing Information */}
+                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Pricing & Inventory</Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Purchase Price</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.purchasePrice || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Sales Price</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.salesPrice || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Quantity</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.quantity || '0'}</Typography>
+                </Box>
+                
+                {/* Product Identification */}
+                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Identification</Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>SKU</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.sku || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Product ID</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.productIdentifier || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Lead Time</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.leadtime || '-'}</Typography>
+                </Box>
+                
+                {/* Product Flags */}
+                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Flags</Typography>
+                </Box>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Chip 
+                    label={selectedProduct.popularproduct ? 'Popular Product' : 'Not Popular'} 
+                    size="small" 
+                    sx={{ 
+                      width: 'fit-content',
+                      bgcolor: selectedProduct.popularproduct ? '#e3f2fd' : '#f5f5f5',
+                      color: selectedProduct.popularproduct ? '#1976d2' : '#757575'
+                    }} 
+                  />
+                  <Chip 
+                    label={selectedProduct.topratedproduct ? 'Top Rated' : 'Not Top Rated'} 
+                    size="small" 
+                    sx={{ 
+                      width: 'fit-content',
+                      bgcolor: selectedProduct.topratedproduct ? '#e8f5e9' : '#f5f5f5',
+                      color: selectedProduct.topratedproduct ? '#2e7d32' : '#757575'
+                    }} 
+                  />
+                  <Chip 
+                    label={selectedProduct.landingPageProduct ? 'Featured on Landing Page' : 'Not on Landing Page'} 
+                    size="small" 
+                    sx={{ 
+                      width: 'fit-content',
+                      bgcolor: selectedProduct.landingPageProduct ? '#fff3e0' : '#f5f5f5',
+                      color: selectedProduct.landingPageProduct ? '#e65100' : '#757575'
+                    }} 
+                  />
+                  <Chip 
+                    label={selectedProduct.shopyProduct ? 'Shopy Product' : 'Not a Shopy Product'} 
+                    size="small" 
+                    sx={{ 
+                      width: 'fit-content',
+                      bgcolor: selectedProduct.shopyProduct ? '#f3e5f5' : '#f5f5f5',
+                      color: selectedProduct.shopyProduct ? '#7b1fa2' : '#757575'
+                    }} 
+                  />
+                </Box>
+                
+                {/* Ratings */}
+                {selectedProduct.rating_value && (
+                  <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Ratings</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{ color: '#2c3e50', mr: 1 }}>Rating:</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', color: '#ffc107' }}>
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < Math.floor(Number(selectedProduct.rating_value) || 0) ? '#ffc107' : '#e0e0e0' }}>★</span>
+                          ))}
+                          <Typography variant="body2" sx={{ color: '#2c3e50', ml: 1 }}>
+                            ({selectedProduct.rating_value} / 5)
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>
+                        {selectedProduct.rating_count || '0'} ratings
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                
+                {/* Product Location Information */}
+                {(selectedProduct.productlocationtitle || selectedProduct.productlocationtagline || selectedProduct.productlocationdescription1 || selectedProduct.productlocationdescription2) && (
+                  <Box sx={{ gridColumn: '1 / -1', mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                      Product Location Information
+                    </Typography>
+                    
+                    {selectedProduct.productlocationtitle && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Title:</Typography>
+                        <Typography variant="body2">{selectedProduct.productlocationtitle}</Typography>
+                      </Box>
+                    )}
+                    
+                    {selectedProduct.productlocationtagline && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Tagline:</Typography>
+                        <Typography variant="body2">{selectedProduct.productlocationtagline}</Typography>
+                      </Box>
+                    )}
+                    
+                    {selectedProduct.productlocationdescription1 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Description 1:</Typography>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.productlocationdescription1}</Typography>
+                      </Box>
+                    )}
+                    
+                    {selectedProduct.productlocationdescription2 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Description 2:</Typography>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.productlocationdescription2}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Currency</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.currency || '-'}</Typography>

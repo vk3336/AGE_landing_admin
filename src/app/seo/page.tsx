@@ -24,24 +24,6 @@ const SEO_FIELDS = [
     helperText: "Select the product this SEO data is for"
   },
   { 
-    key: "purchasePrice", 
-    label: "Purchase Price", 
-    type: "number",
-    helperText: "Enter the wholesale or purchase price"
-  },
-  { 
-    key: "salesPrice", 
-    label: "Sales Price", 
-    type: "number",
-    helperText: "Enter the retail or selling price"
-  },
-  { 
-    key: "leadtime", 
-    label: "Lead Time (days)", 
-    type: "number",
-    helperText: "Estimated number of days to prepare and ship the product"
-  },
-  { 
     key: "location", 
     label: "Location", 
     type: "location",
@@ -54,46 +36,10 @@ const SEO_FIELDS = [
     helperText: "Unique code identifying the product's storage location"
   },
   { 
-    key: "productIdentifier", 
-    label: "Product Identifier", 
-    type: "text",
-    helperText: "Unique identifier for the product (e.g., model number, part number)"
-  },
-  { 
-    key: "sku", 
-    label: "SKU", 
-    type: "text",
-    helperText: "Stock Keeping Unit - unique code for inventory tracking"
-  },
-  { 
     key: "productdescription", 
     label: "Product Description", 
     type: "textarea",
     helperText: "Detailed description of the product's features and benefits"
-  },
-  { 
-    key: "popularproduct", 
-    label: "Popular Product", 
-    type: "checkbox",
-    helperText: "Check if this is one of your best-selling or most viewed products"
-  },
-  { 
-    key: "topratedproduct", 
-    label: "Top Rated Product", 
-    type: "checkbox",
-    helperText: "Check if this product has received excellent customer reviews"
-  },
-  { 
-    key: "landingPageProduct", 
-    label: "Landing Page Product", 
-    type: "checkbox",
-    helperText: "Feature this product on marketing landing pages"
-  },
-  { 
-    key: "shopyProduct", 
-    label: "Shopy Product", 
-    type: "checkbox",
-    helperText: "Include this product in Shopy marketplace listings"
   },
   { 
     key: "slug", 

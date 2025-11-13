@@ -952,8 +952,7 @@ function SeoPage() {
                 <TableCell>Product</TableCell>
                 <TableCell>Location</TableCell>
                 <TableCell>Slug</TableCell>
-                <TableCell align="center">Landing Page</TableCell>
-                <TableCell align="center">Shopy Product</TableCell>
+              
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -1001,24 +1000,7 @@ function SeoPage() {
                   </TableCell>
                   <TableCell>{location}</TableCell>
                   <TableCell>{typeof seo.slug === 'string' ? seo.slug : '-'}</TableCell>
-                  <TableCell align="center">
-                    <Box display="flex" justifyContent="center">
-                      {seo.landingPageProduct ? (
-                        <Chip label="Yes" color="success" size="small" />
-                      ) : (
-                        <Chip label="No" variant="outlined" size="small" />
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box display="flex" justifyContent="center">
-                      {seo.shopyProduct ? (
-                        <Chip label="Yes" color="success" size="small" />
-                      ) : (
-                        <Chip label="No" variant="outlined" size="small" />
-                      )}
-                    </Box>
-                  </TableCell>
+                 
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleOpen(seo)} disabled={pageAccess === 'only view'}><EditIcon /></IconButton>
                     <IconButton color="info" onClick={() => { setSelectedSeo(seo); setViewOpen(true); }}><VisibilityIcon /></IconButton>

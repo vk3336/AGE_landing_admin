@@ -656,15 +656,17 @@ function SeoPage() {
         updatedForm.title = selectedProduct.name;
       }
       
-      // If slug is empty, generate a slug from the product name
-      if (!updatedForm.slug) {
-        const slug = selectedProduct.name
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '-')      // Replace spaces with hyphens
-          .replace(/-+/g, '-');       // Replace multiple hyphens with single hyphen
-        updatedForm.slug = slug;
-      }
+      // Always generate a slug from the product name when a product is selected
+      const slug = selectedProduct.name
+        .toString() // Ensure it's a string
+        .toLowerCase() // Convert to lowercase
+        .trim() // Remove whitespace from both ends
+        .replace(/[^a-z0-9\s-]/g, '') // Remove all non-alphanumeric characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+        .replace(/%/g, '') // Remove any remaining percentage signs
+      updatedForm.slug = slug;
     }
     
     // Find existing SEO data for the selected product

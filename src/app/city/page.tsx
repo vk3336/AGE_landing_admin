@@ -9,7 +9,7 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   MenuItem,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 
 // Define types locally to avoid import issues
 type CityOption = {
@@ -127,6 +127,8 @@ export default function CityPage() {
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState<boolean>(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState<boolean>(false);
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
   
   const [form, setForm] = useState<CityFormData>({
     name: '',
@@ -377,6 +379,12 @@ export default function CityPage() {
     }
   };
 
+  // Handle view button click
+  const handleView = (city: City) => {
+    setSelectedCity(city);
+    setViewDialogOpen(true);
+  };
+
   // Handle edit button click
   const handleEdit = (city: City) => {
     console.log('Editing city:', city);
@@ -477,6 +485,12 @@ export default function CityPage() {
     } finally {
       setDeleteSubmitting(false);
     }  
+  };
+
+  // Close view dialog
+  const handleCloseViewDialog = () => {
+    setViewDialogOpen(false);
+    setSelectedCity(null);
   };
 
   // Reset form
@@ -598,6 +612,13 @@ export default function CityPage() {
                             disabled={pageAccess === 'only view'}
                           >
                             <DeleteIcon />
+                          </IconButton>
+                          <IconButton
+                            color="info"
+                            onClick={() => handleView(city)}
+                            size="small"
+                          >
+                            <VisibilityIcon />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -744,31 +765,36 @@ export default function CityPage() {
               />
               
               <Autocomplete
-                id="state-select"
-                options={states}
-                getOptionLabel={(option) => option.name}
-                value={states.find(s => s._id === form.state) || null}
-                onChange={(_, newValue) => {
-                  if (newValue) {
-                    handleStateChange(newValue._id);
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    margin="normal"
-                    
-                    fullWidth
-                    label="State"
-                    name="state"
-                  />
-                )}
-                renderOption={(props, option) => (
-                  <li {...props} key={option._id}>
-                    {option.name}
-                  </li>
-                )}
-              />
+  id="state-select"
+  options={states}
+  getOptionLabel={(option) => {
+    const country = option.country ? countries.find(c => c._id === option.country) : null;
+    return country ? `${country.name} - ${option.name}` : option.name;
+  }}
+  value={states.find(s => s._id === form.state) || null}
+  onChange={(_, newValue) => {
+    if (newValue) {
+      handleStateChange(newValue._id);
+    }
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      margin="normal"
+      fullWidth
+      label="State"
+      name="state"
+    />
+  )}
+  renderOption={(props, option) => {
+    const country = option.country ? countries.find(c => c._id === option.country) : null;
+    return (
+      <li {...props} key={option._id}>
+        {country ? `${country.name} - ${option.name}` : option.name}
+      </li>
+    );
+  }}
+/>
             </DialogContent>
             <DialogActions>
               <Button onClick={resetForm}>Cancel</Button>
@@ -809,6 +835,67 @@ export default function CityPage() {
               startIcon={deleteSubmitting ? <CircularProgress size={20} /> : null}
             >
               {deleteSubmitting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* View City Dialog */}
+        <Dialog
+          open={viewDialogOpen}
+          onClose={handleCloseViewDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>City Details</DialogTitle>
+          <DialogContent>
+            {selectedCity && (
+              <Box sx={{ mt: 2 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Name</Typography>
+                  <Typography variant="body1">{selectedCity.name || '-'}</Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Slug</Typography>
+                  <Typography variant="body1">{selectedCity.slug || '-'}</Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">State</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.state && typeof selectedCity.state === 'object' 
+                      ? selectedCity.state.name 
+                      : selectedCity.state_name || 'N/A'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Country</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.country && typeof selectedCity.country === 'object' 
+                      ? selectedCity.country.name 
+                      : selectedCity.country_name || 'N/A'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Created At</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.createdAt 
+                      ? new Date(selectedCity.createdAt).toLocaleString() 
+                      : 'N/A'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Last Updated</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.updatedAt 
+                      ? new Date(selectedCity.updatedAt).toLocaleString() 
+                      : 'N/A'}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseViewDialog} color="primary">
+              Close
             </Button>
           </DialogActions>
         </Dialog>

@@ -331,6 +331,10 @@ export default function LocationPage() {
   const [languageSearch, setLanguageSearch] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  
+  // View dialog state
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   // Log state changes in development only
   useEffect(() => {
@@ -641,6 +645,12 @@ export default function LocationPage() {
     } finally {
       setDeleteSubmitting(false);
     }
+  };
+
+  // Handle view details
+  const handleView = (location: Location) => {
+    setSelectedLocation(location);
+    setViewDialogOpen(true);
   };
 
   // Handle edit
@@ -1018,9 +1028,17 @@ export default function LocationPage() {
                     <TableCell>{location.slug}</TableCell>
                     <TableCell>
                       <IconButton 
+                        onClick={() => handleView(location)}
+                        color="info"
+                        title="View Details"
+                      >
+                        <SearchIcon />
+                      </IconButton>
+                      <IconButton 
                         onClick={() => handleEdit(location)} 
                         color={viewOnly ? 'default' : 'primary'}
                         disabled={viewOnly}
+                        title="Edit"
                       >
                         <EditIcon />
                       </IconButton>
@@ -1028,6 +1046,7 @@ export default function LocationPage() {
                         onClick={() => setDeleteId(location._id)}
                         color={viewOnly ? 'default' : 'error'}
                         disabled={viewOnly}
+                        title="Delete"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -1416,12 +1435,126 @@ export default function LocationPage() {
         </form>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={!!deleteId}
-        onClose={() => !deleteSubmitting && setDeleteId(null)}
+      {/* View Location Dialog */}
+      <Dialog 
+        open={viewDialogOpen} 
+        onClose={() => setViewDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>Location Details</DialogTitle>
+        <DialogContent>
+          {selectedLocation && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" gutterBottom>Basic Information</Typography>
+              <TableContainer component={Paper} sx={{ mb: 3 }}>
+                <Table size="small">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold', width: '200px' }}>Name</TableCell>
+                      <TableCell>{selectedLocation.name}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Slug</TableCell>
+                      <TableCell>{selectedLocation.slug}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
+                      <TableCell>{selectedLocation.pincode}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
+                      <TableCell>{typeof selectedLocation.country === 'object' ? selectedLocation.country.name : selectedLocation.country}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
+                      <TableCell>{typeof selectedLocation.state === 'object' ? selectedLocation.state.name : selectedLocation.state}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>
+                      <TableCell>{typeof selectedLocation.city === 'object' ? selectedLocation.city.name : selectedLocation.city}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Timezone</TableCell>
+                      <TableCell>{selectedLocation.timezone || 'N/A'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Language</TableCell>
+                      <TableCell>{selectedLocation.language || 'N/A'}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {selectedLocation.LocalBusinessJsonLdname && (
+                <>
+                  <Typography variant="h6" gutterBottom>Business Information</Typography>
+                  <TableContainer component={Paper}>
+                    <Table size="small">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', width: '250px' }}>Business Name</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdname}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Telephone</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdtelephone || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Area Served</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdareaserved || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Street Address</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressstreetAddress || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Locality</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressLocality || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Region</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressRegion || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Postal Code</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddresspostalCode || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
+                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressCountry || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Geo Coordinates</TableCell>
+                          <TableCell>
+                            {selectedLocation.LocalBusinessJsonLdgeolatitude && selectedLocation.LocalBusinessJsonLdgeolongitude 
+                              ? `${selectedLocation.LocalBusinessJsonLdgeolatitude}, ${selectedLocation.LocalBusinessJsonLdgeolongitude}` 
+                              : 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
+              )}
+              
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  onClick={() => setViewDialogOpen(false)}
+                  variant="contained"
+                  color="primary"
+                >
+                  Close
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
+        <DialogTitle>Delete Location</DialogTitle>
         <DialogContent>
           {deleteError && (
             <Alert 

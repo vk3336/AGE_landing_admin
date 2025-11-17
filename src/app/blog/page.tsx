@@ -50,6 +50,8 @@ interface Blog {
   paragraph3: string;
   blogimage1?: string;
   blogimage2?: string;
+  altimage1?: string;
+  altimage2?: string;
   deleteImage1?: string;
   deleteImage2?: string;
   [key: string]: string | boolean | File | undefined; // Define specific types for dynamic properties
@@ -410,6 +412,35 @@ const BlogForm = React.memo(({
                 )}
               </Box>
             )}
+            {viewOnly ? (
+              <Box mt={2}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Image 1 Alt Text:
+                </Typography>
+                <Box sx={{ 
+                  p: 1.5, 
+                  border: '1px solid rgba(0, 0, 0, 0.12)', 
+                  borderRadius: 1,
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)'
+                }}>
+                  <Typography variant="body1">
+                    {form.altimage1 || 'No alt text provided'}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <TextField
+                name="altimage1"
+                label="Image 1 Alt Text"
+                fullWidth
+                margin="normal"
+                value={form.altimage1 || ''}
+                onChange={handleChange}
+                disabled={viewOnly}
+                helperText="Alternative text for image 1 (for accessibility)"
+                sx={{ mt: 2 }}
+              />
+            )}
           </Box>
 
           {/* Image Upload 2 */}
@@ -454,6 +485,35 @@ const BlogForm = React.memo(({
                   </IconButton>
                 )}
               </Box>
+            )}
+            {viewOnly ? (
+              <Box mt={2}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Image 2 Alt Text:
+                </Typography>
+                <Box sx={{ 
+                  p: 1.5, 
+                  border: '1px solid rgba(0, 0, 0, 0.12)', 
+                  borderRadius: 1,
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)'
+                }}>
+                  <Typography variant="body1">
+                    {form.altimage2 || 'No alt text provided'}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <TextField
+                name="altimage2"
+                label="Image 2 Alt Text"
+                fullWidth
+                margin="normal"
+                value={form.altimage2 || ''}
+                onChange={handleChange}
+                disabled={viewOnly}
+                helperText="Alternative text for image 2 (for accessibility)"
+                sx={{ mt: 2 }}
+              />
             )}
           </Box>
         </DialogContent>
@@ -569,7 +629,16 @@ export default function BlogPage() {
     if (blog) {
       // Initialize the form with blog data and reset delete flags
       setForm({
-        ...blog,
+        title: blog.title || '',
+        author: blog.author || '',
+        heading: blog.heading || '',
+        paragraph1: blog.paragraph1 || '',
+        paragraph2: blog.paragraph2 || '',
+        paragraph3: blog.paragraph3 || '',
+        blogimage1: blog.blogimage1 || '',
+        blogimage2: blog.blogimage2 || '',
+        altimage1: blog.altimage1 || '',
+        altimage2: blog.altimage2 || '',
         deleteImage1: 'false',
         deleteImage2: 'false'
       });
@@ -584,6 +653,10 @@ export default function BlogPage() {
         paragraph1: '',
         paragraph2: '',
         paragraph3: '',
+        blogimage1: '',
+        blogimage2: '',
+        altimage1: '',
+        altimage2: '',
         deleteImage1: 'false',
         deleteImage2: 'false'
       });
@@ -1037,10 +1110,15 @@ export default function BlogPage() {
                         }}
                       />
                     </Box>
-                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', textAlign: 'center' }}>
-                      <Typography variant="caption" color="textSecondary">
+                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', borderTop: '1px solid #eee' }}>
+                      <Typography variant="caption" color="textSecondary" display="block" textAlign="center">
                         Main Image
                       </Typography>
+                      {selectedBlog?.altimage1 && (
+                        <Typography variant="caption" display="block" textAlign="center" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                          Alt Text: {selectedBlog.altimage1}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 )}
@@ -1092,10 +1170,15 @@ export default function BlogPage() {
                         }}
                       />
                     </Box>
-                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', textAlign: 'center' }}>
-                      <Typography variant="caption" color="textSecondary">
+                    <Box sx={{ p: 1, bgcolor: '#f5f5f5', borderTop: '1px solid #eee' }}>
+                      <Typography variant="caption" color="textSecondary" display="block" textAlign="center">
                         Secondary Image
                       </Typography>
+                      {selectedBlog?.altimage2 && (
+                        <Typography variant="caption" display="block" textAlign="center" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                          Alt Text: {selectedBlog.altimage2}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 )}

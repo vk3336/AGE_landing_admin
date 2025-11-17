@@ -634,45 +634,63 @@ function SeoPage() {
     }
   };
 
-  const handleProductChange = (_: React.SyntheticEvent, value: { label: string; value: string; img?: string } | null) => {
-    const productId = value ? value.value : '';
-    if (!productId) return;
+  const handleProductChange = (_event: React.SyntheticEvent, value: { value: string } | null) => {
+    const productId = value?.value || '';
+    if (!productId) {
+      // If no product is selected, clear product-related fields
+      setForm(prev => ({
+        ...prev,
+        product: '',
+        productName: '',
+        productImage: '',
+        // Don't clear slug if it already has a value
+        ...(prev.slug ? {} : { slug: '' })
+      }));
+      return;
+    }
     
     // Create a new form object with existing values
     const updatedForm: SeoFormData = { ...form };
     
-    // Update product reference
-    updatedForm.product = productId;
-    
-    // Find the selected product from the products list
-    const selectedProduct = products.find(p => p._id === productId);
-    if (selectedProduct) {
-      // Update product name and image in the form
-      updatedForm.productName = selectedProduct.name;
-      updatedForm.productImage = selectedProduct.img || '';
+    // Only update product reference if it's different
+    if (updatedForm.product !== productId) {
+      updatedForm.product = productId;
       
-      // If title is empty, set it to the product name
-      if (!updatedForm.title) {
-        updatedForm.title = selectedProduct.name;
+      // Find the selected product from the products list
+      const selectedProduct = products.find(p => p._id === productId);
+      if (selectedProduct) {
+        // Update product name and image in the form
+        updatedForm.productName = selectedProduct.name;
+        updatedForm.productImage = selectedProduct.img || '';
+        
+        // If title is empty, set it to the product name
+        if (!updatedForm.title) {
+          updatedForm.title = selectedProduct.name;
+        }
+        
+        // Only generate a new slug if we're not editing an existing entry or if the slug is empty
+        if (!editId || !updatedForm.slug) {
+          const slug = selectedProduct.name
+            .toString() // Ensure it's a string
+            .toLowerCase() // Convert to lowercase
+            .trim() // Remove whitespace from both ends
+            .replace(/[^a-z0-9\s-]/g, '') // Remove all non-alphanumeric characters except spaces and hyphens
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+            .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+            .replace(/%/g, ''); // Remove any remaining percentage signs
+          updatedForm.slug = slug;
+        }
       }
-      
-      // Always generate a slug from the product name when a product is selected
-      const slug = selectedProduct.name
-        .toString() // Ensure it's a string
-        .toLowerCase() // Convert to lowercase
-        .trim() // Remove whitespace from both ends
-        .replace(/[^a-z0-9\s-]/g, '') // Remove all non-alphanumeric characters except spaces and hyphens
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
-        .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-        .replace(/%/g, '') // Remove any remaining percentage signs
-      updatedForm.slug = slug;
     }
     
     // Find existing SEO data for the selected product
     const existingSeo = seoList.find((seo: Record<string, unknown>) => {
       const product = seo.product;
       if (!product) return false;
+      
+      // Skip the current entry when editing to avoid matching with itself
+      if (editId && seo._id === editId) return false;
       
       // Handle both direct product ID and nested product object
       if (typeof product === 'string') {
@@ -1321,7 +1339,7 @@ function SeoPage() {
                           }
                         : null
                     }
-                    onChange={(_event: React.SyntheticEvent, value: { label: string; value: string; img?: string } | null) => handleProductChange(_event, value)}
+                    onChange={handleProductChange}
                     renderInput={(params) => (
                       <TextField 
                         {...params} 

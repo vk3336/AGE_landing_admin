@@ -20,6 +20,8 @@ interface Country {
   code: string;
   slug?: string;
   flag?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -27,9 +29,14 @@ interface CountryOption {
   code: string;
   name: string;
   flag: string;
+  longitude?: number;
+  latitude?: number;
 }
 
-type FormState = Required<Pick<Country, 'name' | 'code' | 'slug'>>;
+type FormState = Required<Pick<Country, 'name' | 'code' | 'slug'>> & {
+  longitude?: number;
+  latitude?: number;
+};
 
 const CountryRow = React.memo(({ country, onEdit, onDelete, viewOnly }: {
   country: Country;
@@ -41,6 +48,8 @@ const CountryRow = React.memo(({ country, onEdit, onDelete, viewOnly }: {
     <TableCell sx={{ fontSize: 16 }}>{country.name}</TableCell>
     <TableCell sx={{ fontSize: 16 }}>{country.code}</TableCell>
     <TableCell sx={{ fontSize: 16 }}>{country.slug || '-'}</TableCell>
+    <TableCell sx={{ fontSize: 16 }}>{country.longitude !== undefined ? country.longitude.toFixed(6) : '0.000000'}</TableCell>
+    <TableCell sx={{ fontSize: 16 }}>{country.latitude !== undefined ? country.latitude.toFixed(6) : '0.000000'}</TableCell>
     <TableCell>
       <IconButton color="primary" onClick={() => onEdit(country)} disabled={viewOnly}><EditIcon /></IconButton>
       <IconButton 
@@ -59,41 +68,307 @@ const CountryRow = React.memo(({ country, onEdit, onDelete, viewOnly }: {
 
 CountryRow.displayName = 'CountryRow';
 
-const countriesList = [
+const countriesList: CountryOption[] = [
     {
-    "code": "AW",
-    "name": "Aruba",
-    "flag": "🇦🇼"
-  },
+      "code": "US",
+      "name": "United States",
+      "flag": "🇺🇸",
+      "longitude": -95.7129,
+      "latitude": 37.0902
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "flag": "🇬🇧",
+      "longitude": -3.4360,
+      "latitude": 55.3781
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "flag": "🇨🇦",
+      "longitude": -106.3468,
+      "latitude": 56.1304
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "flag": "🇦🇺",
+      "longitude": 133.7751,
+      "latitude": -25.2744
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "flag": "🇮🇳",
+      "longitude": 78.9629,
+      "latitude": 20.5937
+    },
+    {
+      "code": "CN",
+      "name": "China",
+      "flag": "🇨🇳",
+      "longitude": 104.1954,
+      "latitude": 35.8617
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "flag": "🇯🇵",
+      "longitude": 138.2529,
+      "latitude": 36.2048
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "flag": "🇩🇪",
+      "longitude": 10.4515,
+      "latitude": 51.1657
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "flag": "🇫🇷",
+      "longitude": 1.8883,
+      "latitude": 46.6034
+    },
+    {
+      "code": "BR",
+      "name": "Brazil",
+      "flag": "🇧🇷",
+      "longitude": -51.9253,
+      "latitude": -14.2350
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "flag": "🇮🇹",
+      "longitude": 12.5674,
+      "latitude": 41.8719
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "flag": "🇪🇸",
+      "longitude": -3.7492,
+      "latitude": 40.4637
+    },
+    {
+      "code": "RU",
+      "name": "Russian Federation",
+      "flag": "🇷🇺",
+      "longitude": 105.3188,
+      "latitude": 61.5240
+    },
+    {
+      "code": "MX",
+      "name": "Mexico",
+      "flag": "🇲🇽",
+      "longitude": -102.5528,
+      "latitude": 23.6345
+    },
+    {
+      "code": "KR",
+      "name": "Korea, Republic of",
+      "flag": "🇰🇷",
+      "longitude": 127.7669,
+      "latitude": 35.9078
+    },
+    {
+      "code": "ID",
+      "name": "Indonesia",
+      "flag": "🇮🇩",
+      "longitude": 113.9213,
+      "latitude": -0.7893
+    },
+    {
+      "code": "TR",
+      "name": "Turkey",
+      "flag": "🇹🇷",
+      "longitude": 35.2433,
+      "latitude": 38.9637
+    },
+    {
+      "code": "SA",
+      "name": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "longitude": 45.0792,
+      "latitude": 23.8859
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "flag": "🇨🇭",
+      "longitude": 8.2275,
+      "latitude": 46.8182
+    },
+    {
+      "code": "AE",
+      "name": "United Arab Emirates",
+      "flag": "🇦🇪",
+      "longitude": 53.8478,
+      "latitude": 23.4241
+    },
+    {
+      "code": "SG",
+      "name": "Singapore",
+      "flag": "🇸🇬",
+      "longitude": 103.8198,
+      "latitude": 1.3521
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "flag": "🇳🇱",
+      "longitude": 5.2913,
+      "latitude": 52.1326
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "flag": "🇸🇪",
+      "longitude": 18.6435,
+      "latitude": 60.1282
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "flag": "🇳🇴",
+      "longitude": 8.4689,
+      "latitude": 60.4720
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "flag": "🇩🇰",
+      "longitude": 9.5018,
+      "latitude": 56.2639
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "flag": "🇫🇮",
+      "longitude": 25.7482,
+      "latitude": 61.9241
+    },
+    {
+      "code": "AT",
+      "name": "Austria",
+      "flag": "🇦🇹",
+      "longitude": 14.5501,
+      "latitude": 47.5162
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "flag": "🇧🇪",
+      "longitude": 4.4699,
+      "latitude": 50.5039
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "flag": "🇵🇹",
+      "longitude": -8.2245,
+      "latitude": 39.3999
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "flag": "🇬🇷",
+      "longitude": 21.8243,
+      "latitude": 39.0742
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "flag": "🇵🇱",
+      "longitude": 19.1451,
+      "latitude": 51.9194
+    },
+    {
+      "code": "ZA",
+      "name": "South Africa",
+      "flag": "🇿🇦",
+      "longitude": 22.9375,
+      "latitude": -30.5595
+    },
+    {
+      "code": "EG",
+      "name": "Egypt",
+      "flag": "🇪🇬",
+      "longitude": 30.8025,
+      "latitude": 26.8206
+    },
+    {
+      "code": "NG",
+      "name": "Nigeria",
+      "flag": "🇳🇬",
+      "longitude": 8.6753,
+      "latitude": 9.0820
+    },
+    {
+      "code": "KE",
+      "name": "Kenya",
+      "flag": "🇰🇪",
+      "longitude": 37.9062,
+      "latitude": -0.0236
+    },
+    {
+      "code": "AR",
+      "name": "Argentina",
+      "flag": "🇦🇷",
+      "longitude": -63.6167,
+      "latitude": -38.4161
+    },
+    {
+      "code": "CL",
+      "name": "Chile",
+      "flag": "🇨🇱",
+      "longitude": -71.5430,
+      "latitude": -35.6751
+    },
   {
     "code": "AF",
     "name": "Afghanistan",
-    "flag": "🇦🇫"
+    "flag": "🇦🇫",
+    "longitude": 67.709953,
+    "latitude": 33.93911
   },
   {
     "code": "AO",
     "name": "Angola",
-    "flag": "🇦🇴"
+    "flag": "🇦🇴",
+    "longitude": 17.873887,
+    "latitude": -11.202692
   },
   {
     "code": "AI",
     "name": "Anguilla",
-    "flag": "🇦🇮"
+    "flag": "🇦🇮",
+    "longitude": -63.068615,
+    "latitude": 18.220554
   },
   {
     "code": "AX",
     "name": "Åland Islands",
-    "flag": "🇦🇽"
+    "flag": "🇦🇽",
+    "longitude": 19.8875,
+    "latitude": 60.1785
   },
   {
     "code": "AL",
     "name": "Albania",
-    "flag": "🇦🇱"
+    "flag": "🇦🇱",
+    "longitude": 20.1683,
+    "latitude": 41.1533
   },
   {
     "code": "AD",
     "name": "Andorra",
-    "flag": "🇦🇩"
+    "flag": "🇦🇩",
+    "longitude": 1.5218,
+    "latitude": 42.5063
   },
   {
     "code": "AE",
@@ -108,27 +383,37 @@ const countriesList = [
   {
     "code": "AM",
     "name": "Armenia",
-    "flag": "🇦🇲"
+    "flag": "🇦🇲",
+    "longitude": 45.0382,
+    "latitude": 40.0691
   },
   {
     "code": "AS",
     "name": "American Samoa",
-    "flag": "🇦🇸"
+    "flag": "🇦🇸",
+    "longitude": -170.6945,
+    "latitude": -14.2710
   },
   {
     "code": "AQ",
     "name": "Antarctica",
-    "flag": "🇦🇶"
+    "flag": "🇦🇶",
+    "longitude": 0.0000,
+    "latitude": -90.0000
   },
   {
     "code": "TF",
     "name": "French Southern Territories",
-    "flag": "🇹🇫"
+    "flag": "🇹🇫",
+    "longitude": 69.3486,
+    "latitude": -49.2804
   },
   {
     "code": "AG",
     "name": "Antigua and Barbuda",
-    "flag": "🇦🇬"
+    "flag": "🇦🇬",
+    "longitude": -61.7964,
+    "latitude": 17.0608
   },
   {
     "code": "AU",
@@ -143,12 +428,16 @@ const countriesList = [
   {
     "code": "AZ",
     "name": "Azerbaijan",
-    "flag": "🇦🇿"
+    "flag": "🇦🇿",
+    "longitude": 47.5769,
+    "latitude": 40.1431
   },
   {
     "code": "BI",
     "name": "Burundi",
-    "flag": "🇧🇮"
+    "flag": "🇧🇮",
+    "longitude": 29.8739,
+    "latitude": -3.3731
   },
   {
     "code": "BE",
@@ -158,67 +447,93 @@ const countriesList = [
   {
     "code": "BJ",
     "name": "Benin",
-    "flag": "🇧🇯"
+    "flag": "🇧🇯",
+    "longitude": 2.3158,
+    "latitude": 9.3077
   },
   {
     "code": "BQ",
     "name": "Bonaire, Sint Eustatius and Saba",
-    "flag": "🇧🇶"
+    "flag": "🇧🇶",
+    "longitude": -68.2385,
+    "latitude": 12.1784
   },
   {
     "code": "BF",
     "name": "Burkina Faso",
-    "flag": "🇧🇫"
+    "flag": "🇧🇫",
+    "longitude": -1.5616,
+    "latitude": 12.2383
   },
   {
     "code": "BD",
     "name": "Bangladesh",
-    "flag": "🇧🇩"
+    "flag": "🇧🇩",
+    "longitude": 90.3563,
+    "latitude": 23.6850
   },
   {
     "code": "BG",
     "name": "Bulgaria",
-    "flag": "🇧🇬"
+    "flag": "🇧🇬",
+    "longitude": 25.4858,
+    "latitude": 42.7339
   },
   {
     "code": "BH",
     "name": "Bahrain",
-    "flag": "🇧🇭"
+    "flag": "🇧🇭",
+    "longitude": 50.5577,
+    "latitude": 26.0667
   },
   {
     "code": "BS",
     "name": "Bahamas",
-    "flag": "🇧🇸"
+    "flag": "🇧🇸",
+    "longitude": -77.3963,
+    "latitude": 25.0343
   },
   {
     "code": "BA",
     "name": "Bosnia and Herzegovina",
-    "flag": "🇧🇦"
+    "flag": "🇧🇦",
+    "longitude": 17.6791,
+    "latitude": 43.9159
   },
   {
     "code": "BL",
     "name": "Saint Barthélemy",
-    "flag": "🇧🇱"
+    "flag": "🇧🇱",
+    "longitude": -62.8407,
+    "latitude": 17.9000
   },
   {
     "code": "BY",
     "name": "Belarus",
-    "flag": "🇧🇾"
+    "flag": "🇧🇾",
+    "longitude": 27.9534,
+    "latitude": 53.7098
   },
   {
     "code": "BZ",
     "name": "Belize",
-    "flag": "🇧🇿"
+    "flag": "🇧🇿",
+    "longitude": -88.4976,
+    "latitude": 17.1899
   },
   {
     "code": "BM",
     "name": "Bermuda",
-    "flag": "🇧🇲"
+    "flag": "🇧🇲",
+    "longitude": -64.7505,
+    "latitude": 32.3078
   },
   {
     "code": "BO",
     "name": "Bolivia, Plurinational State of",
-    "flag": "🇧🇴"
+    "flag": "🇧🇴",
+    "longitude": -63.5887,
+    "latitude": -16.2902
   },
   {
     "code": "BR",
@@ -228,32 +543,44 @@ const countriesList = [
   {
     "code": "BB",
     "name": "Barbados",
-    "flag": "🇧🇧"
+    "flag": "🇧🇧",
+    "longitude": -59.5432,
+    "latitude": 13.1939
   },
   {
     "code": "BN",
     "name": "Brunei Darussalam",
-    "flag": "🇧🇳"
+    "flag": "🇧🇳",
+    "longitude": 114.7277,
+    "latitude": 4.5353
   },
   {
     "code": "BT",
     "name": "Bhutan",
-    "flag": "🇧🇹"
+    "flag": "🇧🇹",
+    "longitude": 90.4336,
+    "latitude": 27.5142
   },
   {
     "code": "BV",
     "name": "Bouvet Island",
-    "flag": "🇧🇻"
+    "flag": "🇧🇻",
+    "longitude": 3.4132,
+    "latitude": -54.4232
   },
   {
     "code": "BW",
     "name": "Botswana",
-    "flag": "🇧🇼"
+    "flag": "🇧🇼",
+    "longitude": 24.6849,
+    "latitude": -22.3285
   },
   {
     "code": "CF",
     "name": "Central African Republic",
-    "flag": "🇨🇫"
+    "flag": "🇨🇫",
+    "longitude": 20.9394,
+    "latitude": 6.6111
   },
   {
     "code": "CA",
@@ -263,7 +590,9 @@ const countriesList = [
   {
     "code": "CC",
     "name": "Cocos (Keeling) Islands",
-    "flag": "🇨🇨"
+    "flag": "🇨🇨",
+    "longitude": 96.8710,
+    "latitude": -12.1642
   },
   {
     "code": "CH",
@@ -283,77 +612,107 @@ const countriesList = [
   {
     "code": "CI",
     "name": "Côte d'Ivoire",
-    "flag": "🇨🇮"
+    "flag": "🇨🇮",
+    "longitude": -5.5471,
+    "latitude": 7.5400
   },
   {
     "code": "CM",
     "name": "Cameroon",
-    "flag": "🇨🇲"
+    "flag": "🇨🇲",
+    "longitude": 12.3547,
+    "latitude": 7.3697
   },
   {
     "code": "CD",
     "name": "Congo, The Democratic Republic of the",
-    "flag": "🇨🇩"
+    "flag": "🇨🇩",
+    "longitude": 21.7587,
+    "latitude": -4.0383
   },
   {
     "code": "CG",
     "name": "Congo",
-    "flag": "🇨🇬"
+    "flag": "🇨🇬",
+    "longitude": 15.2832,
+    "latitude": -0.2280
   },
   {
     "code": "CK",
     "name": "Cook Islands",
-    "flag": "🇨🇰"
+    "flag": "🇨🇰",
+    "longitude": -159.7777,
+    "latitude": -21.2367
   },
   {
     "code": "CO",
     "name": "Colombia",
-    "flag": "🇨🇴"
+    "flag": "🇨🇴",
+    "longitude": -74.2973,
+    "latitude": 4.5709
   },
   {
     "code": "KM",
     "name": "Comoros",
-    "flag": "🇰🇲"
+    "flag": "🇰🇲",
+    "longitude": 43.3333,
+    "latitude": -11.8750
   },
   {
     "code": "CV",
     "name": "Cabo Verde",
-    "flag": "🇨🇻"
+    "flag": "🇨🇻",
+    "longitude": -23.6052,
+    "latitude": 16.0021
   },
   {
     "code": "CR",
     "name": "Costa Rica",
-    "flag": "🇨🇷"
+    "flag": "🇨🇷",
+    "longitude": -83.7534,
+    "latitude": 9.7489
   },
   {
     "code": "CU",
     "name": "Cuba",
-    "flag": "🇨🇺"
+    "flag": "🇨🇺",
+    "longitude": -77.7812,
+    "latitude": 21.5218
   },
   {
     "code": "CW",
     "name": "Curaçao",
-    "flag": "🇨🇼"
+    "flag": "🇨🇼",
+    "longitude": -68.8824,
+    "latitude": 12.1696
   },
   {
     "code": "CX",
     "name": "Christmas Island",
-    "flag": "🇨🇽"
+    "flag": "🇨🇽",
+    "longitude": 105.6905,
+    "latitude": -10.4475
   },
   {
     "code": "KY",
     "name": "Cayman Islands",
-    "flag": "🇰🇾"
+    "flag": "🇰🇾",
+    "longitude": -80.5667,
+    "latitude": 19.3133
   },
   {
     "code": "CY",
     "name": "Cyprus",
-    "flag": "🇨🇾"
+    "flag": "🇨🇾",
+    "longitude": 33.4299,
+    "latitude": 35.1264
   },
   {
     "code": "CZ",
     "name": "Czechia",
-    "flag": "🇨🇿"
+    "flag": "🇨🇿",
+    "longitude": 15.4730,
+    "latitude": 49.8175
   },
   {
     "code": "DE",
@@ -363,12 +722,16 @@ const countriesList = [
   {
     "code": "DJ",
     "name": "Djibouti",
-    "flag": "🇩🇯"
+    "flag": "🇩🇯",
+    "longitude": 42.5903,
+    "latitude": 11.8251
   },
   {
     "code": "DM",
     "name": "Dominica",
-    "flag": "🇩🇲"
+    "flag": "🇩🇲",
+    "longitude": -61.3700,
+    "latitude": 15.4150
   },
   {
     "code": "DK",
@@ -378,17 +741,23 @@ const countriesList = [
   {
     "code": "DO",
     "name": "Dominican Republic",
-    "flag": "🇩🇴"
+    "flag": "🇩🇴",
+    "longitude": -70.1627,
+    "latitude": 18.7357
   },
   {
     "code": "DZ",
     "name": "Algeria",
-    "flag": "🇩🇿"
+    "flag": "🇩🇿",
+    "longitude": 1.6596,
+    "latitude": 28.0339
   },
   {
     "code": "EC",
     "name": "Ecuador",
-    "flag": "🇪🇨"
+    "flag": "🇪🇨",
+    "longitude": -78.1834,
+    "latitude": -1.8312
   },
   {
     "code": "EG",
@@ -398,12 +767,16 @@ const countriesList = [
   {
     "code": "ER",
     "name": "Eritrea",
-    "flag": "🇪🇷"
+    "flag": "🇪🇷",
+    "longitude": 39.7823,
+    "latitude": 15.1794
   },
   {
     "code": "EH",
     "name": "Western Sahara",
-    "flag": "🇪🇭"
+    "flag": "🇪🇭",
+    "longitude": -12.8858,
+    "latitude": 24.2155
   },
   {
     "code": "ES",
@@ -413,12 +786,16 @@ const countriesList = [
   {
     "code": "EE",
     "name": "Estonia",
-    "flag": "🇪🇪"
+    "flag": "🇪🇪",
+    "longitude": 25.0136,
+    "latitude": 58.5953
   },
   {
     "code": "ET",
     "name": "Ethiopia",
-    "flag": "🇪🇹"
+    "flag": "🇪🇹",
+    "longitude": 40.4897,
+    "latitude": 9.1450
   },
   {
     "code": "FI",
@@ -428,12 +805,16 @@ const countriesList = [
   {
     "code": "FJ",
     "name": "Fiji",
-    "flag": "🇫🇯"
+    "flag": "🇫🇯",
+    "longitude": 178.0650,
+    "latitude": -17.7134
   },
   {
     "code": "FK",
     "name": "Falkland Islands (Malvinas)",
-    "flag": "🇫🇰"
+    "flag": "🇫🇰",
+    "longitude": -59.5236,
+    "latitude": -51.7963
   },
   {
     "code": "FR",
@@ -443,17 +824,23 @@ const countriesList = [
   {
     "code": "FO",
     "name": "Faroe Islands",
-    "flag": "🇫🇴"
+    "flag": "🇫🇴",
+    "longitude": -6.9118,
+    "latitude": 61.8926
   },
   {
     "code": "FM",
     "name": "Micronesia, Federated States of",
-    "flag": "🇫🇲"
+    "flag": "🇫🇲",
+    "longitude": 150.5508,
+    "latitude": 7.4256
   },
   {
     "code": "GA",
     "name": "Gabon",
-    "flag": "🇬🇦"
+    "flag": "🇬🇦",
+    "longitude": 11.6094,
+    "latitude": -0.8037
   },
   {
     "code": "GB",
@@ -463,7 +850,9 @@ const countriesList = [
   {
     "code": "GE",
     "name": "Georgia",
-    "flag": "🇬🇪"
+    "flag": "🇬🇪",
+    "longitude": 43.3569,
+    "latitude": 42.3154
   },
   {
     "code": "GG",
@@ -1356,20 +1745,61 @@ const CountryForm = React.memo(({
               option.name.toLowerCase() === value.name?.toLowerCase()
             }
             value={selectedCountry}
-            onChange={(event, newValue) => {
+            onChange={async (event, newValue) => {
               if (newValue) {
-                setForm({
-                  ...form,
-                  name: newValue.name,
-                  code: newValue.code,
-                  slug: newValue.name.toLowerCase().replace(/\s+/g, '-')
-                });
+                try {
+                  // Get the full country data from the countriesList
+                  const selectedCountryData = countriesList.find(
+                    country => country.code === newValue.code
+                  ) || newValue;
+                  
+                  // Use the coordinates from the country data or default to 0,0
+                  let longitude = selectedCountryData.longitude || 0;
+                  let latitude = selectedCountryData.latitude || 0;
+                  
+                  // Only try to fetch coordinates if we don't have them
+                  if ((!longitude || !latitude) && newValue.code) {
+                    try {
+                      const response = await fetch(`https://restcountries.com/v3.1/alpha/${newValue.code.toLowerCase()}`);
+                      if (response.ok) {
+                        const countryData = await response.json();
+                        if (countryData && countryData[0]?.latlng) {
+                          [latitude, longitude] = countryData[0].latlng;
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error fetching country coordinates:', error);
+                    }
+                  }
+                  
+                  setForm({
+                    ...form,
+                    name: newValue.name,
+                    code: newValue.code,
+                    slug: newValue.name.toLowerCase().replace(/\s+/g, '-'),
+                    longitude: longitude,
+                    latitude: latitude
+                  });
+                } catch (error) {
+                  console.error('Error processing country selection:', error);
+                  // Fallback to default values if there's an error
+                  setForm({
+                    ...form,
+                    name: newValue.name,
+                    code: newValue.code,
+                    slug: newValue.name.toLowerCase().replace(/\s+/g, '-'),
+                    longitude: 0,
+                    latitude: 0
+                  });
+                }
               } else {
                 setForm({
                   ...form,
                   name: '',
                   code: '',
-                  slug: ''
+                  slug: '',
+                  longitude: 0,
+                  latitude: 0
                 });
               }
             }}
@@ -1443,6 +1873,32 @@ const CountryForm = React.memo(({
           disabled={viewOnly || submitting}
           helperText="Leave empty to auto-generate from name"
         />
+        <Box display="flex" gap={2} mt={2}>
+          <TextField
+            margin="dense"
+            label="Longitude"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={form.longitude}
+            onChange={(e) => setForm({ ...form, longitude: Number(e.target.value) })}
+            name="longitude"
+            disabled={viewOnly || submitting}
+            inputProps={{ step: "0.000001" }}
+          />
+          <TextField
+            margin="dense"
+            label="Latitude"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={form.latitude}
+            onChange={(e) => setForm({ ...form, latitude: Number(e.target.value) })}
+            name="latitude"
+            disabled={viewOnly || submitting}
+            inputProps={{ step: "0.000001" }}
+          />
+        </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={submitting}>Cancel</Button>
@@ -1487,7 +1943,9 @@ export default function CountryPage() {
   const initialFormState = useMemo<FormState>(() => ({
     name: '', 
     code: '', 
-    slug: ''
+    slug: '',
+    longitude: 0,
+    latitude: 0
   }), []);
   
   const [form, setForm] = useState<FormState>(initialFormState);
@@ -1586,7 +2044,9 @@ export default function CountryPage() {
       setForm({
         name: country.name,
         code: country.code,
-        slug: country.slug || ''
+        slug: country.slug || '',
+        longitude: country.longitude || 0,
+        latitude: country.latitude || 0
       });
       setEditId(country._id || null);
       setOpenForm(true);
@@ -1631,7 +2091,9 @@ export default function CountryPage() {
         body: JSON.stringify({
           name: form.name.trim(),
           code: form.code.trim().toUpperCase(),
-          slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-')
+          slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
+          longitude: Number(form.longitude) || 0,
+          latitude: Number(form.latitude) || 0
         }),
       });
 
@@ -1833,10 +2295,12 @@ export default function CountryPage() {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Code</TableCell>
-                      <TableCell>Slug</TableCell>
-                      <TableCell>Actions</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Name</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Code</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Slug</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Longitude</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Latitude</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

@@ -11,6 +11,9 @@ interface StateData {
   code: string;
   country: string;
   country_code: string;
+  slug?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 // Interface for country data from world-countries
@@ -70,133 +73,138 @@ interface FormState {
   name: string;
   code: string;
   country: string;  // This will store the country ID
-  country_name?: string;  // For display purposes
-  country_code?: string;
-  slug?: string;
+  country_name: string; // Add country_name to match the form state
+  country_code: string;
+  slug: string;
+  longitude: number;
+  latitude: number;
+  _id?: string;
+  status?: 'active' | 'inactive';
+  is_default?: boolean;
 }
 
 // Get all states from a comprehensive list
 const getAllStates = (): StateData[] => {
   const allStates: StateData[] = [];
   
-  // Add US states
+  // Add US states with coordinates
   const usStates = [
-    { name: 'Alabama', code: 'AL' },
-    { name: 'Alaska', code: 'AK' },
-    { name: 'Arizona', code: 'AZ' },
-    { name: 'Arkansas', code: 'AR' },
-    { name: 'California', code: 'CA' },
-    { name: 'Colorado', code: 'CO' },
-    { name: 'Connecticut', code: 'CT' },
-    { name: 'Delaware', code: 'DE' },
-    { name: 'Florida', code: 'FL' },
-    { name: 'Georgia', code: 'GA' },
-    { name: 'Hawaii', code: 'HI' },
-    { name: 'Idaho', code: 'ID' },
-    { name: 'Illinois', code: 'IL' },
-    { name: 'Indiana', code: 'IN' },
-    { name: 'Iowa', code: 'IA' },
-    { name: 'Kansas', code: 'KS' },
-    { name: 'Kentucky', code: 'KY' },
-    { name: 'Louisiana', code: 'LA' },
-    { name: 'Maine', code: 'ME' },
-    { name: 'Maryland', code: 'MD' },
-    { name: 'Massachusetts', code: 'MA' },
-    { name: 'Michigan', code: 'MI' },
-    { name: 'Minnesota', code: 'MN' },
-    { name: 'Mississippi', code: 'MS' },
-    { name: 'Missouri', code: 'MO' },
-    { name: 'Montana', code: 'MT' },
-    { name: 'Nebraska', code: 'NE' },
-    { name: 'Nevada', code: 'NV' },
-    { name: 'New Hampshire', code: 'NH' },
-    { name: 'New Jersey', code: 'NJ' },
-    { name: 'New Mexico', code: 'NM' },
-    { name: 'New York', code: 'NY' },
-    { name: 'North Carolina', code: 'NC' },
-    { name: 'North Dakota', code: 'ND' },
-    { name: 'Ohio', code: 'OH' },
-    { name: 'Oklahoma', code: 'OK' },
-    { name: 'Oregon', code: 'OR' },
-    { name: 'Pennsylvania', code: 'PA' },
-    { name: 'Rhode Island', code: 'RI' },
-    { name: 'South Carolina', code: 'SC' },
-    { name: 'South Dakota', code: 'SD' },
-    { name: 'Tennessee', code: 'TN' },
-    { name: 'Texas', code: 'TX' },
-    { name: 'Utah', code: 'UT' },
-    { name: 'Vermont', code: 'VT' },
-    { name: 'Virginia', code: 'VA' },
-    { name: 'Washington', code: 'WA' },
-    { name: 'West Virginia', code: 'WV' },
-    { name: 'Wisconsin', code: 'WI' },
-    { name: 'Wyoming', code: 'WY' },
+    { name: 'Alabama', code: 'AL', longitude: -86.829534, latitude: 33.258882 },
+    { name: 'Alaska', code: 'AK', longitude: -149.900284, latitude: 61.218056 },
+    { name: 'Arizona', code: 'AZ', longitude: -112.074036, latitude: 33.448376 },
+    { name: 'Arkansas', code: 'AR', longitude: -92.289595, latitude: 34.746483 },
+    { name: 'California', code: 'CA', longitude: -119.417931, latitude: 36.778259 },
+    { name: 'Colorado', code: 'CO', longitude: -105.550567, latitude: 39.113014 },
+    { name: 'Connecticut', code: 'CT', longitude: -72.673371, latitude: 41.765804 },
+    { name: 'Delaware', code: 'DE', longitude: -75.527672, latitude: 39.158169 },
+    { name: 'Florida', code: 'FL', longitude: -81.515755, latitude: 27.994402 },
+    { name: 'Georgia', code: 'GA', longitude: -84.390185, latitude: 33.748997 },
+    { name: 'Hawaii', code: 'HI', longitude: -157.858337, latitude: 21.306944 },
+    { name: 'Idaho', code: 'ID', longitude: -116.237654, latitude: 43.61656 },
+    { name: 'Illinois', code: 'IL', longitude: -89.398528, latitude: 40.633125 },
+    { name: 'Indiana', code: 'IN', longitude: -86.162827, latitude: 39.768402 },
+    { name: 'Iowa', code: 'IA', longitude: -93.620866, latitude: 41.591064 },
+    { name: 'Kansas', code: 'KS', longitude: -95.689018, latitude: 39.048191 },
+    { name: 'Kentucky', code: 'KY', longitude: -84.27002, latitude: 38.200905 },
+    { name: 'Louisiana', code: 'LA', longitude: -91.14032, latitude: 30.458283 },
+    { name: 'Maine', code: 'ME', longitude: -69.765261, latitude: 44.310624 },
+    { name: 'Maryland', code: 'MD', longitude: -76.641273, latitude: 39.045753 },
+    { name: 'Massachusetts', code: 'MA', longitude: -71.382439, latitude: 42.407211 },
+    { name: 'Michigan', code: 'MI', longitude: -84.555534, latitude: 42.732536 },
+    { name: 'Minnesota', code: 'MN', longitude: -93.094116, latitude: 44.955097 },
+    { name: 'Mississippi', code: 'MS', longitude: -90.203689, latitude: 32.298757 },
+    { name: 'Missouri', code: 'MO', longitude: -92.288368, latitude: 38.576702 },
+    { name: 'Montana', code: 'MT', longitude: -110.362566, latitude: 46.96526 },
+    { name: 'Nebraska', code: 'NE', longitude: -99.901813, latitude: 41.50082 },
+    { name: 'Nevada', code: 'NV', longitude: -119.753877, latitude: 38.80261 },
+    { name: 'New Hampshire', code: 'NH', longitude: -71.572395, latitude: 43.193852 },
+    { name: 'New Jersey', code: 'NJ', longitude: -74.405661, latitude: 40.058323 },
+    { name: 'New Mexico', code: 'NM', longitude: -105.87009, latitude: 34.51994 },
+    { name: 'New York', code: 'NY', longitude: -74.217933, latitude: 42.65258 },
+    { name: 'North Carolina', code: 'NC', longitude: -78.644257, latitude: 35.780398 },
+    { name: 'North Dakota', code: 'ND', longitude: -100.779004, latitude: 47.650589 },
+    { name: 'Ohio', code: 'OH', longitude: -82.907123, latitude: 40.367474 },
+    { name: 'Oklahoma', code: 'OK', longitude: -97.516428, latitude: 35.007752 },
+    { name: 'Oregon', code: 'OR', longitude: -120.554201, latitude: 43.804133 },
+    { name: 'Pennsylvania', code: 'PA', longitude: -77.194527, latitude: 40.264378 },
+    { name: 'Rhode Island', code: 'RI', longitude: -71.477429, latitude: 41.580093 },
+    { name: 'South Carolina', code: 'SC', longitude: -81.163727, latitude: 33.836082 },
+    { name: 'South Dakota', code: 'SD', longitude: -100.247164, latitude: 44.299782 },
+    { name: 'Tennessee', code: 'TN', longitude: -86.580444, latitude: 35.860119 },
+    { name: 'Texas', code: 'TX', longitude: -99.901813, latitude: 31.968599 },
+    { name: 'Utah', code: 'UT', longitude: -111.931176, latitude: 40.233845 },
+    { name: 'Vermont', code: 'VT', longitude: -72.577841, latitude: 44.558803 },
+    { name: 'Virginia', code: 'VA', longitude: -78.024139, latitude: 37.926868 },
+    { name: 'Washington', code: 'WA', longitude: -120.740135, latitude: 47.751076 },
+    { name: 'West Virginia', code: 'WV', longitude: -80.184525, latitude: 38.920171 },
+    { name: 'Wisconsin', code: 'WI', longitude: -89.301438, latitude: 44.5 },
+    { name: 'Wyoming', code: 'WY', longitude: -107.290283, latitude: 43.07597 },
   ];
 
-  // Add Indian states
+  // Add Indian states with coordinates
   const indianStates = [
-    { name: 'Andhra Pradesh', code: 'AP' },
-    { name: 'Arunachal Pradesh', code: 'AR' },
-    { name: 'Assam', code: 'AS' },
-    { name: 'Bihar', code: 'BR' },
-    { name: 'Chhattisgarh', code: 'CG' },
-    { name: 'Goa', code: 'GA' },
-    { name: 'Gujarat', code: 'GJ' },
-    { name: 'Haryana', code: 'HR' },
-    { name: 'Himachal Pradesh', code: 'HP' },
-    { name: 'Jharkhand', code: 'JH' },
-    { name: 'Karnataka', code: 'KA' },
-    { name: 'Kerala', code: 'KL' },
-    { name: 'Madhya Pradesh', code: 'MP' },
-    { name: 'Maharashtra', code: 'MH' },
-    { name: 'Manipur', code: 'MN' },
-    { name: 'Meghalaya', code: 'ML' },
-    { name: 'Mizoram', code: 'MZ' },
-    { name: 'Nagaland', code: 'NL' },
-    { name: 'Odisha', code: 'OD' },
-    { name: 'Punjab', code: 'PB' },
-    { name: 'Rajasthan', code: 'RJ' },
-    { name: 'Sikkim', code: 'SK' },
-    { name: 'Tamil Nadu', code: 'TN' },
-    { name: 'Telangana', code: 'TS' },
-    { name: 'Tripura', code: 'TR' },
-    { name: 'Uttar Pradesh', code: 'UP' },
-    { name: 'Uttarakhand', code: 'UK' },
-    { name: 'West Bengal', code: 'WB' },
+    { name: 'Andhra Pradesh', code: 'AP', longitude: 80.049922, latitude: 15.9129 },
+    { name: 'Arunachal Pradesh', code: 'AR', longitude: 93.616669, latitude: 27.10038 },
+    { name: 'Assam', code: 'AS', longitude: 91.750168, latitude: 26.143316 },
+    { name: 'Bihar', code: 'BR', longitude: 85.137566, latitude: 25.679658 },
+    { name: 'Chhattisgarh', code: 'CG', longitude: 81.866066, latitude: 21.278657 },
+    { name: 'Goa', code: 'GA', longitude: 73.856255, latitude: 15.49093 },
+    { name: 'Gujarat', code: 'GJ', longitude: 72.571365, latitude: 23.022505 },
+    { name: 'Haryana', code: 'HR', longitude: 77.015026, latitude: 28.704059 },
+    { name: 'Himachal Pradesh', code: 'HP', longitude: 77.101944, latitude: 31.104815 },
+    { name: 'Jharkhand', code: 'JH', longitude: 85.279935, latitude: 23.610181 },
+    { name: 'Karnataka', code: 'KA', longitude: 77.577511, latitude: 12.971599 },
+    { name: 'Kerala', code: 'KL', longitude: 76.27108, latitude: 10.850516 },
+    { name: 'Madhya Pradesh', code: 'MP', longitude: 78.032192, latitude: 23.473324 },
+    { name: 'Maharashtra', code: 'MH', longitude: 73.789803, latitude: 18.52043 },
+    { name: 'Manipur', code: 'MN', longitude: 93.906269, latitude: 24.663717 },
+    { name: 'Meghalaya', code: 'ML', longitude: 91.678152, latitude: 25.467031 },
+    { name: 'Mizoram', code: 'MZ', longitude: 92.937574, latitude: 23.810332 },
+    { name: 'Nagaland', code: 'NL', longitude: 94.164127, latitude: 26.158435 },
+    { name: 'Odisha', code: 'OD', longitude: 85.817825, latitude: 20.296059 },
+    { name: 'Punjab', code: 'PB', longitude: 75.341217, latitude: 31.147131 },
+    { name: 'Rajasthan', code: 'RJ', longitude: 74.217933, latitude: 27.023804 },
+    { name: 'Sikkim', code: 'SK', longitude: 88.512218, latitude: 27.532972 },
+    { name: 'Tamil Nadu', code: 'TN', longitude: 80.270186, latitude: 13.067439 },
+    { name: 'Telangana', code: 'TS', longitude: 78.486671, latitude: 17.385044 },
+    { name: 'Tripura', code: 'TR', longitude: 91.988153, latitude: 23.831457 },
+    { name: 'Uttar Pradesh', code: 'UP', longitude: 80.946166, latitude: 26.846694 },
+    { name: 'Uttarakhand', code: 'UK', longitude: 78.032192, latitude: 30.316496 },
+    { name: 'West Bengal', code: 'WB', longitude: 88.363892, latitude: 22.572645 },
   ];
 
-  // Add other countries' states/regions
+  // Add other countries' states/regions with coordinates
   const otherStates = [
     // Canada
-    { name: 'Alberta', code: 'AB', country: 'Canada', country_code: 'CA' },
-    { name: 'British Columbia', code: 'BC', country: 'Canada', country_code: 'CA' },
-    { name: 'Manitoba', code: 'MB', country: 'Canada', country_code: 'CA' },
-    { name: 'New Brunswick', code: 'NB', country: 'Canada', country_code: 'CA' },
-    { name: 'Newfoundland and Labrador', code: 'NL', country: 'Canada', country_code: 'CA' },
-    { name: 'Northwest Territories', code: 'NT', country: 'Canada', country_code: 'CA' },
-    { name: 'Nova Scotia', code: 'NS', country: 'Canada', country_code: 'CA' },
-    { name: 'Nunavut', code: 'NU', country: 'Canada', country_code: 'CA' },
-    { name: 'Ontario', code: 'ON', country: 'Canada', country_code: 'CA' },
-    { name: 'Prince Edward Island', code: 'PE', country: 'Canada', country_code: 'CA' },
-    { name: 'Quebec', code: 'QC', country: 'Canada', country_code: 'CA' },
-    { name: 'Saskatchewan', code: 'SK', country: 'Canada', country_code: 'CA' },
-    { name: 'Yukon', code: 'YT', country: 'Canada', country_code: 'CA' },
+    { name: 'Alberta', code: 'AB', country: 'Canada', country_code: 'CA', longitude: -114.0719, latitude: 51.0447 },
+    { name: 'British Columbia', code: 'BC', country: 'Canada', country_code: 'CA', longitude: -123.3656, latitude: 48.4284 },
+    { name: 'Manitoba', code: 'MB', country: 'Canada', country_code: 'CA', longitude: -97.1384, latitude: 49.8951 },
+    { name: 'New Brunswick', code: 'NB', country: 'Canada', country_code: 'CA', longitude: -66.4619, latitude: 46.5653 },
+    { name: 'Newfoundland and Labrador', code: 'NL', country: 'Canada', country_code: 'CA', longitude: -56.1242, latitude: 48.5107 },
+    { name: 'Northwest Territories', code: 'NT', country: 'Canada', country_code: 'CA', longitude: -114.3718, latitude: 64.8255 },
+    { name: 'Nova Scotia', code: 'NS', country: 'Canada', country_code: 'CA', longitude: -63.5752, latitude: 44.6816 },
+    { name: 'Nunavut', code: 'NU', country: 'Canada', country_code: 'CA', longitude: -85.2532, latitude: 70.4536 },
+    { name: 'Ontario', code: 'ON', country: 'Canada', country_code: 'CA', longitude: -79.3832, latitude: 43.6532 },
+    { name: 'Prince Edward Island', code: 'PE', country: 'Canada', country_code: 'CA', longitude: -63.4057, latitude: 46.5107 },
+    { name: 'Quebec', code: 'QC', country: 'Canada', country_code: 'CA', longitude: -71.2080, latitude: 46.8139 },
+    { name: 'Saskatchewan', code: 'SK', country: 'Canada', country_code: 'CA', longitude: -106.3346, latitude: 52.9399 },
+    { name: 'Yukon', code: 'YT', country: 'Canada', country_code: 'CA', longitude: -135.0568, latitude: 64.2823 },
     
     // United Kingdom
-    { name: 'England', code: 'ENG', country: 'United Kingdom', country_code: 'GB' },
-    { name: 'Scotland', code: 'SCT', country: 'United Kingdom', country_code: 'GB' },
-    { name: 'Wales', code: 'WLS', country: 'United Kingdom', country_code: 'GB' },
-    { name: 'Northern Ireland', code: 'NIR', country: 'United Kingdom', country_code: 'GB' },
+    { name: 'England', code: 'ENG', country: 'United Kingdom', country_code: 'GB', longitude: -1.1743, latitude: 52.3555 },
+    { name: 'Scotland', code: 'SCT', country: 'United Kingdom', country_code: 'GB', longitude: -4.2026, latitude: 56.4907 },
+    { name: 'Wales', code: 'WLS', country: 'United Kingdom', country_code: 'GB', longitude: -3.7837, latitude: 52.1307 },
+    { name: 'Northern Ireland', code: 'NIR', country: 'United Kingdom', country_code: 'GB', longitude: -6.4923, latitude: 54.5973 },
     
     // Australia
-    { name: 'Australian Capital Territory', code: 'ACT', country: 'Australia', country_code: 'AU' },
-    { name: 'New South Wales', code: 'NSW', country: 'Australia', country_code: 'AU' },
-    { name: 'Northern Territory', code: 'NT', country: 'Australia', country_code: 'AU' },
-    { name: 'Queensland', code: 'QLD', country: 'Australia', country_code: 'AU' },
-    { name: 'South Australia', code: 'SA', country: 'Australia', country_code: 'AU' },
-    { name: 'Tasmania', code: 'TAS', country: 'Australia', country_code: 'AU' },
-    { name: 'Victoria', code: 'VIC', country: 'Australia', country_code: 'AU' },
-    { name: 'Western Australia', code: 'WA', country: 'Australia', country_code: 'AU' },
+    { name: 'Australian Capital Territory', code: 'ACT', country: 'Australia', country_code: 'AU', longitude: 149.1289, latitude: -35.2809 },
+    { name: 'New South Wales', code: 'NSW', country: 'Australia', country_code: 'AU', longitude: 150.8931, latitude: -33.8688 },
+    { name: 'Northern Territory', code: 'NT', country: 'Australia', country_code: 'AU', longitude: 132.5508, latitude: -19.4914 },
+    { name: 'Queensland', code: 'QLD', country: 'Australia', country_code: 'AU', longitude: 145.0233, latitude: -20.9176 },
+    { name: 'South Australia', code: 'SA', country: 'Australia', country_code: 'AU', longitude: 138.6007, latitude: -34.9285 },
+    { name: 'Tasmania', code: 'TAS', country: 'Australia', country_code: 'AU', longitude: 147.3272, latitude: -42.8821 },
+    { name: 'Victoria', code: 'VIC', country: 'Australia', country_code: 'AU', longitude: 144.9631, latitude: -37.8136 },
+    { name: 'Western Australia', code: 'WA', country: 'Australia', country_code: 'AU', longitude: 121.4747, latitude: -25.2744 },
   ];
 
   // Add US states with country info
@@ -309,7 +317,10 @@ export default function StatePage() {
     country: '',
     country_name: '',
     country_code: '',
-    slug: ''
+    slug: '',
+    longitude: 0,
+    latitude: 0,
+    status: 'active'
   });
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -411,6 +422,7 @@ export default function StatePage() {
     if (!value) return;
     
     const selectedState = allStates.find(s => s.name === value.name);
+    
     if (selectedState) {
       const slug = selectedState.name
         .toLowerCase()
@@ -420,12 +432,14 @@ export default function StatePage() {
 
       setForm(prev => ({
         ...prev,
-        name: selectedState.name,
-        code: selectedState.code,
-        country: selectedState.country,
-        country_name: selectedState.country,
-        country_code: selectedState.country_code,
-        slug: slug
+        name: selectedState.name || '',
+        code: selectedState.code || '',
+        country: selectedState.country || prev.country || '',
+        country_name: selectedState.country || prev.country || '',
+        country_code: selectedState.country_code || prev.country_code || '',
+        longitude: (selectedState as any).longitude ?? 0,
+        latitude: (selectedState as any).latitude ?? 0,
+        slug: slug || ''
       }));
     }
   };
@@ -443,13 +457,17 @@ export default function StatePage() {
         code: string;
         slug: string;
         country?: string;
+        longitude?: number;
+        latitude?: number;
       }
 
       // Prepare data for submission
       const formData: FormSubmissionData = {
         name: form.name.trim(),
         code: form.code.trim(),
-        slug: form.slug?.trim() || form.name.toLowerCase().replace(/\s+/g, '-')
+        slug: form.slug?.trim() || form.name.toLowerCase().replace(/\s+/g, '-'),
+        longitude: form.longitude,
+        latitude: form.latitude
       };
 
       // Only include country if it's a valid ObjectId
@@ -505,22 +523,39 @@ export default function StatePage() {
     }
   };
 
-  const handleEdit = useCallback((state: State) => {
-    if (viewOnly) return;
-    
-    setForm({
+  const handleEdit = (state: State) => {
+    setEditId(state._id || null);
+    setForm(prev => ({
+      ...prev,
       name: state.name,
       code: state.code,
       country: typeof state.country === 'object' ? state.country._id : state.country,
       country_name: typeof state.country === 'object' ? state.country.name : '',
-      country_code: '',
-      slug: state.slug || ''
-    });
-    
-    setEditId(state._id || null);
+      country_code: '', // This should be set based on your data
+      slug: state.slug || '',
+      longitude: 0,
+      latitude: 0,
+      status: 'active' // Default status
+    }));
     setOpenForm(true);
-  }, [viewOnly]);
-  
+  };
+
+  const handleAddNew = () => {
+    setEditId(null);
+    setForm({ 
+      name: '', 
+      code: '', 
+      country: '', 
+      country_name: '',
+      country_code: '', 
+      slug: '', 
+      longitude: 0, 
+      latitude: 0,
+      status: 'active'
+    });
+    setOpenForm(true);
+  };
+
   const handleDeleteClick = useCallback((id: string) => {
     if (viewOnly) return;
     setDeleteId(id);
@@ -622,11 +657,7 @@ export default function StatePage() {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => {
-              setForm({ name: '', code: '', country: '' });
-              setEditId(null);
-              setOpenForm(true);
-            }}
+            onClick={handleAddNew}
             disabled={pageAccess === 'only view'}
           >
             Add State
@@ -679,6 +710,8 @@ export default function StatePage() {
               <TableCell>Code</TableCell>
               <TableCell>Slug</TableCell>
               <TableCell>Country</TableCell>
+              <TableCell>Longitude</TableCell>
+              <TableCell>Latitude</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -693,6 +726,8 @@ export default function StatePage() {
                     ? state.country.name 
                     : (countries.find(c => c._id === state.country)?.name || state.country)
                 }</TableCell>
+                <TableCell>{(state as any).longitude?.toFixed(6) || '-'}</TableCell>
+                <TableCell>{(state as any).latitude?.toFixed(6) || '-'}</TableCell>
                 <TableCell>
                   <IconButton 
                     onClick={() => handleEdit(state)}
@@ -801,12 +836,15 @@ export default function StatePage() {
               getOptionLabel={(option) => `${option.name} (${option.code})`}
               value={countries.find(c => c._id === form.country) || null}
               onChange={(_, newValue) => {
-                setForm({
-                  ...form,
-                  country: newValue?._id || '',
-                  country_name: newValue?.name,
-                  country_code: newValue?.code
-                });
+                const handleCountryChange = (event: any, value: any) => {
+                  setForm(prev => ({
+                    ...prev,
+                    country: value?._id || '',
+                    country_name: value?.name || '',
+                    country_code: value?.code || ''
+                  }));
+                };
+                handleCountryChange(_, newValue);
               }}
               renderInput={(params) => (
                 <TextField
@@ -820,6 +858,28 @@ export default function StatePage() {
                 />
               )}
             />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Longitude"
+                fullWidth
+                margin="normal"
+                type="number"
+                value={form.longitude}
+                onChange={(e) => setForm({...form, longitude: parseFloat(e.target.value) || 0})}
+                inputProps={{ step: "0.000001" }}
+                helperText="Enter the longitude coordinate"
+              />
+              <TextField
+                label="Latitude"
+                fullWidth
+                margin="normal"
+                type="number"
+                value={form.latitude}
+                onChange={(e) => setForm({...form, latitude: parseFloat(e.target.value) || 0})}
+                inputProps={{ step: "0.000001" }}
+                helperText="Enter the latitude coordinate"
+              />
+            </Box>
             <TextField
               label="Slug"
               fullWidth

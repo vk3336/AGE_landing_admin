@@ -24,7 +24,6 @@ interface Country {
   latitude?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CountryOption {
   code: string;
   name: string;

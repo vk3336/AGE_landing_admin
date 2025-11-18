@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useRouter } from 'next/navigation';
 // Import a comprehensive list of countries
@@ -48,6 +48,10 @@ interface State {
   code: string;
   country: string | { _id: string; name: string };
   slug?: string;
+  longitude?: number;
+  latitude?: number;
+  status?: 'active' | 'inactive';
+  is_default?: boolean;
 }
 
 interface Country {
@@ -259,6 +263,8 @@ function getStatePagePermission() {
 
 export default function StatePage() {
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
+  const [allStates, setAllStates] = useState<StateData[]>([]);
+  const [filteredStates, setFilteredStates] = useState<StateData[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,42 +280,50 @@ export default function StatePage() {
     setPageAccess(access);
   }, []);
 
-  useEffect(() => {
-    const access = getStatePagePermission();
-    setPageAccess(access);
-  }, []);
-
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  const allStates = useMemo(() => {
+
+  // Load all states when component mounts
+  useEffect(() => {
     try {
       console.log('Loading states...');
       const loadedStates = getAllStates();
       console.log('Loaded states:', loadedStates);
-      
-      if (loadedStates.length === 0) {
-        console.warn('No states were loaded. The state-list package might not be working correctly.');
-        // Return some default states if loading from state-list fails
-        const defaultStates = [
-          { name: 'Maharashtra', code: 'MH', country: 'India', country_code: 'IN' },
-          { name: 'California', code: 'CA', country: 'United States', country_code: 'US' },
-          { name: 'England', code: 'ENG', country: 'United Kingdom', country_code: 'GB' },
-        ];
-        console.log('Using default states:', defaultStates);
-        return defaultStates;
-      }
-      return loadedStates;
+      setAllStates(loadedStates);
     } catch (error) {
       console.error('Error loading states:', error);
-      // Return default states if there's an error
-      return [
-        { name: 'Maharashtra', code: 'MH', country: 'India', country_code: 'IN' },
-        { name: 'California', code: 'CA', country: 'United States', country_code: 'US' },
-        { name: 'England', code: 'ENG', country: 'United Kingdom', country_code: 'GB' },
-      ];
     }
   }, []);
+
+  
+
+  // Handle country change
+  const handleCountryChange = useCallback((event: React.SyntheticEvent, value: Country | null) => {
+    const newCountryCode = value?.code || '';
+    console.log('Selected country code:', newCountryCode);
+    
+    setForm(prev => ({
+      ...prev,
+      country: value?._id || '',
+      country_name: value?.name || '',
+      country_code: newCountryCode,
+      // Reset state when country changes
+      name: '',
+      code: '',
+      slug: ''
+    }));
+
+    // Filter states based on selected country
+    if (newCountryCode) {
+      const filtered = allStates.filter(state => state.country_code === newCountryCode);
+      console.log(`Filtered states for ${value?.name} (${newCountryCode}):`, filtered);
+      setFilteredStates(filtered);
+    } else {
+      console.log('No country code provided, clearing states');
+      setFilteredStates([]);
+    }
+  }, [allStates]);
 
   const [form, setForm] = useState<FormState>({ 
     name: '', 
@@ -322,6 +336,15 @@ export default function StatePage() {
     latitude: 0,
     status: 'active'
   });
+  // Update filteredStates when selected country_code or allStates changes
+  useEffect(() => {
+    if (form.country_code) {
+      const filtered = allStates.filter(state => state.country_code === form.country_code);
+      setFilteredStates(filtered);
+    } else {
+      setFilteredStates([]);
+    }
+  }, [form.country_code, allStates]);
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -411,38 +434,35 @@ export default function StatePage() {
   // Initial load and page change
   useEffect(() => {
     fetchStates(pagination.page, searchTerm);
-  }, [pagination.page, fetchStates, searchTerm]);
+  }, [pagination.page, fetchStates, form.country, form.country_code, searchTerm]);
   
   // Fetch countries on mount
   useEffect(() => {
     fetchCountries();
   }, [fetchCountries]);
 
-  const handleStateChange = (event: React.SyntheticEvent, value: StateData | null) => {
-    if (!value) return;
-    
-    const selectedState = allStates.find(s => s.name === value.name);
-    
-    if (selectedState) {
-      const slug = selectedState.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-        .replace(/-+/g, '-') // Replace multiple hyphens with single
-        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  const handleStateSelect = useCallback((state: StateData) => {
+    const slug = state.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 
-      setForm(prev => ({
-        ...prev,
-        name: selectedState.name || '',
-        code: selectedState.code || '',
-        country: selectedState.country || prev.country || '',
-        country_name: selectedState.country || prev.country || '',
-        country_code: selectedState.country_code || prev.country_code || '',
-        longitude: (selectedState as any).longitude ?? 0,
-        latitude: (selectedState as any).latitude ?? 0,
-        slug: slug || ''
-      }));
-    }
-  };
+    // Find the country object that matches the selected state's country_code
+    const selectedCountry = countries.find(c => c.code === state.country_code);
+    
+    setForm(prev => ({
+      ...prev,
+      name: state.name || '',
+      code: state.code || '',
+      country: selectedCountry?._id || '',
+      country_name: state.country || '',
+      country_code: state.country_code || '',
+      longitude: state.longitude ?? 0,
+      latitude: state.latitude ?? 0,
+      slug: slug
+    }));
+  }, [countries]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -524,19 +544,35 @@ export default function StatePage() {
   };
 
   const handleEdit = (state: State) => {
+    // Get the country ID and name
+    const countryId = typeof state.country === 'object' ? state.country._id : state.country;
+    const countryName = typeof state.country === 'object' ? state.country.name : '';
+    
+    // Find the country in our countries list to get its code
+    const selectedCountry = countries.find(c => c._id === countryId);
+    
     setEditId(state._id || null);
-    setForm(prev => ({
-      ...prev,
+    
+    // Create form data with proper types
+    setForm({
       name: state.name,
       code: state.code,
-      country: typeof state.country === 'object' ? state.country._id : state.country,
-      country_name: typeof state.country === 'object' ? state.country.name : '',
-      country_code: '', // This should be set based on your data
+      country: countryId || '',
+      country_name: countryName,
+      country_code: selectedCountry?.code || '',
       slug: state.slug || '',
-      longitude: 0,
-      latitude: 0,
-      status: 'active' // Default status
-    }));
+      longitude: state.longitude ?? 0,
+      latitude: state.latitude ?? 0,
+      status: state.status || 'active',
+      is_default: state.is_default || false
+    });
+    
+    // If we have a country code, update the filtered states
+    if (selectedCountry?.code) {
+      const filtered = allStates.filter(s => s.country_code === selectedCountry.code);
+      setFilteredStates(filtered);
+    }
+    
     setOpenForm(true);
   };
 
@@ -726,8 +762,8 @@ export default function StatePage() {
                     ? state.country.name 
                     : (countries.find(c => c._id === state.country)?.name || state.country)
                 }</TableCell>
-                <TableCell>{(state as any).longitude?.toFixed(6) || '-'}</TableCell>
-                <TableCell>{(state as any).latitude?.toFixed(6) || '-'}</TableCell>
+                <TableCell>{state.longitude?.toFixed(6) || '-'}</TableCell>
+                <TableCell>{state.latitude?.toFixed(6) || '-'}</TableCell>
                 <TableCell>
                   <IconButton 
                     onClick={() => handleEdit(state)}
@@ -794,11 +830,36 @@ export default function StatePage() {
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             
             <Autocomplete
-              options={Array.from(new Set(allStates.map(s => s.name)))}
+              options={countries}
+              getOptionLabel={(option) => `${option.name} (${option.code})`}
+              value={countries.find(c => c._id === form.country) || null}
+              onChange={handleCountryChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select Country "
+                  margin="normal"
+                  InputProps={{
+                    ...params.InputProps,
+                  }}
+                  helperText="Select the country first, then choose the state"
+                />
+              )}
+            />
+
+            <Autocomplete<string, false, false, false>
+              options={form.country_code 
+                ? Array.from(new Set(filteredStates.map(s => s.name)))
+                : []}
               value={form.name}
-              onChange={(event, newValue) => {
+              disabled={!form.country_code}
+              noOptionsText={form.country_code ? 'No states found for this country' : 'Please select a country first'}
+              onChange={(event: React.SyntheticEvent, newValue: string | null) => {
                 if (newValue) {
-                  handleStateChange(event, { name: newValue, code: '', country: '', country_code: '' });
+                  const selectedState = filteredStates.find(s => s.name === newValue);
+                  if (selectedState) {
+                    handleStateSelect(selectedState);
+                  }
                 } else {
                   setForm(prev => ({
                     ...prev,
@@ -830,33 +891,6 @@ export default function StatePage() {
               inputProps={{ maxLength: 3, readOnly: true }}
               required
               variant="filled"
-            />
-            <Autocomplete
-              options={countries}
-              getOptionLabel={(option) => `${option.name} (${option.code})`}
-              value={countries.find(c => c._id === form.country) || null}
-              onChange={(_, newValue) => {
-                const handleCountryChange = (event: any, value: any) => {
-                  setForm(prev => ({
-                    ...prev,
-                    country: value?._id || '',
-                    country_name: value?.name || '',
-                    country_code: value?.code || ''
-                  }));
-                };
-                handleCountryChange(_, newValue);
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Select Country (Optional)"
-                  margin="normal"
-                  InputProps={{
-                    ...params.InputProps,
-                  }}
-                  helperText="Leave empty if not applicable"
-                />
-              )}
             />
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField

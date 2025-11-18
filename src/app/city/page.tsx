@@ -12,10 +12,6 @@ import {
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 
 // Define types locally to avoid import issues
-type CityOption = {
-  name: string;
-  state: string;
-};
 
 type CountryOption = {
   _id: string;
@@ -23,11 +19,18 @@ type CountryOption = {
   slug: string;
 };
 
+interface StateCountry {
+  _id: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
 type StateOption = {
   _id: string;
   name: string;
   slug: string;
-  country?: string;
+  country: string | StateCountry;
+  [key: string]: unknown;
 };
 
 type CityFormData = {
@@ -38,6 +41,8 @@ type CityFormData = {
   state: string;
   country_name?: string;
   state_name?: string;
+  longitude?: number;
+  latitude?: number;
 };
 
 interface City {
@@ -48,43 +53,13 @@ interface City {
   state: string | { _id: string; name: string };
   state_name?: string;
   country_name?: string;
+  longitude?: number;
+  latitude?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// Sample city data
-const sampleCities: CityOption[] = [
-    { name: 'Mumbai', state: 'Maharashtra' },
-    { name: 'Delhi', state: 'Delhi' },
-    { name: 'Bangalore', state: 'Karnataka' },
-    { name: 'Hyderabad', state: 'Telangana' },
-    { name: 'Chennai', state: 'Tamil Nadu' },
-    { name: 'Kolkata', state: 'West Bengal' },
-    { name: 'Ahmedabad', state: 'Gujarat' },
-    { name: 'Pune', state: 'Maharashtra' },
-    { name: 'Jaipur', state: 'Rajasthan' },
-    { name: 'Lucknow', state: 'Uttar Pradesh' },
-    { name: 'Kanpur', state: 'Uttar Pradesh' },
-    { name: 'Nagpur', state: 'Maharashtra' },
-    { name: 'Indore', state: 'Madhya Pradesh' },
-    { name: 'Bhopal', state: 'Madhya Pradesh' },
-    { name: 'Patna', state: 'Bihar' },
-    { name: 'Ludhiana', state: 'Punjab' },
-    { name: 'Agra', state: 'Uttar Pradesh' },
-    { name: 'Varanasi', state: 'Uttar Pradesh' },
-    { name: 'Amritsar', state: 'Punjab' },
-    { name: 'Coimbatore', state: 'Tamil Nadu' },
-    { name: 'Thiruvananthapuram', state: 'Kerala' },
-    { name: 'Kochi', state: 'Kerala' },
-    { name: 'Surat', state: 'Gujarat' },
-    { name: 'Rajkot', state: 'Gujarat' },
-    { name: 'Ranchi', state: 'Jharkhand' },
-    { name: 'Guwahati', state: 'Assam' },
-    { name: 'Dehradun', state: 'Uttarakhand' },
-    { name: 'Shimla', state: 'Himachal Pradesh' },
-    { name: 'Panaji', state: 'Goa' },
-    { name: 'Shillong', state: 'Meghalaya' }
-];
+// Removed unused sample city data to satisfy lint rules
 
 interface City {
   _id: string;
@@ -94,6 +69,8 @@ interface City {
   state: string | { _id: string; name: string };
   state_name?: string;
   country_name?: string;
+  longitude?: number;
+  latitude?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,7 +88,7 @@ function getCityPagePermission() {
 }
 
 export default function CityPage() {
-  const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
+  // State variables
   const [cities, setCities] = useState<City[]>([]);
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
   const [countries, setCountries] = useState<CountryOption[]>([]);
@@ -119,10 +96,15 @@ export default function CityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [pageAccess, setPageAccess] = useState<string>('no access');
   
   useEffect(() => {
     const access = getCityPagePermission();
     setPageAccess(access);
+
+    if (access === 'no access') {
+      setError('You do not have permission to access this page');
+    }
   }, []);
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -136,7 +118,9 @@ export default function CityPage() {
     country: '',
     state: '',
     country_name: '',
-    state_name: ''
+    state_name: '',
+    longitude: undefined,
+    latitude: undefined
   });
   
   const [openForm, setOpenForm] = useState<boolean>(false);
@@ -220,6 +204,7 @@ export default function CityPage() {
     try {
       const res = await apiFetch('/states');
       const response = await res.json();
+      console.log('States API response:', response);
       
       let statesData: StateOption[] = [];
       if (response && response.status === 'success' && response.data && Array.isArray(response.data.states)) {
@@ -230,6 +215,7 @@ export default function CityPage() {
         statesData = response.data.states || [];
       }
       
+      console.log('Processed states data:', statesData);
       setStates(statesData);
     } catch (error) {
       console.error('Failed to fetch states:', error);
@@ -254,25 +240,48 @@ export default function CityPage() {
 
   // Handle country change
   const handleCountryChange = (countryId: string) => {
+    const selectedCountry = countries.find(c => c._id === countryId);
+    console.log('Selected country ID:', countryId);
+    console.log('Selected country name:', selectedCountry?.name);
+    
+    // Log all states for debugging
+    console.log('All states:', states);
+    const filteredStates = states.filter(state => state.country === countryId);
+    console.log('Filtered states for country', countryId, ':', filteredStates);
+    
     setForm(prev => ({
       ...prev,
       country: countryId,
-      country_name: countries.find(c => c._id === countryId)?.name || ''
+      country_name: selectedCountry?.name || '',
+      // Reset state when country changes
+      state: '',
+      state_name: ''
     }));
   };
 
   // Handle state change
   const handleStateChange = (stateId: string) => {
     const selectedState = states.find(s => s._id === stateId);
+    if (!selectedState) return;
+    
+    // Get the country ID whether it's a string or object
+    const countryId = selectedState.country && typeof selectedState.country === 'object' 
+      ? (selectedState.country as { _id: string })._id 
+      : selectedState.country as string;
+    
+    const countryName = selectedState.country && typeof selectedState.country === 'object'
+      ? (selectedState.country as { name?: string }).name || ''
+      : countries.find(c => c._id === countryId)?.name || '';
+      
     setForm(prev => ({
       ...prev,
       state: stateId,
-      state_name: selectedState?.name || '',
-      // Auto-set country if state has country info
-      ...(selectedState?.country && {
-        country: selectedState.country,
-        country_name: countries.find(c => c._id === selectedState.country)?.name || ''
-      })
+      state_name: selectedState.name || '',
+      country: countryId,
+      country_name: countryName,
+      // Reset coordinates when state changes
+      longitude: undefined,
+      latitude: undefined
     }));
   };
 
@@ -307,75 +316,91 @@ export default function CityPage() {
     }
   }, [editId, form.slug, setPrevSlug]);
 
-  // Handle city selection from autocomplete
-  const handleCitySelect = (cityName: string | null) => {
-    if (!cityName) return;
-    
-    const selectedCity = sampleCities.find(city => city.name === cityName);
-    
-    if (selectedCity) {
-      const slug = cityName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      
-      // Find the state by name to get its ID
-      const matchedState = states.find(s => s.name === selectedCity.state);
-      
-      setForm((prev: CityFormData) => ({
-        ...prev,
-        name: selectedCity.name,
-        slug: slug,
-        state: matchedState?._id || '',
-        state_name: matchedState ? matchedState.name : selectedCity.state
-      }));
-
-      // Show warning if state not found in database
-      if (!matchedState) {
-        console.warn(`State "${selectedCity.state}" not found in the database. Please add it first.`);
-      }
-    }
-  };
+  // Add loading state for form submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
       setError(null);
+      
+      // Validate required fields
+      if (!form.name || !form.country || !form.state) {
+        throw new Error('Name, country, and state are required fields');
+      }
+
       const url = editId ? `/cities/${editId}` : '/cities';
       const method = editId ? 'PUT' : 'POST';
       
-      // Only include fields that have values
-      const formData: Partial<CityFormData> = {};
-      if (form.name) formData.name = form.name.trim();
-      if (form.slug) formData.slug = form.slug.trim();
-      if (form.country) formData.country = form.country;
-      if (form.state) formData.state = form.state;
-      
+// Define a type for the form data being sent to the API
+      type CityFormSubmitData = {
+        name: string;
+        slug: string;
+        country: string;
+        state: string;
+        longitude?: number;
+        latitude?: number;
+      };
+
+      // Prepare form data
+      const formData: CityFormSubmitData = {
+        name: form.name.trim(),
+        slug: form.slug.trim() || form.name.trim().toLowerCase().replace(/\s+/g, '-'),
+        country: form.country,
+        state: form.state,
+      };
+
+      // Handle number fields with proper type conversion
+      if (form.longitude !== undefined) {
+        formData.longitude = typeof form.longitude === 'string' ? 
+          (form.longitude ? parseFloat(form.longitude) : undefined) : 
+          form.longitude;
+      }
+      if (form.latitude !== undefined) {
+        formData.latitude = typeof form.latitude === 'string' ? 
+          (form.latitude ? parseFloat(form.latitude) : undefined) : 
+          form.latitude;
+      }
+
       const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to save city');
+      }
+
       const result = await res.json();
       
-      if (!res.ok) {
-        throw new Error(result.message || 'Failed to save city');
+      // Handle successful response
+      const updatedCity = result.data?.city || result.data;
+      if (!updatedCity) {
+        throw new Error('Invalid response from server');
       }
-      
+
+      // Show success message
       setSnackbar({
         open: true,
         message: editId ? 'City updated successfully' : 'City created successfully',
         severity: 'success'
       });
       
+      // Reset form and refresh the list
       resetForm();
       fetchCities(pagination.page, searchTerm);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save city';
       setError(errorMessage);
-      console.error('Error saving city:', error);
+      console.error('Error in handleSubmit:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -387,35 +412,35 @@ export default function CityPage() {
 
   // Handle edit button click
   const handleEdit = (city: City) => {
-    console.log('Editing city:', city);
-    
-    const countryId = !city.country ? '' : 
-      typeof city.country === 'string' ? city.country : 
-      city.country?._id || '';
+    try {
+      // Safely extract country and state information
+      const countryId = typeof city.country === 'string' ? city.country : city.country?._id || '';
+      const stateId = typeof city.state === 'string' ? city.state : city.state?._id || '';
       
-    const stateId = !city.state ? '' : 
-      typeof city.state === 'string' ? city.state : 
-      city.state?._id || '';
+      const countryName = (city.country && typeof city.country === 'object') ? 
+        city.country.name : (city.country_name || '');
+        
+      const stateName = (city.state && typeof city.state === 'object') ? 
+        city.state.name : (city.state_name || '');
+
+      // Update form state
+      setForm({
+        name: city.name || '',
+        slug: city.slug || '',
+        country: countryId,
+        state: stateId,
+        country_name: countryName,
+        state_name: stateName,
+        longitude: city.longitude,
+        latitude: city.latitude
+      });
       
-    const countryName = (city.country && typeof city.country === 'object') ? city.country.name : 
-      (city.country_name || '');
-      
-    const stateName = (city.state && typeof city.state === 'object') ? city.state.name : 
-      (city.state_name || '');
-      
-    console.log('Processed values:', { countryId, stateId, countryName, stateName });
-      
-    setForm({
-      name: city.name || '',
-      slug: city.slug || '',
-      country: countryId,
-      state: stateId,
-      country_name: countryName,
-      state_name: stateName
-    });
-    
-    setEditId(city._id);
-    setOpenForm(true);
+      setEditId(city._id);
+      setOpenForm(true);
+    } catch (error) {
+      console.error('Error in handleEdit:', error);
+      setError('Failed to load city data for editing');
+    }
   };
 
   // Handle delete button click
@@ -493,20 +518,22 @@ export default function CityPage() {
     setSelectedCity(null);
   };
 
-  // Reset form
-  const resetForm = () => {
+  // Reset form function with useCallback to prevent recreating the function
+  const resetForm = useCallback(() => {
     setForm({
       name: '',
       slug: '',
       country: '',
       state: '',
       country_name: '',
-      state_name: ''
+      state_name: '',
+      longitude: undefined,
+      latitude: undefined
     });
     setEditId(null);
     setOpenForm(false);
     setError(null);
-  };
+  }, []);
 
   // Close snackbar
   const handleCloseSnackbar = () => {
@@ -578,6 +605,8 @@ export default function CityPage() {
                     <TableCell>Name</TableCell>
                     <TableCell>State</TableCell>
                     <TableCell>Country</TableCell>
+                    <TableCell>Longitude</TableCell>
+                    <TableCell>Latitude</TableCell>
                     <TableCell>Slug</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
@@ -595,6 +624,8 @@ export default function CityPage() {
                           city.country && typeof city.country === 'object' ? city.country.name : 
                           city.country_name || 'N/A'
                         }</TableCell>
+                        <TableCell>{city.longitude ?? '-'}</TableCell>
+                        <TableCell>{city.latitude ?? '-'}</TableCell>
                         <TableCell>{city.slug || '-'}</TableCell>
                         <TableCell align="right">
                           <IconButton
@@ -625,7 +656,7 @@ export default function CityPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={7} align="center">
                         {cities.length === 0 ? 'No cities available' : 'No matching cities found'}
                       </TableCell>
                     </TableRow>
@@ -694,50 +725,6 @@ export default function CityPage() {
               )}
               
               <Autocomplete
-                freeSolo
-                options={sampleCities.map(city => city.name)}
-                value={form.name}
-                onChange={(_, newValue: string | null) => {
-                  handleCitySelect(newValue);
-                }}
-                onInputChange={(_, newInputValue) => {
-                  setForm((prev: CityFormData) => ({
-                    ...prev,
-                    name: newInputValue
-                  }));
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    margin="normal"
-                    
-                    fullWidth
-                    id="name"
-                    label="City Name"
-                    name="name"
-                    autoFocus
-                    placeholder="Start typing to search for a city..."
-                  />
-                )}
-                renderOption={(props, option) => (
-                  <li {...props} key={option}>
-                    {option}
-                  </li>
-                )}
-              />
-              
-              <TextField
-                margin="normal"
-                fullWidth
-                id="slug"
-                label="Slug"
-                name="slug"
-                value={form.slug}
-                onChange={handleChange}
-                helperText="URL-friendly version of the name (auto-generated but can be customized)"
-              />
-              
-              <Autocomplete
                 id="country-select"
                 options={countries}
                 getOptionLabel={(option) => option.name}
@@ -751,10 +738,10 @@ export default function CityPage() {
                   <TextField
                     {...params}
                     margin="normal"
-                    
                     fullWidth
                     label="Country"
                     name="country"
+                    required
                   />
                 )}
                 renderOption={(props, option) => (
@@ -765,36 +752,187 @@ export default function CityPage() {
               />
               
               <Autocomplete
-  id="state-select"
-  options={states}
-  getOptionLabel={(option) => {
-    const country = option.country ? countries.find(c => c._id === option.country) : null;
-    return country ? `${country.name} - ${option.name}` : option.name;
-  }}
-  value={states.find(s => s._id === form.state) || null}
-  onChange={(_, newValue) => {
-    if (newValue) {
-      handleStateChange(newValue._id);
-    }
-  }}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      margin="normal"
-      fullWidth
-      label="State"
-      name="state"
-    />
-  )}
-  renderOption={(props, option) => {
-    const country = option.country ? countries.find(c => c._id === option.country) : null;
-    return (
-      <li {...props} key={option._id}>
-        {country ? `${country.name} - ${option.name}` : option.name}
-      </li>
-    );
-  }}
-/>
+                options={states}
+                getOptionLabel={(option) => {
+                  if (typeof option === 'string') return option;
+                  return option.name;
+                }}
+                filterOptions={(options) => {
+                  if (!form.country) {
+                    console.log('No country selected, returning no options');
+                    return [];
+                  }
+                  const filtered = options.filter(option => {
+                    // Handle both cases where country is a string or an object
+                    const countryId = typeof option.country === 'object' ? option.country?._id : option.country;
+                    const matches = countryId === form.country;
+                    console.log(`State: ${option.name}, Country:`, option.country, 'Matches:', matches);
+                    return matches;
+                  });
+                  console.log('Filtered states:', filtered);
+                  return filtered;
+                }}
+                value={form.state ? states.find(s => s._id === form.state) || null : null}
+                onChange={(_, newValue) => {
+                  if (newValue && typeof newValue !== 'string') {
+                    handleStateChange(newValue._id);
+                  } else {
+                    setForm(prev => ({ ...prev, state: '', state_name: '' }));
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="State"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    margin="normal"
+                    disabled={!form.country}
+                    helperText={!form.country ? 'Please select a country first' : ''}
+                  />
+                )}
+                disabled={!form.country}
+                noOptionsText={form.country ? 'No states found for this country' : 'Select a country first'}
+              />
+              
+              <Autocomplete
+                freeSolo
+                options={cities.filter(city => {
+                  // If no country or state is selected, don't show any suggestions
+                  if (!form.country || !form.state) return false;
+                  
+                  // Get the city's state and country
+                  const cityState = typeof city.state === 'string' ? city.state : city.state?._id;
+                  const cityCountry = typeof city.country === 'string' ? city.country : city.country?._id;
+                  
+                  // Match both state and country by ID
+                  return cityState === form.state && cityCountry === form.country;
+                })}
+                getOptionLabel={(option) => {
+                  if (typeof option === 'string') return option;
+                  return option.name;
+                }}
+                value={form.name}
+                onChange={(_, newValue) => {
+                  if (newValue && typeof newValue !== 'string') {
+                    // When a city is selected, update the form with its details
+                    const cityName = typeof newValue === 'string' ? newValue : newValue.name;
+                    const citySlug = typeof newValue === 'string' 
+                      ? cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+                      : newValue.slug || '';
+                    
+                    setForm(prev => ({
+                      ...prev,
+                      name: cityName,
+                      slug: citySlug,
+                      // Set coordinates when a city is selected
+                      longitude: newValue.longitude,
+                      latitude: newValue.latitude
+                    }));
+                  } else if (newValue) {
+                    // When typing manually
+                    setForm(prev => ({
+                      ...prev,
+                      name: newValue,
+                      slug: newValue.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                      // Clear coordinates when manually typing
+                      longitude: undefined,
+                      latitude: undefined
+                    }));
+                  }
+                }}
+                onInputChange={(_, newInputValue) => {
+                  setForm(prev => ({
+                    ...prev,
+                    name: newInputValue
+                  }));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    margin="normal"
+                    fullWidth
+                    id="name"
+                    label="City Name"
+                    name="name"
+                    required
+                    autoFocus
+                    placeholder={!form.country || !form.state 
+                      ? 'Please select country and state first' 
+                      : 'Start typing to search for a city...'}
+                    disabled={!form.country || !form.state}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={typeof option === 'string' ? option : option._id}>
+                    {typeof option === 'string' ? option : option.name}
+                  </li>
+                )}
+                noOptionsText={!form.country || !form.state 
+                  ? 'Please select country and state first' 
+                  : 'No matching cities found'}
+                disabled={!form.country || !form.state}
+              />
+              
+              <TextField
+                margin="normal"
+                fullWidth
+                id="slug"
+                label="Slug"
+                name="slug"
+                value={form.slug}
+                onChange={handleChange}
+                helperText="URL-friendly version of the name (auto-generated but can be customized)"
+              />
+              
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  id="longitude"
+                  label="Longitude"
+                  name="longitude"
+                  type="number"
+                  inputProps={{
+                    step: '0.000001',
+                    min: -180,
+                    max: 180
+                  }}
+                  value={form.longitude ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                    setForm(prev => ({
+                      ...prev,
+                      longitude: value
+                    }));
+                  }}
+                  helperText="Value between -180 and 180"
+                />
+                
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  id="latitude"
+                  label="Latitude"
+                  name="latitude"
+                  type="number"
+                  inputProps={{
+                    step: '0.000001',
+                    min: -90,
+                    max: 90
+                  }}
+                  value={form.latitude ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                    setForm(prev => ({
+                      ...prev,
+                      latitude: value
+                    }));
+                  }}
+                  helperText="Value between -90 and 90"
+                />
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={resetForm}>Cancel</Button>
@@ -888,6 +1026,18 @@ export default function CityPage() {
                     {selectedCity.updatedAt 
                       ? new Date(selectedCity.updatedAt).toLocaleString() 
                       : 'N/A'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Longitude</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.longitude !== undefined ? selectedCity.longitude : 'N/A'}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Latitude</Typography>
+                  <Typography variant="body1">
+                    {selectedCity.latitude !== undefined ? selectedCity.latitude : 'N/A'}
                   </Typography>
                 </Box>
               </Box>

@@ -25,5 +25,6 @@ export interface StateOption {
   _id: string;
   name: string;
   slug: string;
-  country: string;
+  country: string | { _id: string; name?: string; [key: string]: unknown };
+  [key: string]: unknown; // For any additional properties
 }

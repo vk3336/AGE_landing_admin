@@ -22,142 +22,226 @@ const locationData = [
   {
     "name":"Navrangpura",
     "slug":"navrangpura",
-    "pincode":"380009"
+    "pincode":"380009",
+    "city":"Ahmedabad",
+    "latitude":23.0339,
+    "longitude":72.58
   },
   {
     "name":"Maninagar",
     "slug":"maninagar",
-    "pincode":"380008"
+    "pincode":"380008",
+    "city":"Ahmedabad",
+    "latitude":22.9997,
+    "longitude":72.6144
   },
   {
     "name":"Satellite",
     "slug":"satellite",
-    "pincode":"380015"
+    "pincode":"380015",
+    "city":"Ahmedabad",
+    "latitude":23.0339,
+    "longitude":72.5
   },
   {
     "name":"Bopal",
     "slug":"bopal",
-    "pincode":"380058"
+    "pincode":"380058",
+    "city":"Ahmedabad",
+    "latitude":22.9916,
+    "longitude":72.4798
   },
   {
     "name":"Vastrapur",
     "slug":"vastrapur",
-    "pincode":"380015"
+    "pincode":"380015",
+    "city":"Ahmedabad",
+    "latitude":23.0424,
+    "longitude":72.5136
   },
   {
     "name":"Paldi",
     "slug":"paldi",
-    "pincode":"380007"
+    "pincode":"380007",
+    "city":"Ahmedabad",
+    "latitude":23.0086,
+    "longitude":72.5617
   },
   {
     "name":"Thaltej",
     "slug":"thaltej",
-    "pincode":"380059"
+    "pincode":"380059",
+    "city":"Ahmedabad",
+    "latitude":23.0574,
+    "longitude":72.5168
   },
   {
     "name":"Andheri West",
     "slug":"andheri-west",
-    "pincode":"400058"
+    "pincode":"400058",
+    "city":"Mumbai",
+    "latitude":19.1379,
+    "longitude":72.8295
   },
   {
     "name":"Andheri East",
     "slug":"andheri-east",
-    "pincode":"400069"
+    "pincode":"400069",
+    "city":"Mumbai",
+    "latitude":19.1197,
+    "longitude":72.8464
   },
   {
     "name":"Bandra West",
     "slug":"bandra-west",
-    "pincode":"400050"
+    "pincode":"400050",
+    "city":"Mumbai",
+    "latitude":19.055,
+    "longitude":72.8297
   },
   {
     "name":"Powai",
     "slug":"powai",
-    "pincode":"400076"
+    "pincode":"400076",
+    "city":"Mumbai",
+    "latitude":19.1197,
+    "longitude":72.9056
   },
   {
     "name":"Colaba",
     "slug":"colaba",
-    "pincode":"400005"
+    "pincode":"400005",
+    "city":"Mumbai",
+    "latitude":18.9068,
+    "longitude":72.8146
   },
   {
     "name":"Malad West",
     "slug":"malad-west",
-    "pincode":"400064"
+    "pincode":"400064",
+    "city":"Mumbai",
+    "latitude":19.1869,
+    "longitude":72.8486
   },
   {
     "name":"Borivali East",
     "slug":"borivali-east",
-    "pincode":"400066"
+    "pincode":"400066",
+    "city":"Mumbai",
+    "latitude":19.2307,
+    "longitude":72.8567
   },
   {
     "name":"Connaught Place",
     "slug":"connaught-place",
-    "pincode":"110001"
+    "pincode":"110001",
+    "city":"New Delhi",
+    "latitude":28.628,
+    "longitude":77.2065
   },
   {
     "name":"Lajpat Nagar",
     "slug":"lajpat-nagar",
-    "pincode":"110024"
+    "pincode":"110024",
+    "city":"New Delhi",
+    "latitude":28.5693,
+    "longitude":77.2406
   },
   {
     "name":"Dwarka",
     "slug":"dwarka",
-    "pincode":"110075"
+    "pincode":"110075",
+    "city":"New Delhi",
+    "latitude":28.5929,
+    "longitude":77.0596
   },
   {
     "name":"Saket",
     "slug":"saket",
-    "pincode":"110017"
+    "pincode":"110017",
+    "city":"New Delhi",
+    "latitude":28.5246,
+    "longitude":77.2065
   },
   {
     "name":"Karol Bagh",
     "slug":"karol-bagh",
-    "pincode":"110005"
+    "pincode":"110005",
+    "city":"New Delhi",
+    "latitude":28.6517,
+    "longitude":77.1895
   },
   {
     "name":"Rohini",
     "slug":"rohini",
-    "pincode":"110085"
+    "pincode":"110085",
+    "city":"New Delhi",
+    "latitude":28.7396,
+    "longitude":77.0919
   },
   {
     "name":"Mayur Vihar",
     "slug":"mayur-vihar",
-    "pincode":"110091"
+    "pincode":"110091",
+    "city":"New Delhi",
+    "latitude":28.5983,
+    "longitude":77.2921
   },
   {
     "name":"C-Scheme",
     "slug":"c-scheme",
-    "pincode":"302001"
+    "pincode":"302001",
+    "city":"Jaipur",
+    "latitude":26.9045,
+    "longitude":75.8008
   },
   {
     "name":"Malviya Nagar",
     "slug":"malviya-nagar",
-    "pincode":"302017"
+    "pincode":"302017",
+    "city":"Jaipur",
+    "latitude":26.8434,
+    "longitude":75.8008
   },
   {
     "name":"Vaishali Nagar",
     "slug":"vaishali-nagar",
-    "pincode":"302021"
+    "pincode":"302021",
+    "city":"Jaipur",
+    "latitude":26.9083,
+    "longitude":75.7437
   },
   {
     "name":"Jhotwara",
     "slug":"jhotwara",
-    "pincode":"302012"
+    "pincode":"302012",
+    "city":"Jaipur",
+    "latitude":26.9344,
+    "longitude":75.7576
   },
   {
     "name":"Mansarovar",
     "slug":"mansarovar",
-    "pincode":"302020"
+    "pincode":"302020",
+    "city":"Jaipur",
+    "latitude":26.8121,
+    "longitude":75.7899
   },
   {
     "name":"Hiran Magri",
     "slug":"hiran-magri",
-    "pincode":"313001"
+    "pincode":"313001",
+    "city":"Udaipur",
+    "latitude":24.5713,
+    "longitude":73.6868
   },
   {
     "name":"Bapu Nagar",
     "slug":"bapu-nagar",
-    "pincode":"302015"
+    "pincode":"302015",
+    "city":"Jaipur",
+    "latitude":26.8786,
+    "longitude":75.7974
   }
 ];
 
@@ -172,6 +256,8 @@ interface Location {
   city: string | { _id: string; name: string };
   timezone: string;
   language: string;
+  latitude?: number;
+  longitude?: number;
   // Local Business JSON-LD fields
   LocalBusinessJsonLd?: string;
   LocalBusinessJsonLdtype?: string;
@@ -204,6 +290,7 @@ interface State {
   _id: string;
   name: string;
   code: string;
+  country: string | { _id: string; name: string };
 }
 
 interface City {
@@ -443,17 +530,42 @@ export default function LocationPage() {
     }));
   };
 
+  // Get locations filtered by selected city - handles both API and local data
+  const getFilteredLocations = useCallback(() => {
+    if (!form.city) return locationData;
+    const selectedCity = cities.find(city => city._id === form.city);
+    if (!selectedCity) return locationData;
+    
+    // First try to filter from the local locationData
+    const localFiltered = locationData.filter(location => 
+      location.city.toLowerCase() === selectedCity.name.toLowerCase()
+    );
+    
+    // If we have API locations, filter those too
+    if (Array.isArray(locations) && locations.length > 0) {
+      const apiFiltered = locations.filter(location => {
+        const cityId = typeof location.city === 'object' ? location.city._id : location.city;
+        return cityId === form.city;
+      });
+      return [...localFiltered, ...apiFiltered];
+    }
+    
+    return localFiltered;
+  }, [form.city, cities, locations]);
+
   // Handle location selection from dropdown
   const handleLocationSelect = (value: string | null) => {
     if (!value) return;
     
-    const location = locationData.find(loc => loc.name === value);
+    const location = getFilteredLocations().find(loc => loc.name === value);
     if (location) {
       setForm(prev => ({
         ...prev,
         name: location.name,
         slug: location.slug,
-        pincode: location.pincode
+        pincode: location.pincode,
+        LocalBusinessJsonLdgeolatitude: location.latitude?.toString() || '',
+        LocalBusinessJsonLdgeolongitude: location.longitude?.toString() || ''
       }));
     }
   };
@@ -492,9 +604,27 @@ export default function LocationPage() {
     setSubmitting(true);
     setError(null);
 
-    // Basic validation - only require name and slug
+    // Validation for required fields in order
+    if (!form.country) {
+      setError('Please select a country first');
+      setSubmitting(false);
+      return;
+    }
+    
+    if (!form.state) {
+      setError('Please select a state after selecting a country');
+      setSubmitting(false);
+      return;
+    }
+    
+    if (!form.city) {
+      setError('Please select a city after selecting a state');
+      setSubmitting(false);
+      return;
+    }
+    
     if (!form.name || !form.slug) {
-      setError('Name and slug are required fields');
+      setError('Location name and slug are required');
       setSubmitting(false);
       return;
     }
@@ -825,11 +955,40 @@ export default function LocationPage() {
     setError(null);
   };
 
+  // Get states filtered by selected country
+  const getFilteredStates = useCallback(() => {
+    if (!form.country) return [];
+    if (!Array.isArray(states)) return [];
+    
+    return states.filter(state => {
+      const countryId = typeof state.country === 'object' ? state.country._id : state.country;
+      return countryId === form.country;
+    });
+  }, [form.country, states]);
+
+  // Get cities filtered by selected state
+  const getFilteredCities = useCallback(() => {
+    if (!form.state) return [];
+    if (!Array.isArray(cities)) return [];
+    
+    return cities.filter(city => {
+      const stateId = typeof city.state === 'object' ? city.state._id : city.state;
+      return stateId === form.state;
+    });
+  }, [form.state, cities]);
+
+  // Get locations filtered by selected city - handled by the main implementation
+
   // Handle country change
   const handleCountryChange = (value: string) => {
     setForm(prev => ({
       ...prev,
-      country: value
+      country: value,
+      // Reset dependent fields when country changes
+      state: '',
+      city: '',
+      state_name: '',
+      city_name: ''
     }));
   };
 
@@ -837,25 +996,32 @@ export default function LocationPage() {
   const handleStateChange = (value: string) => {
     setForm(prev => ({
       ...prev,
-      state: value
+      state: value,
+      // Reset dependent fields when state changes
+      city: '',
+      city_name: ''
     }));
   };
 
-  // Handle city change - only update city, not pincode
+  // Handle city change - reset location and pincode
   const handleCityChange = (event: React.SyntheticEvent, value: { _id: string; name: string } | null) => {
     if (value) {
       setForm(prev => ({
         ...prev,
         city: value._id,
-        city_name: value.name
-        // Keep existing pincode value
+        city_name: value.name,
+        name: '', // Reset location name
+        slug: '',  // Reset slug
+        pincode: '' // Reset pincode
       }));
     } else {
       setForm(prev => ({
         ...prev,
         city: '',
-        city_name: ''
-        // Keep existing pincode value
+        city_name: '',
+        name: '', // Reset location name
+        slug: '',  // Reset slug
+        pincode: '' // Reset pincode
       }));
     }
   };
@@ -1109,150 +1275,179 @@ export default function LocationPage() {
               </Alert>
             )}
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
+              {/* Location Information */}
+              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Typography variant="h6" gutterBottom>Location Information</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                  <Autocomplete
+                    options={Array.isArray(countries) ? countries : []}
+                    getOptionLabel={(option) => option?.name || ''}
+                    value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
+                    onChange={(_, newValue) => handleCountryChange(newValue?._id || '')}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        label="Country"
+                        error={!Array.isArray(countries)}
+                        helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
+                        fullWidth
+                      />
+                    )}
+                  />
+                  
+                  <Autocomplete
+                    options={getFilteredStates()}
+                    getOptionLabel={(option) => option?.name || ''}
+                    value={getFilteredStates().find(s => s._id === form.state) || null}
+                    onChange={(_, newValue) => handleStateChange(newValue?._id || '')}
+                    disabled={!form.country}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        label="State"
+                        error={!Array.isArray(states)}
+                        helperText={!form.country ? 'Please select a country first' : 
+                                  (!Array.isArray(states) ? 'Error loading states' : 
+                                  getFilteredStates().length === 0 ? 'No states available for selected country' : 'Select a state')}
+                        fullWidth
+                      />
+                    )}
+                  />
+                  
+                  <Autocomplete
+                    options={getFilteredCities()}
+                    getOptionLabel={(option) => option?.name || ''}
+                    value={getFilteredCities().find(c => c._id === form.city) || null}
+                    onChange={handleCityChange}
+                    disabled={!form.state}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        label="City"
+                        error={!Array.isArray(cities)}
+                        helperText={!form.state ? 'Please select a state first' : 
+                                  (!Array.isArray(cities) ? 'Error loading cities' : 
+                                  getFilteredCities().length === 0 ? 'No cities available for selected state' : 'Select a city')}
+                        fullWidth
+                      />
+                    )}
+                  />
+                  
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Pincode"
+                    name="pincode"
+                    value={form.pincode}
+                    onChange={handlePincodeChange}
+                    disabled={!form.city}
+                    helperText={!form.city ? 'Please select a city first' : 'Enter pincode'}
+                    inputProps={{
+                      pattern: '^[0-9]*$',
+                      title: 'Please enter a valid pincode (numbers only)'
+                    }}
+                  />
+                </Box>
+              </Box>
+
               {/* Basic Information */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                 <Typography variant="h6" gutterBottom>Basic Information</Typography>
-                <Autocomplete<string, false, false, true>
-                  freeSolo
-                  options={locationData.map(loc => loc.name)}
-                  value={form.name}
-                  onChange={handleAutocompleteChange}
-                  onInputChange={handleAutocompleteInputChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      fullWidth
-                      label="Location Name"
-                      name="name"
-                      placeholder="Search for a location..."
-                      required
-                    />
-                  )}
-                  renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: string) => (
-                    <li {...props} key={option}>
-                      {option}
-                    </li>
-                  )}
-                />
-              
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Slug"
-                  name="slug"
-                  value={form.slug}
-                  onChange={handleChange}
-                  helperText="Auto-generated from name but can be edited"
-                />
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                  <Autocomplete<string, false, false, true>
+                    freeSolo
+                    options={getFilteredLocations().map(loc => loc.name)}
+                    value={form.name}
+                    onChange={handleAutocompleteChange}
+                    onInputChange={handleAutocompleteInputChange}
+                    disabled={!form.city}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        fullWidth
+                        label="Location Name"
+                        name="name"
+                        placeholder="Search for a location..."
+                        required
+                        helperText={!form.city ? 'Please select a city first' : `Enter or select a location in ${cities.find(c => c._id === form.city)?.name || 'selected city'}`}
+                      />
+                    )}
+                    renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: string) => {
+                      const location = getFilteredLocations().find(loc => loc.name === option);
+                      return (
+                        <li {...props} key={option}>
+                          <Box>
+                            <div>{option}</div>
+                            {location?.pincode && <div style={{ fontSize: '0.8em', color: '#666' }}>Pincode: {location.pincode}</div>}
+                          </Box>
+                        </li>
+                      );
+                    }}
+                  />
                 
-                <Autocomplete
-                  options={Array.isArray(countries) ? countries : []}
-                  getOptionLabel={(option) => option?.name || ''}
-                  value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
-                  onChange={(_, newValue) => handleCountryChange(newValue?._id || '')}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="Country"
-                      error={!Array.isArray(countries)}
-                      helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
-                    />
-                  )}
-                />
-                
-                <Autocomplete
-                  options={Array.isArray(states) ? states : []}
-                  getOptionLabel={(option) => option?.name || ''}
-                  value={Array.isArray(states) ? (states.find(s => s._id === form.state) || null) : null}
-                  onChange={(_, newValue) => handleStateChange(newValue?._id || '')}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="State"
-                      error={!Array.isArray(states)}
-                      helperText={!Array.isArray(states) ? 'Error loading states' : ''}
-                    />
-                  )}
-                />
-                
-                <Autocomplete
-                  options={Array.isArray(cities) ? cities : []}
-                  getOptionLabel={(option) => option?.name || ''}
-                  value={Array.isArray(cities) ? (cities.find(c => c._id === form.city) || null) : null}
-                  onChange={handleCityChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="City"
-                      error={!Array.isArray(cities)}
-                      helperText={!Array.isArray(cities) ? 'Error loading cities' : ''}
-                    />
-                  )}
-                />
-                
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Pincode"
-                  name="pincode"
-                  value={form.pincode}
-                  onChange={handlePincodeChange}
-                  inputProps={{
-                    pattern: '^[0-9]*$',
-                    title: 'Please enter a valid pincode (numbers only)'
-                  }}
-                />
-                
-                <Autocomplete
-                  options={filteredTimezones}
-                  getOptionLabel={(option) => option.label}
-                  value={allTimezones.find(tz => tz.value === form.timezone) || null}
-                  onChange={(_, newValue) => {
-                    setForm(prev => ({
-                      ...prev,
-                      timezone: newValue?.value || ''
-                    }));
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="Timezone"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimezoneSearch(e.target.value)}
-                      value={timezoneSearch}
-                    />
-                  )}
-                />
-                
-                <Autocomplete
-                  options={filteredLanguages}
-                  getOptionLabel={(option) => `${option.name} (${option.code})`}
-                  value={allLanguages.find(lang => lang.code === form.language) || null}
-                  onChange={(_, newValue) => {
-                    setForm(prev => ({
-                      ...prev,
-                      language: newValue?.code || ''
-                    }));
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="Language"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLanguageSearch(e.target.value)}
-                      value={languageSearch}
-                    />
-                  )}
-                />
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Slug"
+                    name="slug"
+                    value={form.slug}
+                    onChange={handleChange}
+                    helperText="Auto-generated from name but can be edited"
+                  />
+                  
+                  <Autocomplete
+                    options={filteredTimezones}
+                    getOptionLabel={(option) => option.label}
+                    value={allTimezones.find(tz => tz.value === form.timezone) || null}
+                    onChange={(_, newValue) => {
+                      setForm(prev => ({
+                        ...prev,
+                        timezone: newValue?.value || ''
+                      }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        label="Timezone"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimezoneSearch(e.target.value)}
+                        value={timezoneSearch}
+                        fullWidth
+                      />
+                    )}
+                  />
+                  
+                  <Autocomplete
+                    options={filteredLanguages}
+                    getOptionLabel={(option) => `${option.name} (${option.code})`}
+                    value={allLanguages.find(lang => lang.code === form.language) || null}
+                    onChange={(_, newValue) => {
+                      setForm(prev => ({
+                        ...prev,
+                        language: newValue?.code || ''
+                      }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="normal"
+                        label="Language"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLanguageSearch(e.target.value)}
+                        value={languageSearch}
+                        fullWidth
+                      />
+                    )}
+                  />
+                </Box>
               </Box>
               
               {/* LocalBusinessJsonLd Section */}
-              <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                 <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
                 
                 <TextField

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -8,242 +8,16 @@ import {
   IconButton, Alert, Snackbar, CircularProgress, Container, Typography, Autocomplete,
   Select, MenuItem, Pagination
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
-  Edit as EditIcon, 
-  Delete as DeleteIcon, 
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
   Search as SearchIcon,
-  Close as CloseIcon 
+  Close as CloseIcon
 } from '@mui/icons-material';
 import apiFetch from '../../utils/apiFetch';
 
-// Location data with name, slug, and pincode
-const locationData = [
-  {
-    "name":"Navrangpura",
-    "slug":"navrangpura",
-    "pincode":"380009",
-    "city":"Ahmedabad",
-    "latitude":23.0339,
-    "longitude":72.58
-  },
-  {
-    "name":"Maninagar",
-    "slug":"maninagar",
-    "pincode":"380008",
-    "city":"Ahmedabad",
-    "latitude":22.9997,
-    "longitude":72.6144
-  },
-  {
-    "name":"Satellite",
-    "slug":"satellite",
-    "pincode":"380015",
-    "city":"Ahmedabad",
-    "latitude":23.0339,
-    "longitude":72.5
-  },
-  {
-    "name":"Bopal",
-    "slug":"bopal",
-    "pincode":"380058",
-    "city":"Ahmedabad",
-    "latitude":22.9916,
-    "longitude":72.4798
-  },
-  {
-    "name":"Vastrapur",
-    "slug":"vastrapur",
-    "pincode":"380015",
-    "city":"Ahmedabad",
-    "latitude":23.0424,
-    "longitude":72.5136
-  },
-  {
-    "name":"Paldi",
-    "slug":"paldi",
-    "pincode":"380007",
-    "city":"Ahmedabad",
-    "latitude":23.0086,
-    "longitude":72.5617
-  },
-  {
-    "name":"Thaltej",
-    "slug":"thaltej",
-    "pincode":"380059",
-    "city":"Ahmedabad",
-    "latitude":23.0574,
-    "longitude":72.5168
-  },
-  {
-    "name":"Andheri West",
-    "slug":"andheri-west",
-    "pincode":"400058",
-    "city":"Mumbai",
-    "latitude":19.1379,
-    "longitude":72.8295
-  },
-  {
-    "name":"Andheri East",
-    "slug":"andheri-east",
-    "pincode":"400069",
-    "city":"Mumbai",
-    "latitude":19.1197,
-    "longitude":72.8464
-  },
-  {
-    "name":"Bandra West",
-    "slug":"bandra-west",
-    "pincode":"400050",
-    "city":"Mumbai",
-    "latitude":19.055,
-    "longitude":72.8297
-  },
-  {
-    "name":"Powai",
-    "slug":"powai",
-    "pincode":"400076",
-    "city":"Mumbai",
-    "latitude":19.1197,
-    "longitude":72.9056
-  },
-  {
-    "name":"Colaba",
-    "slug":"colaba",
-    "pincode":"400005",
-    "city":"Mumbai",
-    "latitude":18.9068,
-    "longitude":72.8146
-  },
-  {
-    "name":"Malad West",
-    "slug":"malad-west",
-    "pincode":"400064",
-    "city":"Mumbai",
-    "latitude":19.1869,
-    "longitude":72.8486
-  },
-  {
-    "name":"Borivali East",
-    "slug":"borivali-east",
-    "pincode":"400066",
-    "city":"Mumbai",
-    "latitude":19.2307,
-    "longitude":72.8567
-  },
-  {
-    "name":"Connaught Place",
-    "slug":"connaught-place",
-    "pincode":"110001",
-    "city":"New Delhi",
-    "latitude":28.628,
-    "longitude":77.2065
-  },
-  {
-    "name":"Lajpat Nagar",
-    "slug":"lajpat-nagar",
-    "pincode":"110024",
-    "city":"New Delhi",
-    "latitude":28.5693,
-    "longitude":77.2406
-  },
-  {
-    "name":"Dwarka",
-    "slug":"dwarka",
-    "pincode":"110075",
-    "city":"New Delhi",
-    "latitude":28.5929,
-    "longitude":77.0596
-  },
-  {
-    "name":"Saket",
-    "slug":"saket",
-    "pincode":"110017",
-    "city":"New Delhi",
-    "latitude":28.5246,
-    "longitude":77.2065
-  },
-  {
-    "name":"Karol Bagh",
-    "slug":"karol-bagh",
-    "pincode":"110005",
-    "city":"New Delhi",
-    "latitude":28.6517,
-    "longitude":77.1895
-  },
-  {
-    "name":"Rohini",
-    "slug":"rohini",
-    "pincode":"110085",
-    "city":"New Delhi",
-    "latitude":28.7396,
-    "longitude":77.0919
-  },
-  {
-    "name":"Mayur Vihar",
-    "slug":"mayur-vihar",
-    "pincode":"110091",
-    "city":"New Delhi",
-    "latitude":28.5983,
-    "longitude":77.2921
-  },
-  {
-    "name":"C-Scheme",
-    "slug":"c-scheme",
-    "pincode":"302001",
-    "city":"Jaipur",
-    "latitude":26.9045,
-    "longitude":75.8008
-  },
-  {
-    "name":"Malviya Nagar",
-    "slug":"malviya-nagar",
-    "pincode":"302017",
-    "city":"Jaipur",
-    "latitude":26.8434,
-    "longitude":75.8008
-  },
-  {
-    "name":"Vaishali Nagar",
-    "slug":"vaishali-nagar",
-    "pincode":"302021",
-    "city":"Jaipur",
-    "latitude":26.9083,
-    "longitude":75.7437
-  },
-  {
-    "name":"Jhotwara",
-    "slug":"jhotwara",
-    "pincode":"302012",
-    "city":"Jaipur",
-    "latitude":26.9344,
-    "longitude":75.7576
-  },
-  {
-    "name":"Mansarovar",
-    "slug":"mansarovar",
-    "pincode":"302020",
-    "city":"Jaipur",
-    "latitude":26.8121,
-    "longitude":75.7899
-  },
-  {
-    "name":"Hiran Magri",
-    "slug":"hiran-magri",
-    "pincode":"313001",
-    "city":"Udaipur",
-    "latitude":24.5713,
-    "longitude":73.6868
-  },
-  {
-    "name":"Bapu Nagar",
-    "slug":"bapu-nagar",
-    "pincode":"302015",
-    "city":"Jaipur",
-    "latitude":26.8786,
-    "longitude":75.7974
-  }
-];
+// Location detail options will be fetched from the API
 
 // Define TypeScript interfaces for our data
 interface Location {
@@ -300,6 +74,16 @@ interface City {
   state: string | { _id: string; name: string };
 }
 
+interface LocationDetailOption {
+  _id: string;
+  name: string;
+  slug: string;
+  pincode?: string;
+  city: string | { _id: string; name: string };
+  latitude?: number;
+  longitude?: number;
+}
+
 interface FormState {
   name: string;
   slug: string;
@@ -336,7 +120,7 @@ export default function LocationPage() {
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [isClient, setIsClient] = useState(false);
   const _router = useRouter(); // eslint-disable-line @typescript-eslint/no-unused-vars
-  
+
   useEffect(() => {
     setIsClient(true);
     const getLocationPagePermission = () => {
@@ -349,11 +133,11 @@ export default function LocationPage() {
       }
       return 'no access';
     };
-    
+
     const access = getLocationPagePermission();
     setPageAccess(access);
   }, []);
-  
+
   const [locations, setLocations] = useState<Location[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>({
@@ -407,18 +191,19 @@ export default function LocationPage() {
     message: '',
     severity: 'info'
   });
-  
+
   // Data state
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [locationDetails, setLocationDetails] = useState<LocationDetailOption[]>([]);
   const [timezoneSearch, setTimezoneSearch] = useState('');
   const [languageSearch, setLanguageSearch] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  
+
   // View dialog state
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -446,21 +231,23 @@ export default function LocationPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch all data in parallel
-      const [locationsRes, countriesRes, statesRes, citiesRes] = await Promise.all([
+      const [locationsRes, countriesRes, statesRes, citiesRes, locationDetailsRes] = await Promise.all([
         apiFetch(`/locations?page=${pagination.page}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
         apiFetch('/countries'),
         apiFetch('/states'),
-        apiFetch('/cities')
+        apiFetch('/cities'),
+        apiFetch('/location-details')
       ]);
 
       // Process all responses
-      const [locationsData, countriesData, statesData, citiesData] = await Promise.all([
+      const [locationsData, countriesData, statesData, citiesData, locationDetailsData] = await Promise.all([
         locationsRes.json(),
         countriesRes.json(),
         statesRes.json(),
-        citiesRes.json()
+        citiesRes.json(),
+        locationDetailsRes.json()
       ]);
 
       // Process locations
@@ -501,11 +288,20 @@ export default function LocationPage() {
         processedCities = citiesData;
       }
 
+      // Process location details
+      let processedLocationDetails: LocationDetailOption[] = [];
+      if (locationDetailsData?.status === 'success' && locationDetailsData.data?.locationDetails) {
+        processedLocationDetails = locationDetailsData.data.locationDetails;
+      } else if (Array.isArray(locationDetailsData)) {
+        processedLocationDetails = locationDetailsData;
+      }
+
       // Update state in a single batch
       setLocations(processedLocations);
       setCountries(processedCountries);
       setStates(processedStates);
       setCities(processedCities);
+      setLocationDetails(processedLocationDetails);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
       console.error('Error fetching data:', error);
@@ -532,38 +328,29 @@ export default function LocationPage() {
 
   // Get locations filtered by selected city - handles both API and local data
   const getFilteredLocations = useCallback(() => {
-    if (!form.city) return locationData;
-    const selectedCity = cities.find(city => city._id === form.city);
-    if (!selectedCity) return locationData;
-    
-    // First try to filter from the local locationData
-    const localFiltered = locationData.filter(location => 
-      location.city.toLowerCase() === selectedCity.name.toLowerCase()
-    );
-    
-    // If we have API locations, filter those too
-    if (Array.isArray(locations) && locations.length > 0) {
-      const apiFiltered = locations.filter(location => {
-        const cityId = typeof location.city === 'object' ? location.city._id : location.city;
-        return cityId === form.city;
-      });
-      return [...localFiltered, ...apiFiltered];
-    }
-    
-    return localFiltered;
-  }, [form.city, cities, locations]);
+    if (!form.city) return [];
+    return locationDetails.filter(detail => {
+      const cityId = typeof detail.city === 'object' ? detail.city._id : detail.city;
+      return cityId === form.city;
+    });
+  }, [form.city, locationDetails]);
+
+  const filteredLocationOptions: LocationDetailOption[] = useMemo(
+    () => getFilteredLocations(),
+    [getFilteredLocations]
+  );
 
   // Handle location selection from dropdown
   const handleLocationSelect = (value: string | null) => {
     if (!value) return;
-    
+
     const location = getFilteredLocations().find(loc => loc.name === value);
     if (location) {
       setForm(prev => ({
         ...prev,
         name: location.name,
         slug: location.slug,
-        pincode: location.pincode,
+        pincode: location.pincode || '',
         LocalBusinessJsonLdgeolatitude: location.latitude?.toString() || '',
         LocalBusinessJsonLdgeolongitude: location.longitude?.toString() || ''
       }));
@@ -574,15 +361,16 @@ export default function LocationPage() {
   const handleAutocompleteChange = (_: React.SyntheticEvent, value: string | null) => {
     if (value) {
       handleLocationSelect(value);
+    } else {
+      setForm(prev => ({
+        ...prev,
+        name: '',
+        slug: '',
+        pincode: '',
+        LocalBusinessJsonLdgeolatitude: '',
+        LocalBusinessJsonLdgeolongitude: ''
+      }));
     }
-  };
-
-  // Type guard for Autocomplete input change
-  const handleAutocompleteInputChange = (_: React.SyntheticEvent, value: string) => {
-    setForm(prev => ({
-      ...prev,
-      name: value
-    }));
   };
 
   // Helper function to clean form data before submission
@@ -610,19 +398,19 @@ export default function LocationPage() {
       setSubmitting(false);
       return;
     }
-    
+
     if (!form.state) {
       setError('Please select a state after selecting a country');
       setSubmitting(false);
       return;
     }
-    
+
     if (!form.city) {
       setError('Please select a city after selecting a state');
       setSubmitting(false);
       return;
     }
-    
+
     if (!form.name || !form.slug) {
       setError('Location name and slug are required');
       setSubmitting(false);
@@ -632,7 +420,7 @@ export default function LocationPage() {
     try {
       const url = editId ? `/locations/${editId}` : '/locations';
       const method = editId ? 'PUT' : 'POST';
-      
+
       // Prepare the request body with only the fields that have values
       const requestBody: Partial<Location> & { country_name?: string; state_name?: string; city_name?: string } = {
         name: form.name,
@@ -646,7 +434,7 @@ export default function LocationPage() {
       if (form.city) requestBody.city = form.city;
       if (form.timezone) requestBody.timezone = form.timezone;
       if (form.language) requestBody.language = form.language;
-      
+
       // Add LocalBusinessJsonLd fields
       if (form.LocalBusinessJsonLd !== undefined) requestBody.LocalBusinessJsonLd = form.LocalBusinessJsonLd;
       if (form.LocalBusinessJsonLdtype !== undefined) requestBody.LocalBusinessJsonLdtype = form.LocalBusinessJsonLdtype;
@@ -665,7 +453,7 @@ export default function LocationPage() {
       if (form.LocalBusinessJsonLdgeotype !== undefined) requestBody.LocalBusinessJsonLdgeotype = form.LocalBusinessJsonLdgeotype;
       if (form.LocalBusinessJsonLdgeolatitude !== undefined) requestBody.LocalBusinessJsonLdgeolatitude = form.LocalBusinessJsonLdgeolatitude;
       if (form.LocalBusinessJsonLdgeolongitude !== undefined) requestBody.LocalBusinessJsonLdgeolongitude = form.LocalBusinessJsonLdgeolongitude;
-      
+
       const response = await apiFetch(url, {
         method,
         body: JSON.stringify(requestBody),
@@ -685,7 +473,7 @@ export default function LocationPage() {
 
       // Refresh the data
       fetchAllData();
-      
+
       // Reset form
       setForm({
         name: '',
@@ -739,7 +527,7 @@ export default function LocationPage() {
   // Handle delete confirmation
   const handleDelete = async () => {
     if (!deleteId) return;
-    
+
     setDeleteSubmitting(true);
     setDeleteError(null);
 
@@ -786,13 +574,13 @@ export default function LocationPage() {
   // Handle edit
   const handleEdit = (location: Location) => {
     // Helper function to safely get ID from a field that could be string or object
-    const getId = (field: string | { _id: string; [key: string]: unknown } | undefined): string => {
+    const getId = (field: string | { _id: string;[key: string]: unknown } | undefined): string => {
       if (!field) return '';
       return typeof field === 'string' ? field : field._id || '';
     };
 
     // Helper function to safely get name from a field that could be string or object
-    const getName = (field: string | { name: string; [key: string]: unknown } | undefined): string => {
+    const getName = (field: string | { name: string;[key: string]: unknown } | undefined): string => {
       if (!field) return '';
       if (typeof field === 'string') {
         // If it's a string ID, find the corresponding name from the countries array
@@ -806,8 +594,8 @@ export default function LocationPage() {
     };
 
     const countryId = getId(location.country);
-    const countryName = typeof location.country === 'object' 
-      ? location.country.name 
+    const countryName = typeof location.country === 'object'
+      ? location.country.name
       : countries.find(c => c._id === countryId)?.name || '';
 
     setForm({
@@ -841,14 +629,14 @@ export default function LocationPage() {
       state_name: getName(location.state),
       city_name: getName(location.city)
     });
-    
+
     if (location._id) {
       setEditId(location._id);
     } else {
       console.error('Cannot edit location: No _id found');
       return;
     }
-    
+
     setOpen(true);
   };
 
@@ -908,11 +696,11 @@ export default function LocationPage() {
   ];
 
   // Filter timezones and languages based on search
-  const filteredTimezones = allTimezones.filter(tz => 
+  const filteredTimezones = allTimezones.filter(tz =>
     tz.label.toLowerCase().includes(timezoneSearch.toLowerCase())
   );
 
-  const filteredLanguages = allLanguages.filter(lang => 
+  const filteredLanguages = allLanguages.filter(lang =>
     lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
     lang.code.toLowerCase().includes(languageSearch.toLowerCase())
   );
@@ -959,7 +747,7 @@ export default function LocationPage() {
   const getFilteredStates = useCallback(() => {
     if (!form.country) return [];
     if (!Array.isArray(states)) return [];
-    
+
     return states.filter(state => {
       const countryId = typeof state.country === 'object' ? state.country._id : state.country;
       return countryId === form.country;
@@ -970,7 +758,7 @@ export default function LocationPage() {
   const getFilteredCities = useCallback(() => {
     if (!form.state) return [];
     if (!Array.isArray(cities)) return [];
-    
+
     return cities.filter(city => {
       const stateId = typeof city.state === 'object' ? city.state._id : city.state;
       return stateId === form.state;
@@ -1085,7 +873,7 @@ export default function LocationPage() {
   if (!isClient) {
     return null; // or a loading spinner
   }
-  
+
   if (pageAccess === 'no access') {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -1124,7 +912,7 @@ export default function LocationPage() {
             startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
           }}
         />
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">
             Rows per page:
@@ -1193,22 +981,22 @@ export default function LocationPage() {
                     <TableCell>{location.language}</TableCell>
                     <TableCell>{location.slug}</TableCell>
                     <TableCell>
-                      <IconButton 
+                      <IconButton
                         onClick={() => handleView(location)}
                         color="info"
                         title="View Details"
                       >
                         <SearchIcon />
                       </IconButton>
-                      <IconButton 
-                        onClick={() => handleEdit(location)} 
+                      <IconButton
+                        onClick={() => handleEdit(location)}
                         color={viewOnly ? 'default' : 'primary'}
                         disabled={viewOnly}
                         title="Edit"
                       >
                         <EditIcon />
                       </IconButton>
-                      <IconButton 
+                      <IconButton
                         onClick={() => setDeleteId(location._id)}
                         color={viewOnly ? 'default' : 'error'}
                         disabled={viewOnly}
@@ -1230,7 +1018,7 @@ export default function LocationPage() {
           </Table>
         </TableContainer>
       )}
-      
+
       {/* Pagination */}
       {pagination.total > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
@@ -1249,10 +1037,10 @@ export default function LocationPage() {
       )}
 
       {/* Add/Edit Location Dialog */}
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        fullWidth 
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
         maxWidth="xl"
         fullScreen
         sx={{ '& .MuiDialog-container': { height: '100%' } }}
@@ -1274,7 +1062,7 @@ export default function LocationPage() {
                 {error}
               </Alert>
             )}
-            
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
               {/* Location Information */}
               <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
@@ -1296,7 +1084,7 @@ export default function LocationPage() {
                       />
                     )}
                   />
-                  
+
                   <Autocomplete
                     options={getFilteredStates()}
                     getOptionLabel={(option) => option?.name || ''}
@@ -1309,14 +1097,14 @@ export default function LocationPage() {
                         margin="normal"
                         label="State"
                         error={!Array.isArray(states)}
-                        helperText={!form.country ? 'Please select a country first' : 
-                                  (!Array.isArray(states) ? 'Error loading states' : 
-                                  getFilteredStates().length === 0 ? 'No states available for selected country' : 'Select a state')}
+                        helperText={!form.country ? 'Please select a country first' :
+                          (!Array.isArray(states) ? 'Error loading states' :
+                            getFilteredStates().length === 0 ? 'No states available for selected country' : 'Select a state')}
                         fullWidth
                       />
                     )}
                   />
-                  
+
                   <Autocomplete
                     options={getFilteredCities()}
                     getOptionLabel={(option) => option?.name || ''}
@@ -1329,14 +1117,14 @@ export default function LocationPage() {
                         margin="normal"
                         label="City"
                         error={!Array.isArray(cities)}
-                        helperText={!form.state ? 'Please select a state first' : 
-                                  (!Array.isArray(cities) ? 'Error loading cities' : 
-                                  getFilteredCities().length === 0 ? 'No cities available for selected state' : 'Select a city')}
+                        helperText={!form.state ? 'Please select a state first' :
+                          (!Array.isArray(cities) ? 'Error loading cities' :
+                            getFilteredCities().length === 0 ? 'No cities available for selected state' : 'Select a city')}
                         fullWidth
                       />
                     )}
                   />
-                  
+
                   <TextField
                     margin="normal"
                     fullWidth
@@ -1358,13 +1146,11 @@ export default function LocationPage() {
               <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                 <Typography variant="h6" gutterBottom>Basic Information</Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
-                  <Autocomplete<string, false, false, true>
-                    freeSolo
-                    options={getFilteredLocations().map(loc => loc.name)}
+                  <Autocomplete
+                    options={filteredLocationOptions.map(loc => loc.name)}
                     value={form.name}
                     onChange={handleAutocompleteChange}
-                    onInputChange={handleAutocompleteInputChange}
-                    disabled={!form.city}
+                    disabled={!form.city || filteredLocationOptions.length === 0}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -1372,13 +1158,19 @@ export default function LocationPage() {
                         fullWidth
                         label="Location Name"
                         name="name"
-                        placeholder="Search for a location..."
+                        placeholder="Select a location detail..."
                         required
-                        helperText={!form.city ? 'Please select a city first' : `Enter or select a location in ${cities.find(c => c._id === form.city)?.name || 'selected city'}`}
+                        helperText={
+                          !form.city
+                            ? 'Please select a city first'
+                            : filteredLocationOptions.length === 0
+                              ? `No location details found for ${cities.find(c => c._id === form.city)?.name || 'the selected city'}`
+                              : `Select a location from Location Details for ${cities.find(c => c._id === form.city)?.name || 'the selected city'}`
+                        }
                       />
                     )}
                     renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: string) => {
-                      const location = getFilteredLocations().find(loc => loc.name === option);
+                      const location = filteredLocationOptions.find(loc => loc.name === option);
                       return (
                         <li {...props} key={option}>
                           <Box>
@@ -1389,7 +1181,7 @@ export default function LocationPage() {
                       );
                     }}
                   />
-                
+
                   <TextField
                     margin="normal"
                     fullWidth
@@ -1399,7 +1191,7 @@ export default function LocationPage() {
                     onChange={handleChange}
                     helperText="Auto-generated from name but can be edited"
                   />
-                  
+
                   <Autocomplete
                     options={filteredTimezones}
                     getOptionLabel={(option) => option.label}
@@ -1421,7 +1213,7 @@ export default function LocationPage() {
                       />
                     )}
                   />
-                  
+
                   <Autocomplete
                     options={filteredLanguages}
                     getOptionLabel={(option) => `${option.name} (${option.code})`}
@@ -1445,11 +1237,11 @@ export default function LocationPage() {
                   />
                 </Box>
               </Box>
-              
+
               {/* LocalBusinessJsonLd Section */}
               <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                 <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1461,7 +1253,7 @@ export default function LocationPage() {
                   rows={3}
                   helperText="Raw JSON for Local Business"
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1470,7 +1262,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdtype || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1479,7 +1271,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdcontext || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1488,7 +1280,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdname || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1497,7 +1289,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdtelephone || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1506,9 +1298,9 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdareaserved || ''}
                   onChange={handleChange}
                 />
-                
+
                 <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Address</Typography>
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1520,7 +1312,7 @@ export default function LocationPage() {
                   rows={3}
                   helperText="Raw JSON for Address"
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1529,7 +1321,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddresstype || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1538,7 +1330,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddressstreetAddress || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1547,7 +1339,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddressaddressLocality || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1556,7 +1348,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddressaddressRegion || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1565,7 +1357,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddresspostalCode || ''}
                   onChange={handleChange}
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1574,9 +1366,9 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdaddressaddressCountry || ''}
                   onChange={handleChange}
                 />
-                
+
                 <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Geo Coordinates</Typography>
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1588,7 +1380,7 @@ export default function LocationPage() {
                   rows={2}
                   helperText="Raw JSON for Geo Coordinates"
                 />
-                
+
                 <TextField
                   margin="normal"
                   fullWidth
@@ -1597,7 +1389,7 @@ export default function LocationPage() {
                   value={form.LocalBusinessJsonLdgeotype || ''}
                   onChange={handleChange}
                 />
-                
+
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <TextField
                     margin="normal"
@@ -1631,8 +1423,8 @@ export default function LocationPage() {
       </Dialog>
 
       {/* View Location Dialog */}
-      <Dialog 
-        open={viewDialogOpen} 
+      <Dialog
+        open={viewDialogOpen}
         onClose={() => setViewDialogOpen(false)}
         maxWidth="md"
         fullWidth
@@ -1722,8 +1514,8 @@ export default function LocationPage() {
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Geo Coordinates</TableCell>
                           <TableCell>
-                            {selectedLocation.LocalBusinessJsonLdgeolatitude && selectedLocation.LocalBusinessJsonLdgeolongitude 
-                              ? `${selectedLocation.LocalBusinessJsonLdgeolatitude}, ${selectedLocation.LocalBusinessJsonLdgeolongitude}` 
+                            {selectedLocation.LocalBusinessJsonLdgeolatitude && selectedLocation.LocalBusinessJsonLdgeolongitude
+                              ? `${selectedLocation.LocalBusinessJsonLdgeolatitude}, ${selectedLocation.LocalBusinessJsonLdgeolongitude}`
                               : 'N/A'}
                           </TableCell>
                         </TableRow>
@@ -1732,9 +1524,9 @@ export default function LocationPage() {
                   </TableContainer>
                 </>
               )}
-              
+
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button 
+                <Button
                   onClick={() => setViewDialogOpen(false)}
                   variant="contained"
                   color="primary"
@@ -1752,9 +1544,9 @@ export default function LocationPage() {
         <DialogTitle>Delete Location</DialogTitle>
         <DialogContent>
           {deleteError && (
-            <Alert 
-              severity="error" 
-              sx={{ mb: 2 }} 
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
               onClose={() => setDeleteError(null)}
             >
               {deleteError}
@@ -1765,16 +1557,16 @@ export default function LocationPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setDeleteId(null)} 
+          <Button
+            onClick={() => setDeleteId(null)}
             disabled={deleteSubmitting}
             color="inherit"
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleDelete} 
-            color="error" 
+          <Button
+            onClick={handleDelete}
+            color="error"
             disabled={deleteSubmitting}
             startIcon={deleteSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
           >
@@ -1790,8 +1582,8 @@ export default function LocationPage() {
         onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >

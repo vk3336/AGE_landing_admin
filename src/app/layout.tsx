@@ -80,21 +80,26 @@ const collapsedDrawerWidth = 60;
 const filterModels = [
   { name: "About Us", path: "/aboutus" },
   { name: "Blog", path: "/blog" },
+
+  { name: "Country", path: "/country" },
+  { name: "State", path: "/state" },
+  { name: "City", path: "/city" },
+  { name: "Location", path: "/location" },
+  { name: "Location Details", path: "/location-details" },
+
+  { name: "Office Information", path: "/office-information" },
+  { name: "About Us", path: "/aboutus" },
+  { name: "Blog", path: "/blog" },
+  { name: "Shofy Users", path: "/shofy-users" },
   
   { name: "Category", path: "/category" },
-  { name: "City", path: "/city" },
-  { name: "Office Information", path: "/office-information" },
   { name: "Color", path: "/color" },
   { name: "Contact", path: "/contact" },
   { name: "Content", path: "/content" },
-  { name: "Country", path: "/country" },
   { name: "Design", path: "/design" },
   { name: "Finish", path: "/finish" },
   { name: "Groupcode", path: "/groupcode" },
-  { name: "Location", path: "/location" },
   { name: "Motif", path: "/motif" },
-  { name: "Shofy Users", path: "/shofy-users" },
-  { name: "State", path: "/state" },
   { name: "Structure", path: "/structure" },
   { name: "Subfinish", path: "/subfinish" },
   { name: "Substructure", path: "/substructure" },
@@ -466,7 +471,7 @@ const Sidebar = React.memo(() => {
             )}
           </ListItemButton>
 
-           {/* public SEO */}
+          {/* public SEO */}
           <ListItemButton
             component={NextLink}
             href="/public-seo"
@@ -518,7 +523,7 @@ const Sidebar = React.memo(() => {
               />
             )}
           </ListItemButton>
-           {/* Products */}
+          {/* Products */}
           <ListItemButton
             component={NextLink}
             href="/orders"

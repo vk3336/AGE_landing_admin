@@ -25,6 +25,8 @@ import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PublicIcon from '@mui/icons-material/Public';
 import { usePathname } from "next/navigation";
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
@@ -34,6 +36,7 @@ import Avatar from '@mui/material/Avatar';
 import PersonIcon from '@mui/icons-material/Person';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 // Sidebar context for managing collapse state
 interface SidebarContextType {
@@ -395,7 +398,7 @@ const Sidebar = React.memo(() => {
               justifyContent: 'center',
               display: 'flex'
             }}>
-              <InventoryIcon fontSize="small" />
+              <SearchIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText
@@ -448,7 +451,7 @@ const Sidebar = React.memo(() => {
               justifyContent: 'center',
               display: 'flex'
             }}>
-              <SearchIcon fontSize="small" />
+              <DescriptionIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText
@@ -501,7 +504,7 @@ const Sidebar = React.memo(() => {
               justifyContent: 'center',
               display: 'flex'
             }}>
-              <SearchIcon fontSize="small" />
+              <PublicIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText
@@ -553,7 +556,7 @@ const Sidebar = React.memo(() => {
               justifyContent: 'center',
               display: 'flex'
             }}>
-              <InventoryIcon fontSize="small" />
+              <ShoppingCartIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText

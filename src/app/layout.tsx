@@ -406,7 +406,7 @@ const Sidebar = React.memo(() => {
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText
-                primary="SEO"
+                primary="Product * Location"
                 sx={{
                   '& .MuiTypography-root': {
                     fontSize: '13.5px',

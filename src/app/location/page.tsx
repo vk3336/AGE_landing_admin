@@ -340,11 +340,29 @@ export default function LocationPage() {
     [getFilteredLocations]
   );
 
+  const selectedCountryName = useMemo(() => {
+    if (!form.country) return '';
+    const country = countries.find(c => c._id === form.country);
+    return country?.name || '';
+  }, [form.country, countries]);
+
+  const selectedStateName = useMemo(() => {
+    if (!form.state) return '';
+    const state = states.find(s => s._id === form.state);
+    return state?.name || '';
+  }, [form.state, states]);
+
+  const selectedCityName = useMemo(() => {
+    if (!form.city) return '';
+    const city = cities.find(c => c._id === form.city);
+    return city?.name || '';
+  }, [form.city, cities]);
+
   // Handle location selection from dropdown
   const handleLocationSelect = (value: string | null) => {
     if (!value) return;
 
-    const location = getFilteredLocations().find(loc => loc.name === value);
+    const location = filteredLocationOptions.find(loc => loc.name === value);
     if (location) {
       setForm(prev => ({
         ...prev,
@@ -372,6 +390,56 @@ export default function LocationPage() {
       }));
     }
   };
+
+  useEffect(() => {
+    setForm(prev => {
+      const updates: Partial<FormState> = {};
+
+      if (prev.LocalBusinessJsonLdareaserved !== selectedCityName) {
+        updates.LocalBusinessJsonLdareaserved = selectedCityName;
+      }
+      if (prev.LocalBusinessJsonLdaddressaddressLocality !== selectedCityName) {
+        updates.LocalBusinessJsonLdaddressaddressLocality = selectedCityName;
+      }
+      if (prev.LocalBusinessJsonLdaddressaddressRegion !== selectedStateName) {
+        updates.LocalBusinessJsonLdaddressaddressRegion = selectedStateName;
+      }
+      if (prev.LocalBusinessJsonLdaddressaddressCountry !== selectedCountryName) {
+        updates.LocalBusinessJsonLdaddressaddressCountry = selectedCountryName;
+      }
+      if (prev.LocalBusinessJsonLdaddresspostalCode !== prev.pincode) {
+        updates.LocalBusinessJsonLdaddresspostalCode = prev.pincode;
+      }
+
+      const latitude = prev.LocalBusinessJsonLdgeolatitude;
+      const longitude = prev.LocalBusinessJsonLdgeolongitude;
+      const hasGeo = Boolean(latitude && longitude);
+      const geoJson = hasGeo
+        ? JSON.stringify({
+          '@type': 'GeoCoordinates',
+          latitude,
+          longitude,
+        })
+        : '';
+      const geoType = hasGeo ? 'GeoCoordinates' : '';
+
+      if (prev.LocalBusinessJsonLdgeo !== geoJson) {
+        updates.LocalBusinessJsonLdgeo = geoJson;
+      }
+      if (prev.LocalBusinessJsonLdgeotype !== geoType) {
+        updates.LocalBusinessJsonLdgeotype = geoType;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        ...updates,
+      };
+    });
+  }, [selectedCityName, selectedStateName, selectedCountryName, form.pincode, form.LocalBusinessJsonLdgeolatitude, form.LocalBusinessJsonLdgeolongitude]);
 
   // Helper function to clean form data before submission
   // const cleanFormData = (data: FormState) => {

@@ -78,8 +78,7 @@ const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
 const filterModels = [
-  { name: "About Us", path: "/aboutus" },
-  { name: "Blog", path: "/blog" },
+
 
   { name: "Country", path: "/country" },
   { name: "State", path: "/state" },
@@ -91,7 +90,7 @@ const filterModels = [
   { name: "About Us", path: "/aboutus" },
   { name: "Blog", path: "/blog" },
   { name: "Shofy Users", path: "/shofy-users" },
-  
+
   { name: "Category", path: "/category" },
   { name: "Color", path: "/color" },
   { name: "Contact", path: "/contact" },

@@ -726,6 +726,7 @@ export default function CityPage() {
               
               <Autocomplete
                 id="country-select"
+                onOpen={fetchCountries}
                 options={countries}
                 getOptionLabel={(option) => option.name}
                 value={countries.find(c => c._id === form.country) || null}
@@ -752,6 +753,7 @@ export default function CityPage() {
               />
               
               <Autocomplete
+                onOpen={fetchStates}
                 options={states}
                 getOptionLabel={(option) => {
                   if (typeof option === 'string') return option;
@@ -798,6 +800,7 @@ export default function CityPage() {
               
               <Autocomplete
                 freeSolo
+                onOpen={() => fetchCities(pagination.page, searchTerm)}
                 options={cities.filter(city => {
                   // If no country or state is selected, don't show any suggestions
                   if (!form.country || !form.state) return false;

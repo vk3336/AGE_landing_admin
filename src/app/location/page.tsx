@@ -204,6 +204,70 @@ export default function LocationPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
+  const refreshCountries = useCallback(async () => {
+    try {
+      const res = await apiFetch('/countries');
+      const data = await res.json();
+      let list: Country[] = [];
+      if (data?.status === 'success' && data.data?.countries) {
+        list = data.data.countries;
+      } else if (Array.isArray(data)) {
+        list = data;
+      }
+      setCountries(list);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
+  const refreshStates = useCallback(async () => {
+    try {
+      const res = await apiFetch('/states');
+      const data = await res.json();
+      let list: State[] = [];
+      if (data?.status === 'success' && data.data?.states) {
+        list = data.data.states;
+      } else if (Array.isArray(data)) {
+        list = data;
+      }
+      setStates(list);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
+  const refreshCities = useCallback(async () => {
+    try {
+      const res = await apiFetch('/cities');
+      const data = await res.json();
+      let list: City[] = [];
+      if (data?.status === 'success' && data.data?.cities) {
+        list = data.data.cities;
+      } else if (Array.isArray(data)) {
+        list = data;
+      }
+      setCities(list);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
+  const refreshLocationDetails = useCallback(async () => {
+    try {
+      const res = await apiFetch('/location-details');
+      const data = await res.json();
+      let list: LocationDetailOption[] = [];
+      if (data?.status === 'success' && data.data?.locationDetails) {
+        list = data.data.locationDetails;
+      } else if (Array.isArray(data)) {
+        list = data;
+      }
+      setLocationDetails(list);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
   // View dialog state
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -1137,6 +1201,7 @@ export default function LocationPage() {
                 <Typography variant="h6" gutterBottom>Location Information</Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
                   <Autocomplete
+                    onOpen={refreshCountries}
                     options={Array.isArray(countries) ? countries : []}
                     getOptionLabel={(option) => option?.name || ''}
                     value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
@@ -1154,6 +1219,7 @@ export default function LocationPage() {
                   />
 
                   <Autocomplete
+                    onOpen={() => refreshStates()}
                     options={getFilteredStates()}
                     getOptionLabel={(option) => option?.name || ''}
                     value={getFilteredStates().find(s => s._id === form.state) || null}
@@ -1174,6 +1240,7 @@ export default function LocationPage() {
                   />
 
                   <Autocomplete
+                    onOpen={() => refreshCities()}
                     options={getFilteredCities()}
                     getOptionLabel={(option) => option?.name || ''}
                     value={getFilteredCities().find(c => c._id === form.city) || null}
@@ -1215,6 +1282,7 @@ export default function LocationPage() {
                 <Typography variant="h6" gutterBottom>Basic Information</Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
                   <Autocomplete
+                    onOpen={() => refreshLocationDetails()}
                     options={filteredLocationOptions.map(loc => loc.name)}
                     value={form.name}
                     onChange={handleAutocompleteChange}

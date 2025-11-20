@@ -258,6 +258,17 @@ export default function ProductPage() {
     }
   }, [dropdownFields]);
 
+  const refreshDropdown = useCallback(async (key: string) => {
+    try {
+      const res = await apiFetch(`${API_URL}/${key}`);
+      const data = await res.json();
+      const items: Option[] = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+      setDropdowns(prev => ({ ...prev, [key]: items }));
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
   const fetchProducts = useCallback(async (searchTerm = '') => {
     setProductsLoading(true);
     try {
@@ -1130,6 +1141,7 @@ export default function ProductPage() {
                 return (
                   <Autocomplete
                     key="colors"
+                    onOpen={() => refreshDropdown('color')}
                     multiple
                     options={dropdowns.color || []}
                     getOptionLabel={(option) => {
@@ -1207,6 +1219,7 @@ export default function ProductPage() {
                 <FormControl key={field.key} fullWidth required>
                   <InputLabel>{field.label}</InputLabel>
                   <Select
+                    onOpen={() => refreshDropdown(field.key)}
                     value={form[field.key] || ""}
                     onChange={(e) => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
                     label={field.label}
@@ -2314,4 +2327,4 @@ export default function ProductPage() {
       </Dialog>
     </Box>
   );
-} 
+}

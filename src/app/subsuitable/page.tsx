@@ -306,11 +306,13 @@ export default function SubsuitablePage() {
     setPageAccess(getSubsuitablePagePermission());
   }, [fetchSubsuitables, fetchSuitablefors]);
 
-  const handleOpen = useCallback((subsuitable: Subsuitable | null = null) => {
+  const handleOpen = useCallback(async (subsuitable: Subsuitable | null = null) => {
+    // Refresh suitablefors list to get the latest data
+    await fetchSuitablefors();
     setEditId(subsuitable?._id || null);
     setForm(subsuitable ? { ...subsuitable } : { name: "", suitablefor: [] });
     setOpen(true);
-  }, []);
+  }, [fetchSuitablefors]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -663,4 +665,4 @@ export default function SubsuitablePage() {
       </Dialog>
     </Box>
   );
-} 
+}

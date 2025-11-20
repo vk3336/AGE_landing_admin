@@ -95,7 +95,8 @@ const SubstructureForm = React.memo(({
   submitting, 
   editId, 
   viewOnly,
-  structures
+  structures,
+  onStructureDropdownOpen
 }: {
   open: boolean;
   onClose: () => void;
@@ -106,6 +107,7 @@ const SubstructureForm = React.memo(({
   editId: string | null;
   viewOnly: boolean;
   structures: Structure[];
+  onStructureDropdownOpen: () => void;
 }) => {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const name = e.target.name;
@@ -140,6 +142,41 @@ const SubstructureForm = React.memo(({
       </DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 3 }}>
+          <TextField
+            select
+            label="Structure"
+            name="structure"
+            value={typeof form.structure === 'string' ? form.structure : form.structure?._id || ''}
+            onChange={handleChange}
+            required
+            fullWidth
+            disabled={submitting || viewOnly}
+            InputProps={{ readOnly: viewOnly }}
+            SelectProps={{
+              onOpen: onStructureDropdownOpen,
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '6px',
+                '& fieldset': {
+                  borderColor: 'divider',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          >
+            <MenuItem value="">
+              <em>Select a structure</em>
+            </MenuItem>
+            {structures.map((s) => (
+              <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
+            ))}
+          </TextField>
           <TextField 
             label="Sub Structure Name" 
             name="name" 
@@ -164,38 +201,6 @@ const SubstructureForm = React.memo(({
               },
             }}
           />
-          <TextField
-            select
-            label="Structure"
-            name="structure"
-            value={typeof form.structure === 'string' ? form.structure : form.structure?._id || ''}
-            onChange={handleChange}
-            required
-            fullWidth
-            disabled={submitting || viewOnly}
-            InputProps={{ readOnly: viewOnly }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '6px',
-                '& fieldset': {
-                  borderColor: 'divider',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'primary.main',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
-            }}
-          >
-            <MenuItem value="">
-              <em>Select a structure</em>
-            </MenuItem>
-            {structures.map((s) => (
-              <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-            ))}
-          </TextField>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button 
@@ -586,6 +591,7 @@ export default function SubstructurePage() {
         editId={editId}
         viewOnly={pageAccess === 'only view'}
         structures={structures}
+        onStructureDropdownOpen={fetchStructures}
       />
 
       {/* Delete Confirmation Dialog */}

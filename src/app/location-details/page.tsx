@@ -183,6 +183,36 @@ export default function LocationDetailsPage() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    const refreshCountries = useCallback(async () => {
+        try {
+            const res = await apiFetch("/countries");
+            const json = await res.json();
+            setCountries(extractCollection<Country>(json, "countries"));
+        } catch (error) {
+      console.log("error",error);
+    }
+    }, []);
+
+    const refreshStates = useCallback(async () => {
+        try {
+            const res = await apiFetch("/states");
+            const json = await res.json();
+            setStates(extractCollection<State>(json, "states"));
+        } catch (error) {
+      console.log("error",error);
+    }
+    }, []);
+
+    const refreshCities = useCallback(async () => {
+        try {
+            const res = await apiFetch("/cities");
+            const json = await res.json();
+            setCities(extractCollection<City>(json, "cities"));
+        } catch (error) {
+      console.log("error",error);
+    }
+    }, []);
+
     useEffect(() => {
         setIsClient(true);
         const permission = getPermission();
@@ -531,6 +561,7 @@ export default function LocationDetailsPage() {
                         )}
                         <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" } }}>
                             <Autocomplete
+                                onOpen={refreshCountries}
                                 options={countries}
                                 getOptionLabel={(option) => option.name || ""}
                                 value={countries.find((country) => country._id === form.country) || null}
@@ -547,6 +578,7 @@ export default function LocationDetailsPage() {
                                 )}
                             />
                             <Autocomplete
+                                onOpen={refreshStates}
                                 options={availableStates}
                                 getOptionLabel={(option) => option.name || ""}
                                 value={availableStates.find((state) => state._id === form.state) || null}
@@ -568,6 +600,7 @@ export default function LocationDetailsPage() {
                                 )}
                             />
                             <Autocomplete
+                                onOpen={refreshCities}
                                 options={availableCities}
                                 getOptionLabel={(option) => option.name || ""}
                                 value={availableCities.find((city) => city._id === form.city) || null}

@@ -90,7 +90,8 @@ const SubfinishForm = React.memo(({
   submitting, 
   editId, 
   viewOnly,
-  finishes
+  finishes,
+  onFinishDropdownOpen
 }: {
   open: boolean;
   onClose: () => void;
@@ -101,6 +102,7 @@ const SubfinishForm = React.memo(({
   editId: string | null;
   viewOnly: boolean;
   finishes: Subfinish[];
+  onFinishDropdownOpen: () => void;
 }) => {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -131,6 +133,41 @@ const SubfinishForm = React.memo(({
       </DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 3 }}>
+          <TextField
+            select
+            label="Finish"
+            name="finish"
+            value={typeof form.finish === 'string' ? form.finish : form.finish?._id || ''}
+            onChange={handleChange}
+            required
+            fullWidth
+            disabled={submitting || viewOnly}
+            InputProps={{ readOnly: viewOnly }}
+            SelectProps={{
+              onOpen: onFinishDropdownOpen,
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '6px',
+                '& fieldset': {
+                  borderColor: 'divider',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          >
+            <MenuItem value="">
+              <em>Select a finish</em>
+            </MenuItem>
+            {finishes.map((f) => (
+              <MenuItem key={f._id} value={f._id}>{f.name}</MenuItem>
+            ))}
+          </TextField>
           <TextField 
             label="Sub Finish Name" 
             name="name" 
@@ -155,38 +192,6 @@ const SubfinishForm = React.memo(({
               },
             }}
           />
-          <TextField
-            select
-            label="Finish"
-            name="finish"
-            value={typeof form.finish === 'string' ? form.finish : form.finish?._id || ''}
-            onChange={handleChange}
-            required
-            fullWidth
-            disabled={submitting || viewOnly}
-            InputProps={{ readOnly: viewOnly }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '6px',
-                '& fieldset': {
-                  borderColor: 'divider',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'primary.main',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
-            }}
-          >
-            <MenuItem value="">
-              <em>Select a finish</em>
-            </MenuItem>
-            {finishes.map((f) => (
-              <MenuItem key={f._id} value={f._id}>{f.name}</MenuItem>
-            ))}
-          </TextField>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button 
@@ -271,19 +276,20 @@ export default function SubfinishPage() {
     setPageAccess(getSubfinishPagePermission());
   }, [fetchSubfinishes]);
 
-  useEffect(() => {
-    const fetchFinishes = async () => {
-      try {
-        const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/finish`);
-        const data = await res.json();
-        setFinishes(data.data || []);
-      } catch (error) {
-        console.error('Error fetching finishes:', error);
-        setFinishes([]);
-      }
-    };
-    fetchFinishes();
+  const fetchFinishes = useCallback(async () => {
+    try {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/finish`);
+      const data = await res.json();
+      setFinishes(data.data || []);
+    } catch (error) {
+      console.error('Error fetching finishes:', error);
+      setFinishes([]);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchFinishes();
+  }, [fetchFinishes]);
 
   const handleOpen = useCallback((subfinish: Subfinish | null = null) => {
     setEditId(subfinish?._id || null);
@@ -587,6 +593,7 @@ export default function SubfinishPage() {
         editId={editId}
         viewOnly={pageAccess === 'view'}
         finishes={finishes}
+        onFinishDropdownOpen={fetchFinishes}
       />
 
       {/* Delete Confirmation Dialog */}

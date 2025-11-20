@@ -96,14 +96,17 @@ const filterModels = [
   { name: "Contact", path: "/contact" },
   { name: "Content", path: "/content" },
   { name: "Design", path: "/design" },
-  { name: "Finish", path: "/finish" },
   { name: "Groupcode", path: "/groupcode" },
-  { name: "Motif", path: "/motif" },
-  { name: "Structure", path: "/structure" },
+   { name: "Motif", path: "/motif" },
+  { name: "Finish", path: "/finish" },
+
+ 
   { name: "Subfinish", path: "/subfinish" },
+   { name: "Structure", path: "/structure" },
   { name: "Substructure", path: "/substructure" },
-  { name: "Subsuitable", path: "/subsuitable" },
+  
   { name: "Suitablefor", path: "/suitablefor" },
+  { name: "Subsuitable", path: "/subsuitable" },
   { name: "Vendor", path: "/vendor" },
 ];
 

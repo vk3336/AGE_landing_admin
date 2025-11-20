@@ -464,6 +464,27 @@ function SeoPage() {
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
 
   // Fetch products and locations for dropdowns
+  const refreshProducts = useCallback(async () => {
+    try {
+      const res = await apiFetch(`${API_URL}/product?limit=100`);
+      const data = await res.json();
+      setProducts(data.data || []);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
+  const refreshLocations = useCallback(async () => {
+    try {
+      const res = await apiFetch(`${API_URL}/locations?limit=1000`);
+      const data = await res.json();
+      const locationsData = data.data?.locations || data.data || [];
+      setLocations(locationsData);
+    } catch (error) {
+      console.log("error",error);
+    }
+  }, []);
+
   useEffect(() => {
     // Fetch products
     apiFetch(`${API_URL}/product?limit=100`)
@@ -1323,6 +1344,7 @@ function SeoPage() {
                 return (
                   <Autocomplete
                     key={field.key}
+                    onOpen={refreshProducts}
                     options={products.map((p: Product) => ({ label: p.name, value: p._id, img: p.img }))}
                     getOptionLabel={option => {
                       if (!option) return '';
@@ -2394,6 +2416,7 @@ function SeoPage() {
                 return (
                   <Autocomplete
                     key={field.key}
+                    onOpen={refreshLocations}
                     options={locations}
                     getOptionLabel={(option) => {
                       if (!option) return '';
@@ -2944,4 +2967,4 @@ function SeoPage() {
 import dynamic from 'next/dynamic';
 
 const SeoPageComponent = SeoPage;
-export default dynamic(() => Promise.resolve(SeoPageComponent), { ssr: false }); 
+export default dynamic(() => Promise.resolve(SeoPageComponent), { ssr: false });

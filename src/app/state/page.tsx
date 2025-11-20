@@ -830,6 +830,7 @@ export default function StatePage() {
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             
             <Autocomplete
+              onOpen={fetchCountries}
               options={countries}
               getOptionLabel={(option) => `${option.name} (${option.code})`}
               value={countries.find(c => c._id === form.country) || null}

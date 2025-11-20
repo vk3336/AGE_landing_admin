@@ -205,6 +205,8 @@ export default function ProductPage() {
   const [image1Preview, setImage1Preview] = useState<string | null>(null);
   const [image2Preview, setImage2Preview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [formImgDims, setFormImgDims] = useState<{img?: [number, number], image1?: [number, number], image2?: [number, number]}>({});
+  const [formVideoDims, setFormVideoDims] = useState<[number, number] | undefined>(undefined);
   
   // Helper function to safely get image URL
   const getSafeImageUrl = (img: string | undefined | null): string | null => {
@@ -543,10 +545,19 @@ export default function ProductPage() {
         [imageType]: undefined
       }));
       
-      // Clear the preview
-      if (imageType === 'img') setImagePreview(null);
-      if (imageType === 'image1') setImage1Preview(null);
-      if (imageType === 'image2') setImage2Preview(null);
+      // Clear the preview and dimensions
+      if (imageType === 'img') {
+        setImagePreview(null);
+        setFormImgDims(dims => ({ ...dims, img: undefined }));
+      }
+      if (imageType === 'image1') {
+        setImage1Preview(null);
+        setFormImgDims(dims => ({ ...dims, image1: undefined }));
+      }
+      if (imageType === 'image2') {
+        setImage2Preview(null);
+        setFormImgDims(dims => ({ ...dims, image2: undefined }));
+      }
       
       // Reset the file input
       if (imageType === 'img' && fileInputRef.current) fileInputRef.current.value = '';
@@ -777,8 +788,27 @@ export default function ProductPage() {
         img: selected.img,
         image1: selected.image1,
         image2: selected.image2,
+        altimg1: selected.altimg1 || "",
+        altimg2: selected.altimg2 || "",
+        altimg3: selected.altimg3 || "",
         video: selected.video,
+        altvideo: selected.altvideo || "",
         quantity: selected.quantity !== undefined && selected.quantity !== null ? String(selected.quantity) : "",
+        purchasePrice: selected.purchasePrice !== undefined ? String(selected.purchasePrice) : "",
+        salesPrice: selected.salesPrice !== undefined ? String(selected.salesPrice) : "",
+        productIdentifier: selected.productIdentifier || "",
+        leadtime: selected.leadtime || "",
+        sku: selected.sku || "",
+        popularproduct: selected.popularproduct || false,
+        topratedproduct: selected.topratedproduct || false,
+        landingPageProduct: selected.landingPageProduct || false,
+        shopyProduct: selected.shopyProduct || false,
+        rating_value: selected.rating_value || "",
+        rating_count: selected.rating_count || "",
+        productlocationtitle: selected.productlocationtitle || "",
+        productlocationtagline: selected.productlocationtagline || "",
+        productlocationdescription1: selected.productlocationdescription1 || "",
+        productlocationdescription2: selected.productlocationdescription2 || ""
       });
       setImagePreview(selected.img ? getImageUrl(selected.img) || null : null);
       setImage1Preview(selected.image1 ? getImageUrl(selected.image1) || null : null);
@@ -1047,7 +1077,7 @@ export default function ProductPage() {
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
       >
-        <AppBar position="relative" color="default" elevation={1}>
+        <AppBar sx={{ position: 'relative', bgcolor: '#f8f9fa', color: '#2c3e50', borderBottom: '1px solid #ecf0f1' }}>
           <Toolbar>
             <IconButton
               edge="start"
@@ -1058,7 +1088,7 @@ export default function ProductPage() {
             >
               <ClearIcon />
             </IconButton>
-            <Typography variant="h6" sx={{ flex: 1 }}>
+            <Typography variant="h6" sx={{ ml: 2, flex: 1, fontWeight: 600 }}>
               {editId ? 'Edit' : 'Add'} Product
             </Typography>
             <Button
@@ -1073,382 +1103,757 @@ export default function ProductPage() {
             </Button>
           </Toolbar>
         </AppBar>
-        <DialogContent sx={{ p: 0, '&.MuiDialogContent-root': { overflowY: 'auto' } }}>
-          <Box sx={{ p: 3, '& > *:not(:last-child)': { mb: 2.5 } }}>
-          {/* Product selection dropdown for duplication/quick fill */}
-          <Autocomplete
-            options={products.map((p: Product) => ({ label: p.name, value: p._id }))}
-            getOptionLabel={option => typeof option === 'string' ? option : option.label}
-            onChange={handleProductSelect}
-            renderInput={(params) => (
-              <TextField {...params} label="Copy From Product" placeholder="Type or select to copy..." />
-            )}
-            sx={{ minWidth: 220, mb: 2 }}
-            disabled={pageAccess === 'only view'}
-          />
-            <TextField
-              label="Product Name"
-              value={form.name}
-              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-              fullWidth
-              required
-              helperText="Enter the full name of the product as it should appear on the website"
-              InputProps={{ readOnly: pageAccess === 'only view' }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                }
-              }}
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'grid', gap: 3 }}>
+            {/* Product selection dropdown for duplication/quick fill */}
+            <Autocomplete
+              options={[...products].sort((a, b) => a.name.localeCompare(b.name)).map((p: Product) => ({ label: p.name, value: p._id }))}
+              getOptionLabel={option => typeof option === 'string' ? option : option.label}
+              onChange={handleProductSelect}
+              renderInput={(params) => (
+                <TextField {...params} label="Copy From Product" placeholder="Type or select to copy..." />
+              )}
+              sx={{ minWidth: 220 }}
+              disabled={pageAccess === 'only view'}
             />
-            <TextField
-              label="Slug (URL-friendly name)"
-              value={form.slug || ''}
-              onChange={(e) => setForm(prev => ({ ...prev, slug: e.target.value }))}
-              fullWidth
-              helperText="Leave empty to auto-generate from product name"
-              InputProps={{ 
-                readOnly: pageAccess === 'only view',
-              }}
-              inputProps={{
-                style: { 
-                  textTransform: 'lowercase',
-                },
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  textTransform: 'none',
-                  opacity: 1,
-                }
-              }}
-            />
-            <TextField
-              label="Product Description"
-              value={form.productdescription || ''}
-              onChange={(e) => setForm(prev => ({ ...prev, productdescription: e.target.value }))}
-              fullWidth
-              multiline
-              rows={4}
-              helperText="Provide a detailed description of the product. Include key features, benefits, and any other relevant information."
-              InputProps={{ readOnly: pageAccess === 'only view' }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              inputProps={{
-                style: { 
-                  minHeight: '80px'
-                }
-              }}
-            />
-            
-            {dropdownFields.map((field) => {
-              if (field.key === 'color') {
-                return (
-                  <Autocomplete
-                    key="colors"
-                    onOpen={() => refreshDropdown('color')}
-                    multiple
-                    options={dropdowns.color || []}
-                    getOptionLabel={(option) => {
-                      if (!option) return '';
-                      if (typeof option === 'string') return option;
-                      return option.name || option._id || '';
-                    }}
-                    isOptionEqualToValue={(option, value) => {
-                      if (!option || !value) return false;
-                      const optionId = typeof option === 'string' ? option : option._id;
-                      const valueId = typeof value === 'string' ? value : value._id;
-                      return optionId === valueId;
-                    }}
-                    value={form.colors
-                      .map(colorId => {
-                        if (!colorId) return null;
-                        // Find the color in dropdowns or return the ID as is
-                        const found = (dropdowns.color || []).find(c => c._id === colorId);
-                        return found || colorId;
-                      })
-                      .filter(Boolean)
+
+            {/* Media Section */}
+            <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+              {/* Main Image */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Main Image</Typography>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={<ImageIcon />}
+                  disabled={pageAccess === 'only view'}
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#bdc3c7',
+                    color: '#7f8c8d',
+                    '&:hover': {
+                      borderColor: '#95a5a6',
+                      bgcolor: '#f8f9fa',
                     }
-                    onChange={(_, newValue) => {
-                      const selectedColors = newValue.map(item => {
-                        if (!item) return '';
-                        return typeof item === 'string' ? item : (item._id || '');
-                      }).filter(Boolean);
-                      
-                      setForm(prev => ({
-                        ...prev,
-                        colors: selectedColors
-                      }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        variant="outlined"
-                        label="Colors"
-                        placeholder="Search and select colors..."
-                        sx={{
-                          borderRadius: '8px',
+                  }}
+                >
+                  {imagePreview ? 'Change' : 'Upload'}
+                </Button>
+                {imagePreview && (
+                  <Box>
+                    <Box sx={{ 
+                      position: 'relative',
+                      width: 200,
+                      height: 200,
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '1px solid #e0e0e0',
+                      bgcolor: '#f5f5f5',
+                      mt: 2,
+                      '&:hover .delete-btn': {
+                        opacity: 1
+                      }
+                    }}>
+                      <Image
+                        src={imagePreview}
+                        alt="Preview"
+                        width={200}
+                        height={200}
+                        style={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        onLoad={e => {
+                          const target = e.target as HTMLImageElement;
+                          setFormImgDims(dims => ({ ...dims, img: [target.naturalWidth, target.naturalHeight] }));
                         }}
                       />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => {
-                        if (!option) return null;
-                        const optionId = typeof option === 'string' ? option : (option._id || '');
-                        const optionLabel = typeof option === 'string' ? option : (option.name || option._id || '');
-                        return (
-                          <Chip
-                            {...getTagProps({ index })}
-                            key={optionId}
-                            label={optionLabel}
-                            size="small"
-                            sx={{ 
-                              m: 0.5,
-                              bgcolor: '#f0f0f0',
-                              '& .MuiChip-deleteIcon': {
-                                color: '#666',
-                                '&:hover': {
-                                  color: '#333',
-                                },
-                              },
-                            }}
-                          />
-                        );
-                      })}
-                    disabled={pageAccess === 'only view'}
-                  />
-                );
-              }
-              
-              return (
-                <FormControl key={field.key} fullWidth required>
-                  <InputLabel>{field.label}</InputLabel>
-                  <Select
-                    onOpen={() => refreshDropdown(field.key)}
-                    value={form[field.key] || ""}
-                    onChange={(e) => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                    label={field.label}
-                    sx={{
-                      borderRadius: '8px',
-                    }}
-                    disabled={pageAccess === 'only view'}
-                    endAdornment={
-                      form[field.key] && (
-                        <InputAdornment position="end" sx={{ mr: 1 }}>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setForm(prev => ({ ...prev, [field.key]: '' }));
-                            }}
-                            sx={{ p: 0.5 }}
-                          >
-                            <ClearIcon fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      )
-                    }
-                  >
-                    {dropdowns[field.key]?.map((option: Option, index: number) => (
-                      <MenuItem key={`${field.key}-${option._id}-${index}`} value={option._id}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              );
-            })}
-            
-            <FormControl fullWidth required>
-              <InputLabel>UM</InputLabel>
-              <Select
-                value={form.um || ""}
-                onChange={e => setForm(prev => ({ ...prev, um: e.target.value }))}
-                label="UM"
-                sx={{ borderRadius: '8px' }}
-                disabled={pageAccess === 'only view'}
-                endAdornment={
-                  form.um && (
-                    <InputAdornment position="end" sx={{ mr: 1 }}>
                       <IconButton
+                        className="delete-btn"
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setForm(prev => ({ ...prev, um: '' }));
+                          handleDeleteImage('img');
                         }}
-                        sx={{ p: 0.5 }}
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                          color: 'white',
+                          width: 28,
+                          height: 28,
+                          opacity: 0.8,
+                          transition: 'opacity 0.2s',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                            opacity: 1
+                          },
+                        }}
+                        disabled={pageAccess === 'only view'}
                       >
-                        <ClearIcon fontSize="small" />
+                        <DeleteIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                    </InputAdornment>
-                  )
-                }
-              >
-                {umOptions.map(opt => (
-                  <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Autocomplete
-              freeSolo
-              options={currencyOptions}
-              value={form.currency || ""}
-              onInputChange={(_, value) => setForm(prev => ({ ...prev, currency: value }))}
-              renderInput={(params) => (
-                <TextField {...params} label="Currency" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} disabled={pageAccess === 'only view'} />
-              )}
-              disabled={pageAccess === 'only view'}
-            />
-            <TextField
-              label="GSM"
-              type="number"
-              value={form.gsm || ""}
-              onChange={e => setForm(prev => ({ ...prev, gsm: e.target.value }))}
-              fullWidth
-              helperText="Grams per square meter (fabric weight)"
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-            <TextField
-              label="OZ"
-              type="number"
-              value={form.oz || ""}
-              fullWidth
-              disabled
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-            <TextField
-              label="CM"
-              type="number"
-              value={form.cm || ""}
-              onChange={e => setForm(prev => ({ ...prev, cm: e.target.value }))}
-              fullWidth
-              helperText="Width in centimeters"
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-            <TextField
-              label="INCH"
-              type="number"
-              value={form.inch || ""}
-              fullWidth
-              disabled
-              helperText="Width in inches (auto-calculated from CM)"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-            <TextField
-              label="MOQ (Minimum Order Quantity)"
-              type="number"
-              value={form.quantity || ""}
-              onChange={e => setForm(prev => ({ ...prev, quantity: e.target.value }))}
-              fullWidth
-              helperText="Minimum order quantity required for purchase"
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-            <TextField
-              label="Purchase Price"
-              type="number"
-              value={form.purchasePrice || ""}
-              onChange={e => setForm(prev => ({ ...prev, purchasePrice: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    {form.currency || '₹'}
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              label="Sales Price"
-              type="number"
-              value={form.salesPrice || ""}
-              onChange={e => setForm(prev => ({ ...prev, salesPrice: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    {form.currency || '₹'}
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              label="Product Identifier"
-              value={form.productIdentifier || ""}
-              onChange={e => setForm(prev => ({ ...prev, productIdentifier: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              helperText="Unique identifier for the product"
-            />
-            <TextField
-              label="Lead Time (days)"
-              type="number"
-              value={form.leadtime || ""}
-              onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              helperText="Estimated delivery time in days"
-            />
-            <TextField
-              label="SKU"
-              value={form.sku || ""}
-              onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              helperText="Stock Keeping Unit"
-            />
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={Boolean(form.popularproduct)}
-                    onChange={e => setForm(prev => ({ ...prev, popularproduct: e.target.checked }))}
-                    disabled={pageAccess === 'only view'}
-                  />
-                }
-                label="Popular Product"
+                    </Box>
+                    {formImgDims.img && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                        w: {formImgDims.img[0]} h: {formImgDims.img[1]}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Image 1 */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 1</Typography>
+                <input
+                  type="file"
+                  ref={image1InputRef}
+                  onChange={handleImage1Change}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => image1InputRef.current?.click()}
+                  startIcon={<ImageIcon />}
+                  disabled={pageAccess === 'only view'}
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#bdc3c7',
+                    color: '#7f8c8d',
+                    '&:hover': {
+                      borderColor: '#95a5a6',
+                      bgcolor: '#f8f9fa',
+                    }
+                  }}
+                >
+                  {image1Preview ? 'Change' : 'Upload'}
+                </Button>
+                {image1Preview && (
+                  <Box>
+                    <Box sx={{ 
+                      position: 'relative',
+                      width: 200,
+                      height: 200,
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '1px solid #e0e0e0',
+                      bgcolor: '#f5f5f5',
+                      mt: 2,
+                      '&:hover .delete-btn': {
+                        opacity: 1
+                      }
+                    }}>
+                      <Image
+                        src={image1Preview}
+                        alt="Preview 1"
+                        width={200}
+                        height={200}
+                        style={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        onLoad={e => {
+                          const target = e.target as HTMLImageElement;
+                          setFormImgDims(dims => ({ ...dims, image1: [target.naturalWidth, target.naturalHeight] }));
+                        }}
+                      />
+                      <IconButton
+                        className="delete-btn"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage('image1');
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                          color: 'white',
+                          width: 28,
+                          height: 28,
+                          opacity: 0.8,
+                          transition: 'opacity 0.2s',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                            opacity: 1
+                          },
+                        }}
+                        disabled={pageAccess === 'only view'}
+                      >
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Box>
+                    {formImgDims.image1 && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                        w: {formImgDims.image1[0]} h: {formImgDims.image1[1]}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Image 2 */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 2</Typography>
+                <input
+                  type="file"
+                  ref={image2InputRef}
+                  onChange={handleImage2Change}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => image2InputRef.current?.click()}
+                  startIcon={<ImageIcon />}
+                  disabled={pageAccess === 'only view'}
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#bdc3c7',
+                    color: '#7f8c8d',
+                    '&:hover': {
+                      borderColor: '#95a5a6',
+                      bgcolor: '#f8f9fa',
+                    }
+                  }}
+                >
+                  {image2Preview ? 'Change' : 'Upload'}
+                </Button>
+                {image2Preview && (
+                  <Box>
+                    <Box sx={{ 
+                      position: 'relative',
+                      width: 200,
+                      height: 200,
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '1px solid #e0e0e0',
+                      bgcolor: '#f5f5f5',
+                      mt: 2,
+                      '&:hover .delete-btn': {
+                        opacity: 1
+                      }
+                    }}>
+                      <Image
+                        src={image2Preview}
+                        alt="Preview 2"
+                        width={200}
+                        height={200}
+                        style={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        onLoad={e => {
+                          const target = e.target as HTMLImageElement;
+                          setFormImgDims(dims => ({ ...dims, image2: [target.naturalWidth, target.naturalHeight] }));
+                        }}
+                      />
+                      <IconButton
+                        className="delete-btn"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage('image2');
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                          color: 'white',
+                          width: 28,
+                          height: 28,
+                          opacity: 0.8,
+                          transition: 'opacity 0.2s',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                            opacity: 1
+                          },
+                        }}
+                        disabled={pageAccess === 'only view'}
+                      >
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Box>
+                    {formImgDims.image2 && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                        w: {formImgDims.image2[0]} h: {formImgDims.image2[1]}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Video */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Video</Typography>
+                <input
+                  type="file"
+                  accept="video/mp4"
+                  style={{ display: 'none' }}
+                  ref={videoInputRef}
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setForm(prev => ({ ...prev, video: file }));
+                      setVideoPreview(URL.createObjectURL(file));
+                    }
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => videoInputRef.current?.click()}
+                  startIcon={<ImageIcon />}
+                  disabled={pageAccess === 'only view'}
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#bdc3c7',
+                    color: '#7f8c8d',
+                    '&:hover': {
+                      borderColor: '#95a5a6',
+                      bgcolor: '#f8f9fa',
+                    }
+                  }}
+                >
+                  {videoPreview ? 'Change' : 'Upload'}
+                </Button>
+                {videoPreview && (
+                  <Box sx={{ mt: 2 }}>
+                    <video
+                      src={videoPreview}
+                      controls
+                      style={{ maxWidth: '200px', borderRadius: '8px' }}
+                      onLoadedMetadata={e => {
+                        const target = e.target as HTMLVideoElement;
+                        setFormVideoDims([target.videoWidth, target.videoHeight]);
+                      }}
+                    />
+                    {formVideoDims && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                        w: {formVideoDims[0]} h: {formVideoDims[1]}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            {/* Alternative Media Details */}
+            <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50' }}>
+                Alternative Media Details
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
+                <TextField
+                  label="Alternative Image 1 Text"
+                  value={form.altimg1 || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, altimg1: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Alternative Image 2 Text"
+                  value={form.altimg2 || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, altimg2: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Alternative Image 3 Text"
+                  value={form.altimg3 || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, altimg3: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Video Alt Text"
+                  value={form.altvideo || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, altvideo: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+              </Box>
+            </Box>
+
+            {/* Product name and description */}
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <TextField
+                label="Product Name"
+                value={form.name}
+                onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                fullWidth
+                required
+                InputProps={{ readOnly: pageAccess === 'only view' }}
+                sx={{
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                  }
+                }}
               />
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={Boolean(form.topratedproduct)}
-                    onChange={e => setForm(prev => ({ ...prev, topratedproduct: e.target.checked }))}
-                    disabled={pageAccess === 'only view'}
-                  />
-                }
-                label="Top Rated"
+              <TextField
+                label="Slug (URL-friendly name)"
+                value={form.slug || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, slug: e.target.value }))}
+                fullWidth
+                helperText="Leave empty to auto-generate from product name"
+                InputProps={{ readOnly: pageAccess === 'only view' }}
+                sx={{
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                  }
+                }}
               />
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={Boolean(form.landingPageProduct)}
-                    onChange={e => setForm(prev => ({ ...prev, landingPageProduct: e.target.checked }))}
-                    disabled={pageAccess === 'only view'}
-                  />
-                }
-                label="Landing Page Product"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={Boolean(form.shopyProduct)}
-                    onChange={e => setForm(prev => ({ ...prev, shopyProduct: e.target.checked }))}
-                    disabled={pageAccess === 'only view'}
-                  />
-                }
-                label="Shopy Product"
+              <TextField
+                label="Product Description"
+                value={form.productdescription || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, productdescription: e.target.value }))}
+                fullWidth
+                multiline
+                rows={4}
+                InputProps={{ readOnly: pageAccess === 'only view' }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                  bgcolor: '#f8f9fa',
+                }}
               />
             </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            
+            {/* Details grid */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+              {dropdownFields.filter(field => field.key !== 'motif' && field.key !== 'color').map((field) => {
+                if (field.key === 'color') return null;
+                
+                return (
+                  <FormControl key={field.key} fullWidth required>
+                    <InputLabel>{field.label}</InputLabel>
+                    <Select
+                      onOpen={() => refreshDropdown(field.key)}
+                      value={form[field.key] || ""}
+                      onChange={(e) => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      label={field.label}
+                      sx={{
+                        borderRadius: '8px',
+                      }}
+                      disabled={pageAccess === 'only view'}
+                      endAdornment={
+                        form[field.key] && (
+                          <InputAdornment position="end" sx={{ mr: 1 }}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setForm(prev => ({ ...prev, [field.key]: '' }));
+                              }}
+                              sx={{ p: 0.5 }}
+                            >
+                              <ClearIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                    >
+                      {dropdowns[field.key]?.map((option: Option, index: number) => (
+                        <MenuItem key={`${field.key}-${option._id}-${index}`} value={option._id}>
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                );
+              })}
+
+              {/* Color field with multiple values */}
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                <Autocomplete
+                  onOpen={() => refreshDropdown('color')}
+                  multiple
+                  options={dropdowns.color || []}
+                  getOptionLabel={(option) => {
+                    if (!option) return '';
+                    if (typeof option === 'string') return option;
+                    return option.name || option._id || '';
+                  }}
+                  isOptionEqualToValue={(option, value) => {
+                    if (!option || !value) return false;
+                    const optionId = typeof option === 'string' ? option : option._id;
+                    const valueId = typeof value === 'string' ? value : value._id;
+                    return optionId === valueId;
+                  }}
+                  value={form.colors
+                    .map(colorId => {
+                      if (!colorId) return null;
+                      const found = (dropdowns.color || []).find(c => c._id === colorId);
+                      return found || colorId;
+                    })
+                    .filter(Boolean)
+                  }
+                  onChange={(_, newValue) => {
+                    const selectedColors = newValue.map(item => {
+                      if (!item) return '';
+                      return typeof item === 'string' ? item : (item._id || '');
+                    }).filter(Boolean);
+                    
+                    setForm(prev => ({
+                      ...prev,
+                      colors: selectedColors
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label="Colors"
+                      placeholder="Search and select colors..."
+                      sx={{
+                        borderRadius: '8px',
+                      }}
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      if (!option) return null;
+                      const optionId = typeof option === 'string' ? option : (option._id || '');
+                      const optionLabel = typeof option === 'string' ? option : (option.name || option._id || '');
+                      return (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={optionId}
+                          label={optionLabel}
+                          size="small"
+                          sx={{ 
+                            m: 0.5,
+                            bgcolor: '#f0f8ff',
+                            color: '#2980b9',
+                            fontWeight: 500,
+                          }}
+                        />
+                      );
+                    })}
+                  disabled={pageAccess === 'only view'}
+                />
+              </Box>
+
+              {/* Product Details Section */}
+              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Details</Typography>
+              </Box>
+
+              <FormControl fullWidth>
+                <InputLabel>Motif</InputLabel>
+                <Select
+                  onOpen={() => refreshDropdown('motif')}
+                  value={form.motif || ""}
+                  onChange={(e) => setForm(prev => ({ ...prev, motif: e.target.value }))}
+                  label="Motif"
+                  sx={{ borderRadius: '8px' }}
+                  disabled={pageAccess === 'only view'}
+                  endAdornment={
+                    form.motif && (
+                      <InputAdornment position="end" sx={{ mr: 1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForm(prev => ({ ...prev, motif: '' }));
+                          }}
+                          sx={{ p: 0.5 }}
+                        >
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                >
+                  {dropdowns.motif?.map((option: Option, index: number) => (
+                    <MenuItem key={`motif-${option._id}-${index}`} value={option._id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth required>
+                <InputLabel>UM</InputLabel>
+                <Select
+                  value={form.um || ""}
+                  onChange={e => setForm(prev => ({ ...prev, um: e.target.value }))}
+                  label="UM"
+                  sx={{ borderRadius: '8px' }}
+                  disabled={pageAccess === 'only view'}
+                  endAdornment={
+                    form.um && (
+                      <InputAdornment position="end" sx={{ mr: 1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForm(prev => ({ ...prev, um: '' }));
+                          }}
+                          sx={{ p: 0.5 }}
+                        >
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                >
+                  {umOptions.map(opt => (
+                    <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Pricing & Inventory Section */}
+              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Pricing & Inventory</Typography>
+              </Box>
+
+              <TextField
+                label="Purchase Price"
+                type="number"
+                value={form.purchasePrice || ""}
+                onChange={e => setForm(prev => ({ ...prev, purchasePrice: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {form.currency || '₹'}
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Sales Price"
+                type="number"
+                value={form.salesPrice || ""}
+                onChange={e => setForm(prev => ({ ...prev, salesPrice: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {form.currency || '₹'}
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="MOQ (Minimum Order Quantity)"
+                type="number"
+                value={form.quantity || ""}
+                onChange={e => setForm(prev => ({ ...prev, quantity: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+
+              {/* Product Identification Section */}
+              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Identification</Typography>
+              </Box>
+
+              <TextField
+                label="SKU"
+                value={form.sku || ""}
+                onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Product Identifier"
+                value={form.productIdentifier || ""}
+                onChange={e => setForm(prev => ({ ...prev, productIdentifier: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Lead Time (days)"
+                type="number"
+                value={form.leadtime || ""}
+                onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+
+              {/* Product Flags Section */}
+              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Flags</Typography>
+              </Box>
+
+              <Box sx={{ gridColumn: '1 / -1', display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={Boolean(form.popularproduct)}
+                      onChange={e => setForm(prev => ({ ...prev, popularproduct: e.target.checked }))}
+                      disabled={pageAccess === 'only view'}
+                    />
+                  }
+                  label="Popular Product"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={Boolean(form.topratedproduct)}
+                      onChange={e => setForm(prev => ({ ...prev, topratedproduct: e.target.checked }))}
+                      disabled={pageAccess === 'only view'}
+                    />
+                  }
+                  label="Top Rated"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={Boolean(form.landingPageProduct)}
+                      onChange={e => setForm(prev => ({ ...prev, landingPageProduct: e.target.checked }))}
+                      disabled={pageAccess === 'only view'}
+                    />
+                  }
+                  label="Landing Page Product"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={Boolean(form.shopyProduct)}
+                      onChange={e => setForm(prev => ({ ...prev, shopyProduct: e.target.checked }))}
+                      disabled={pageAccess === 'only view'}
+                    />
+                  }
+                  label="Shopy Product"
+                />
+              </Box>
+
+              {/* Ratings Section */}
+              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Ratings</Typography>
+              </Box>
+
               <TextField
                 label="Rating Value"
                 type="number"
@@ -1463,7 +1868,6 @@ export default function ProductPage() {
                 disabled={pageAccess === 'only view'}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 inputProps={{ min: 0, max: 5, step: 0.1 }}
-                helperText="Rating value (0-5)"
               />
               <TextField
                 label="Rating Count"
@@ -1479,389 +1883,100 @@ export default function ProductPage() {
                 disabled={pageAccess === 'only view'}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 inputProps={{ min: 0 }}
-                helperText="Number of ratings"
+              />
+
+              {/* Additional Product Info */}
+              <Autocomplete
+                freeSolo
+                options={currencyOptions}
+                value={form.currency || ""}
+                onInputChange={(_, value) => setForm(prev => ({ ...prev, currency: value }))}
+                renderInput={(params) => (
+                  <TextField {...params} label="Currency" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} disabled={pageAccess === 'only view'} />
+                )}
+                disabled={pageAccess === 'only view'}
+              />
+              <TextField
+                label="GSM"
+                type="number"
+                value={form.gsm || ""}
+                onChange={e => setForm(prev => ({ ...prev, gsm: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="OZ"
+                type="number"
+                value={form.oz || ""}
+                fullWidth
+                disabled
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="CM"
+                type="number"
+                value={form.cm || ""}
+                onChange={e => setForm(prev => ({ ...prev, cm: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="INCH"
+                type="number"
+                value={form.inch || ""}
+                fullWidth
+                disabled
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
             </Box>
-            <Typography variant="h6" sx={{ mt: 2, mb: 1, color: '#2c3e50', fontWeight: 600 }}>Product Location</Typography>
-            <TextField
-              label="Location Title"
-              value={form.productlocationtitle || ""}
-              onChange={e => setForm(prev => ({ ...prev, productlocationtitle: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
-            />
-            <TextField
-              label="Location Tagline"
-              value={form.productlocationtagline || ""}
-              onChange={e => setForm(prev => ({ ...prev, productlocationtagline: e.target.value }))}
-              fullWidth
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
-            />
-            <TextField
-              label="Location Description 1"
-              value={form.productlocationdescription1 || ""}
-              onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
-              fullWidth
-              multiline
-              rows={2}
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
-            />
-            <TextField
-              label="Location Description 2"
-              value={form.productlocationdescription2 || ""}
-              onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
-              fullWidth
-              multiline
-              rows={2}
-              disabled={pageAccess === 'only view'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, mb: 2 }}
-            />
-            <Box>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => fileInputRef.current?.click()}
-                startIcon={<ImageIcon />}
-                disabled={pageAccess === 'only view'}
-                sx={{
-                  borderRadius: '8px',
-                  borderColor: '#bdc3c7',
-                  color: '#7f8c8d',
-                  '&:hover': {
-                    borderColor: '#95a5a6',
-                    bgcolor: '#f8f9fa',
-                  }
-                }}
-              >
-                {imagePreview ? 'Change Main Image' : 'Upload Main Image'}
-              </Button>
-              <Box sx={{ 
-                mt: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1
-              }}>
-                {imagePreview && (
-                  <Box sx={{ 
-                    position: 'relative',
-                    width: 200,
-                    height: 200,
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    border: '1px solid #e0e0e0',
-                    bgcolor: '#f5f5f5',
-                    '&:hover .delete-btn': {
-                      opacity: 1
-                    }
-                  }}>
-                    <Image
-                      src={imagePreview}
-                      alt="Preview"
-                      width={200}
-                      height={200}
-                      style={{ 
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <IconButton
-                      className="delete-btn"
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteImage('img');
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
-                        color: 'white',
-                        width: 28,
-                        height: 28,
-                        opacity: 0.8,
-                        transition: 'opacity 0.2s',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
-                          opacity: 1
-                        },
-                      }}
-                      disabled={pageAccess === 'only view'}
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                )}
+
+            {/* Product Location Information */}
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                Product Location Information
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 2 }}>
+                <TextField
+                  label="Location Title"
+                  value={form.productlocationtitle || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productlocationtitle: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Location Tagline"
+                  value={form.productlocationtagline || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productlocationtagline: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Location Description 1"
+                  value={form.productlocationdescription1 || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Location Description 2"
+                  value={form.productlocationdescription2 || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
               </Box>
             </Box>
-            <Box>
-              <input
-                type="file"
-                ref={image1InputRef}
-                onChange={handleImage1Change}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => image1InputRef.current?.click()}
-                startIcon={<ImageIcon />}
-                disabled={pageAccess === 'only view'}
-                sx={{
-                  borderRadius: '8px',
-                  borderColor: '#bdc3c7',
-                  color: '#7f8c8d',
-                  '&:hover': {
-                    borderColor: '#95a5a6',
-                    bgcolor: '#f8f9fa',
-                  }
-                }}
-              >
-                {image1Preview ? 'Change Image 1' : 'Upload Image 1'}
-              </Button>
-              <Box sx={{ 
-                mt: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1
-              }}>
-                {image1Preview && (
-                  <Box sx={{ 
-                    position: 'relative',
-                    width: 200,
-                    height: 200,
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    border: '1px solid #e0e0e0',
-                    bgcolor: '#f5f5f5',
-                    '&:hover .delete-btn': {
-                      opacity: 1
-                    }
-                  }}>
-                    <Image
-                      src={image1Preview}
-                      alt="Preview 1"
-                      width={200}
-                      height={200}
-                      style={{ 
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <IconButton
-                      className="delete-btn"
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteImage('image1');
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
-                        color: 'white',
-                        width: 28,
-                        height: 28,
-                        opacity: 0.8,
-                        transition: 'opacity 0.2s',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
-                          opacity: 1
-                        },
-                      }}
-                      disabled={pageAccess === 'only view'}
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-            <Box>
-              <input
-                type="file"
-                ref={image2InputRef}
-                onChange={handleImage2Change}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => image2InputRef.current?.click()}
-                startIcon={<ImageIcon />}
-                disabled={pageAccess === 'only view'}
-                sx={{
-                  borderRadius: '8px',
-                  borderColor: '#bdc3c7',
-                  color: '#7f8c8d',
-                  '&:hover': {
-                    borderColor: '#95a5a6',
-                    bgcolor: '#f8f9fa',
-                  }
-                }}
-              >
-                {image2Preview ? 'Change Image 2' : 'Upload Image 2'}
-              </Button>
-              <Box sx={{ 
-                mt: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1
-              }}>
-                {image2Preview && (
-                  <Box sx={{ 
-                    position: 'relative',
-                    width: 200,
-                    height: 200,
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    border: '1px solid #e0e0e0',
-                    bgcolor: '#f5f5f5',
-                    '&:hover .delete-btn': {
-                      opacity: 1
-                    }
-                  }}>
-                    <Image
-                      src={image2Preview}
-                      alt="Preview 2"
-                      width={200}
-                      height={200}
-                      style={{ 
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <IconButton
-                      className="delete-btn"
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteImage('image2');
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: 'rgba(255, 0, 0, 0.7)',
-                        color: 'white',
-                        width: 28,
-                        height: 28,
-                        opacity: 0.8,
-                        transition: 'opacity 0.2s',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
-                          opacity: 1
-                        },
-                      }}
-                      disabled={pageAccess === 'only view'}
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-            {/* Video upload */}
-            <Box>
-              <input
-                type="file"
-                accept="video/mp4"
-                style={{ display: 'none' }}
-                ref={videoInputRef}
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setForm(prev => ({ ...prev, video: file }));
-                    setVideoPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => videoInputRef.current?.click()}
-                startIcon={<ImageIcon />}
-                disabled={pageAccess === 'only view'}
-                sx={{
-                  borderRadius: '8px',
-                  borderColor: '#bdc3c7',
-                  color: '#7f8c8d',
-                  '&:hover': {
-                    borderColor: '#95a5a6',
-                    bgcolor: '#f8f9fa',
-                  }
-                }}
-              >
-                {videoPreview ? 'Change Video' : 'Upload Video'}
-              </Button>
-              {videoPreview && (
-                <Box sx={{ mt: 2 }}>
-                  <video
-                    src={videoPreview}
-                    controls
-                    style={{ maxWidth: '200px', borderRadius: '8px' }}
-                  />
-                </Box>
-              )}
-            </Box>
-            
-            {/* Alternative Image URLs */}
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>Alternative Image Text</Typography>
-              <TextField
-                label="Alternative Image 1 Text"
-                value={form.altimg1 || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, altimg1: e.target.value }))}
-                fullWidth
-                margin="normal"
-                disabled={pageAccess === 'only view'}
-                helperText="Text for alternative image 1"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="Alternative Image 2 Text"
-                value={form.altimg2 || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, altimg2: e.target.value }))}
-                fullWidth
-                margin="normal"
-                disabled={pageAccess === 'only view'}
-                helperText="Text for alternative image 2"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="Alternative Image 3 Text"
-                value={form.altimg3 || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, altimg3: e.target.value }))}
-                fullWidth
-                margin="normal"
-                disabled={pageAccess === 'only view'}
-                helperText="Text for alternative image 3"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="Video Alt Text"
-                value={form.altvideo || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, altvideo: e.target.value }))}
-                fullWidth
-                margin="normal"
-                disabled={pageAccess === 'only view'}
-                helperText="Alternative text for the video (for accessibility)"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-            </Box>
-            </Box>
+          </Box>
         </DialogContent>
       </Dialog>
 

@@ -406,7 +406,7 @@ export default function StatePage() {
       console.log('Countries API response:', response);
       
       // Handle different response structures
-      let countriesData = [];
+      let countriesData: Country[] = [];
       if (response && response.status === 'success' && response.data && Array.isArray(response.data.countries)) {
         countriesData = response.data.countries;
       } else if (Array.isArray(response)) {
@@ -414,6 +414,9 @@ export default function StatePage() {
       } else if (response && response.data) {
         countriesData = response.data.countries || [];
       }
+      
+      // Sort countries alphabetically by name
+      countriesData.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
       
       console.log('Processed countries data:', countriesData);
       setCountries(countriesData);

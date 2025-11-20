@@ -468,7 +468,10 @@ function SeoPage() {
     try {
       const res = await apiFetch(`${API_URL}/product?limit=100`);
       const data = await res.json();
-      setProducts(data.data || []);
+      const products = data.data || [];
+      // Sort products alphabetically by name
+      products.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
+      setProducts(products);
     } catch (error) {
       console.log("error",error);
     }
@@ -479,6 +482,8 @@ function SeoPage() {
       const res = await apiFetch(`${API_URL}/locations?limit=1000`);
       const data = await res.json();
       const locationsData = data.data?.locations || data.data || [];
+      // Sort locations alphabetically by name
+      locationsData.sort((a: Location, b: Location) => a.name.localeCompare(b.name));
       setLocations(locationsData);
     } catch (error) {
       console.log("error",error);
@@ -489,7 +494,12 @@ function SeoPage() {
     // Fetch products
     apiFetch(`${API_URL}/product?limit=100`)
       .then(res => res.json())
-      .then(data => setProducts(data.data || []));
+      .then(data => {
+        const products = data.data || [];
+        // Sort products alphabetically by name
+        products.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
+        setProducts(products);
+      });
     
     // Fetch locations
     apiFetch(`${API_URL}/locations?limit=1000`)
@@ -497,6 +507,8 @@ function SeoPage() {
       .then(data => {
         // Handle both response formats: { data: { locations: [...] } } and { data: [...] }
         const locationsData = data.data?.locations || data.data || [];
+        // Sort locations alphabetically by name
+        locationsData.sort((a: Location, b: Location) => a.name.localeCompare(b.name));
         setLocations(locationsData);
       })
       .catch(error => {

@@ -250,7 +250,10 @@ export default function ProductPage() {
       const datas = await Promise.all(results.map(r => r.json()));
       const newDropdowns: { [key: string]: Option[] } = {};
       dropdownFields.forEach((f, i) => {
-        newDropdowns[f.key] = datas[i].data || [];
+        const options = datas[i].data || [];
+        // Sort dropdown options alphabetically by name
+        options.sort((a: Option, b: Option) => a.name.localeCompare(b.name));
+        newDropdowns[f.key] = options;
       });
       setDropdowns(newDropdowns);
     } finally {
@@ -263,6 +266,8 @@ export default function ProductPage() {
       const res = await apiFetch(`${API_URL}/${key}`);
       const data = await res.json();
       const items: Option[] = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+      // Sort dropdown options alphabetically by name
+      items.sort((a: Option, b: Option) => a.name.localeCompare(b.name));
       setDropdowns(prev => ({ ...prev, [key]: items }));
     } catch (error) {
       console.log("error",error);

@@ -187,7 +187,10 @@ export default function LocationDetailsPage() {
         try {
             const res = await apiFetch("/countries");
             const json = await res.json();
-            setCountries(extractCollection<Country>(json, "countries"));
+            const countries = extractCollection<Country>(json, "countries");
+            // Sort countries alphabetically by name
+            countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+            setCountries(countries);
         } catch (error) {
       console.log("error",error);
     }
@@ -197,7 +200,10 @@ export default function LocationDetailsPage() {
         try {
             const res = await apiFetch("/states");
             const json = await res.json();
-            setStates(extractCollection<State>(json, "states"));
+            const states = extractCollection<State>(json, "states");
+            // Sort states alphabetically by name
+            states.sort((a: State, b: State) => a.name.localeCompare(b.name));
+            setStates(states);
         } catch (error) {
       console.log("error",error);
     }
@@ -207,7 +213,10 @@ export default function LocationDetailsPage() {
         try {
             const res = await apiFetch("/cities");
             const json = await res.json();
-            setCities(extractCollection<City>(json, "cities"));
+            const cities = extractCollection<City>(json, "cities");
+            // Sort cities alphabetically by name
+            cities.sort((a: City, b: City) => a.name.localeCompare(b.name));
+            setCities(cities);
         } catch (error) {
       console.log("error",error);
     }
@@ -238,9 +247,18 @@ export default function LocationDetailsPage() {
             ]);
 
             setLocationDetails(extractCollection<LocationDetail>(detailsJson, "locationDetails"));
-            setCountries(extractCollection<Country>(countriesJson, "countries"));
-            setStates(extractCollection<State>(statesJson, "states"));
-            setCities(extractCollection<City>(citiesJson, "cities"));
+            const countries = extractCollection<Country>(countriesJson, "countries");
+            // Sort countries alphabetically by name
+            countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+            setCountries(countries);
+            const states = extractCollection<State>(statesJson, "states");
+            // Sort states alphabetically by name
+            states.sort((a: State, b: State) => a.name.localeCompare(b.name));
+            setStates(states);
+            const cities = extractCollection<City>(citiesJson, "cities");
+            // Sort cities alphabetically by name
+            cities.sort((a: City, b: City) => a.name.localeCompare(b.name));
+            setCities(cities);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Failed to load data";
             setError(message);

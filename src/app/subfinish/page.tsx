@@ -280,7 +280,10 @@ export default function SubfinishPage() {
     try {
       const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/finish`);
       const data = await res.json();
-      setFinishes(data.data || []);
+      const finishes = data.data || [];
+      // Sort finishes alphabetically by name
+      finishes.sort((a: Subfinish, b: Subfinish) => a.name.localeCompare(b.name));
+      setFinishes(finishes);
     } catch (error) {
       console.error('Error fetching finishes:', error);
       setFinishes([]);

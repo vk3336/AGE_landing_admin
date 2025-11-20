@@ -214,6 +214,8 @@ export default function LocationPage() {
       } else if (Array.isArray(data)) {
         list = data;
       }
+      // Sort countries alphabetically by name
+      list.sort((a, b) => a.name.localeCompare(b.name));
       setCountries(list);
     } catch (error) {
       console.log("error",error);
@@ -230,6 +232,8 @@ export default function LocationPage() {
       } else if (Array.isArray(data)) {
         list = data;
       }
+      // Sort states alphabetically by name
+      list.sort((a, b) => a.name.localeCompare(b.name));
       setStates(list);
     } catch (error) {
       console.log("error",error);
@@ -246,6 +250,8 @@ export default function LocationPage() {
       } else if (Array.isArray(data)) {
         list = data;
       }
+      // Sort cities alphabetically by name
+      list.sort((a, b) => a.name.localeCompare(b.name));
       setCities(list);
     } catch (error) {
       console.log("error",error);
@@ -335,6 +341,8 @@ export default function LocationPage() {
       } else if (Array.isArray(countriesData)) {
         processedCountries = countriesData;
       }
+      // Sort countries alphabetically by name
+      processedCountries.sort((a, b) => a.name.localeCompare(b.name));
 
       // Process states
       let processedStates: State[] = [];
@@ -343,6 +351,8 @@ export default function LocationPage() {
       } else if (Array.isArray(statesData)) {
         processedStates = statesData;
       }
+      // Sort states alphabetically by name
+      processedStates.sort((a, b) => a.name.localeCompare(b.name));
 
       // Process cities
       let processedCities: City[] = [];
@@ -351,6 +361,8 @@ export default function LocationPage() {
       } else if (Array.isArray(citiesData)) {
         processedCities = citiesData;
       }
+      // Sort cities alphabetically by name
+      processedCities.sort((a, b) => a.name.localeCompare(b.name));
 
       // Process location details
       let processedLocationDetails: LocationDetailOption[] = [];

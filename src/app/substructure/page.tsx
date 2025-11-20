@@ -281,7 +281,10 @@ export default function SubstructurePage() {
     try {
       const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/structure`);
       const data = await res.json();
-      setStructures(data.data || []);
+      const structures = data.data || [];
+      // Sort structures alphabetically by name
+      structures.sort((a: Structure, b: Structure) => a.name.localeCompare(b.name));
+      setStructures(structures);
     } catch (error) {
       console.error("Failed to fetch structures:", error);
     }

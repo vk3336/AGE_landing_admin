@@ -193,6 +193,9 @@ export default function CityPage() {
         countriesData = response;
       }
       
+      // Sort countries alphabetically by name
+      countriesData.sort((a: CountryOption, b: CountryOption) => a.name.localeCompare(b.name));
+      
       setCountries(countriesData);
     } catch (error) {
       console.error('Failed to fetch countries:', error);
@@ -214,6 +217,9 @@ export default function CityPage() {
       } else if (response && response.data) {
         statesData = response.data.states || [];
       }
+      
+      // Sort states alphabetically by name
+      statesData.sort((a: StateOption, b: StateOption) => a.name.localeCompare(b.name));
       
       console.log('Processed states data:', statesData);
       setStates(statesData);

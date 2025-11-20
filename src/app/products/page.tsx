@@ -1935,11 +1935,11 @@ export default function ProductPage() {
             {/* Product Location Information */}
             <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
-                Product Location Information
+                Product Information
               </Typography>
               <Box sx={{ display: 'grid', gap: 2 }}>
                 <TextField
-                  label="Location Title"
+                  label="Title"
                   value={form.productlocationtitle || ""}
                   onChange={e => setForm(prev => ({ ...prev, productlocationtitle: e.target.value }))}
                   fullWidth
@@ -1947,7 +1947,7 @@ export default function ProductPage() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Location Tagline"
+                  label="Tagline"
                   value={form.productlocationtagline || ""}
                   onChange={e => setForm(prev => ({ ...prev, productlocationtagline: e.target.value }))}
                   fullWidth
@@ -1955,7 +1955,7 @@ export default function ProductPage() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Location Description 1"
+                  label="Description 1"
                   value={form.productlocationdescription1 || ""}
                   onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
                   fullWidth
@@ -1965,7 +1965,7 @@ export default function ProductPage() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Location Description 2"
+                  label="Description 2"
                   value={form.productlocationdescription2 || ""}
                   onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
                   fullWidth

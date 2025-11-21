@@ -1529,11 +1529,16 @@ export default function ProductPage() {
                 onChange={(e) => setForm(prev => ({ ...prev, productdescription: e.target.value }))}
                 fullWidth
                 multiline
-                rows={4}
+                minRows={2}
+                maxRows={20}
                 InputProps={{ readOnly: pageAccess === 'only view' }}
                 sx={{ 
                   '& .MuiOutlinedInput-root': { borderRadius: '8px' },
                   bgcolor: '#f8f9fa',
+                  '& .MuiInputBase-inputMultiline': {
+                    overflow: 'auto !important',
+                    resize: 'vertical',
+                  }
                 }}
               />
             </Box>
@@ -1581,6 +1586,41 @@ export default function ProductPage() {
                   </FormControl>
                 );
               })}
+
+              {/* Motif field placed after Groupcode */}
+              <FormControl fullWidth>
+                <InputLabel>Motif</InputLabel>
+                <Select
+                  onOpen={() => refreshDropdown('motif')}
+                  value={form.motif || ""}
+                  onChange={(e) => setForm(prev => ({ ...prev, motif: e.target.value }))}
+                  label="Motif"
+                  sx={{ borderRadius: '8px' }}
+                  disabled={pageAccess === 'only view'}
+                  endAdornment={
+                    form.motif && (
+                      <InputAdornment position="end" sx={{ mr: 1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForm(prev => ({ ...prev, motif: '' }));
+                          }}
+                          sx={{ p: 0.5 }}
+                        >
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                >
+                  {dropdowns.motif?.map((option: Option, index: number) => (
+                    <MenuItem key={`motif-${option._id}-${index}`} value={option._id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               {/* Color field with multiple values */}
               <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
@@ -1653,45 +1693,7 @@ export default function ProductPage() {
                 />
               </Box>
 
-              {/* Product Details Section */}
-              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Details</Typography>
-              </Box>
-
-              <FormControl fullWidth>
-                <InputLabel>Motif</InputLabel>
-                <Select
-                  onOpen={() => refreshDropdown('motif')}
-                  value={form.motif || ""}
-                  onChange={(e) => setForm(prev => ({ ...prev, motif: e.target.value }))}
-                  label="Motif"
-                  sx={{ borderRadius: '8px' }}
-                  disabled={pageAccess === 'only view'}
-                  endAdornment={
-                    form.motif && (
-                      <InputAdornment position="end" sx={{ mr: 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setForm(prev => ({ ...prev, motif: '' }));
-                          }}
-                          sx={{ p: 0.5 }}
-                        >
-                          <ClearIcon fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }
-                >
-                  {dropdowns.motif?.map((option: Option, index: number) => (
-                    <MenuItem key={`motif-${option._id}-${index}`} value={option._id}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
+              {/* UM field */}
               <FormControl fullWidth required>
                 <InputLabel>UM</InputLabel>
                 <Select
@@ -1722,6 +1724,63 @@ export default function ProductPage() {
                   ))}
                 </Select>
               </FormControl>
+
+              {/* Lead Time */}
+              <TextField
+                label="Lead Time (days)"
+                type="number"
+                value={form.leadtime || ""}
+                onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+
+              {/* Currency, GSM, OZ, CM, INCH */}
+              <Autocomplete
+                freeSolo
+                options={currencyOptions}
+                value={form.currency || ""}
+                onInputChange={(_, value) => setForm(prev => ({ ...prev, currency: value }))}
+                renderInput={(params) => (
+                  <TextField {...params} label="Currency" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} disabled={pageAccess === 'only view'} />
+                )}
+                disabled={pageAccess === 'only view'}
+              />
+              <TextField
+                label="GSM"
+                type="number"
+                value={form.gsm || ""}
+                onChange={e => setForm(prev => ({ ...prev, gsm: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="OZ"
+                type="number"
+                value={form.oz || ""}
+                fullWidth
+                disabled
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="CM"
+                type="number"
+                value={form.cm || ""}
+                onChange={e => setForm(prev => ({ ...prev, cm: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="INCH"
+                type="number"
+                value={form.inch || ""}
+                fullWidth
+                disabled
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
 
               {/* Pricing & Inventory Section */}
               <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
@@ -1787,15 +1846,6 @@ export default function ProductPage() {
                 label="Product Identifier"
                 value={form.productIdentifier || ""}
                 onChange={e => setForm(prev => ({ ...prev, productIdentifier: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="Lead Time (days)"
-                type="number"
-                value={form.leadtime || ""}
-                onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
                 fullWidth
                 disabled={pageAccess === 'only view'}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
@@ -1884,58 +1934,12 @@ export default function ProductPage() {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 inputProps={{ min: 0 }}
               />
-
-              {/* Additional Product Info */}
-              <Autocomplete
-                freeSolo
-                options={currencyOptions}
-                value={form.currency || ""}
-                onInputChange={(_, value) => setForm(prev => ({ ...prev, currency: value }))}
-                renderInput={(params) => (
-                  <TextField {...params} label="Currency" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} disabled={pageAccess === 'only view'} />
-                )}
-                disabled={pageAccess === 'only view'}
-              />
-              <TextField
-                label="GSM"
-                type="number"
-                value={form.gsm || ""}
-                onChange={e => setForm(prev => ({ ...prev, gsm: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="OZ"
-                type="number"
-                value={form.oz || ""}
-                fullWidth
-                disabled
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="CM"
-                type="number"
-                value={form.cm || ""}
-                onChange={e => setForm(prev => ({ ...prev, cm: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <TextField
-                label="INCH"
-                type="number"
-                value={form.inch || ""}
-                fullWidth
-                disabled
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
             </Box>
 
             {/* Product Location Information */}
             <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
-                Product Information
+                Catalog Information
               </Typography>
               <Box sx={{ display: 'grid', gap: 2 }}>
                 <TextField
@@ -1960,9 +1964,16 @@ export default function ProductPage() {
                   onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
                   fullWidth
                   multiline
-                  rows={2}
+                  minRows={2}
+                  maxRows={20}
                   disabled={pageAccess === 'only view'}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                    '& .MuiInputBase-inputMultiline': {
+                      overflow: 'auto !important',
+                      resize: 'vertical',
+                    }
+                  }}
                 />
                 <TextField
                   label="Description 2"
@@ -1970,9 +1981,16 @@ export default function ProductPage() {
                   onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
                   fullWidth
                   multiline
-                  rows={2}
+                  minRows={2}
+                  maxRows={20}
                   disabled={pageAccess === 'only view'}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                    '& .MuiInputBase-inputMultiline': {
+                      overflow: 'auto !important',
+                      resize: 'vertical',
+                    }
+                  }}
                 />
               </Box>
             </Box>

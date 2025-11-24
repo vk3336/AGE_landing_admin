@@ -17,39 +17,28 @@ import { apiFetch } from '../../utils/apiFetch';
 
 // Removed unused BaseField and SectionField interfaces
 
-interface StaticSEO {
+interface TopicPageSEO {
   _id?: string;
   // Basic Identification
   name: string;
   slug?: string;
   
   // Standard Meta Tags
-  title?: string;
-  description?: string;
+  meta_title?: string;
+  meta_description?: string;
   keywords?: string;
-  robots?: string;
   canonical_url?: string;
   excerpt?: string;
   description_html?: string;
   
   // HTML Meta Configuration
-  charset?: string;
-  xUaCompatible?: string;
-  viewport?: string;
   contentLanguage?: string;
-  themeColor?: string;
-  mobileWebAppCapable?: string;
-  appleStatusBarStyle?: string;
-  formatDetection?: string;
-  author_name?: string;
   
   // Open Graph
   ogLocale?: string;
-  ogTitle?: string;
-  ogDescription?: string;
+  og_twitter_Title?: string;
+  og_twitter_Description?: string;
   ogType?: string;
-  ogSiteName?: string;
-  ogUrl?: string;
   openGraph?: {
     images?: string[];
     video?: {
@@ -63,9 +52,6 @@ interface StaticSEO {
   
   // Twitter
   twitterCard?: string;
-  twitterSite?: string;
-  twitterTitle?: string;
-  twitterDescription?: string;
   twitter?: {
     image?: string;
     player?: string;
@@ -73,18 +59,8 @@ interface StaticSEO {
     player_height?: number;
   };
   
-  // Internationalization
-  hreflang?: string;
-  
   // JSON-LD
   VideoJsonLd?: string;
-  LogoJsonLd?: string;
-  LogoJsonLdcontext?: string;
-  LogoJsonLdtype?: string;
-  logoJsonLdurl?: string;
-  logoJsonLdwidth?: string;
-  logoJsonLdheight?: string;
-  BreadcrumbJsonLd?: string;
   
   // Status
   status?: 'draft' | 'published' | 'archived';
@@ -97,7 +73,7 @@ interface StaticSEO {
   [key: string]: string | number | boolean | undefined | null | Date | Record<string, unknown> | Array<unknown>;
 }
 
-function getStaticSeoPagePermission() {
+function getTopicPageSeoPermission() {
   // This function will be re-evaluated on the client side
   if (typeof window === 'undefined') return 'no access';
   
@@ -117,11 +93,11 @@ function getStaticSeoPagePermission() {
   return 'no access';
 }
 
-export default function StaticSeoPage() {
-  const [staticSeos, setStaticSeos] = useState<Partial<StaticSEO>[]>([]);
+export default function TopicPageSeoPage() {
+  const [topicPageSeos, setTopicPageSeos] = useState<Partial<TopicPageSEO>[]>([]);
   const [loading, setLoading] = useState(false);
   // Removed unused isSubmitting state
-  const [editingSeo, setEditingSeo] = useState<Partial<StaticSEO> | null>(null);
+  const [editingSeo, setEditingSeo] = useState<Partial<TopicPageSEO> | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,19 +108,19 @@ export default function StaticSeoPage() {
   });
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [viewOpen, setViewOpen] = useState(false);
-  const [selectedSeo, setSelectedSeo] = useState<Partial<StaticSEO> | null>(null);
+  const [selectedSeo, setSelectedSeo] = useState<Partial<TopicPageSEO> | null>(null);
   const [open, setOpen] = useState(false);
   
   // Update page access after component mounts (client-side only)
   useEffect(() => {
-    setPageAccess(getStaticSeoPagePermission());
+    setPageAccess(getTopicPageSeoPermission());
   }, []);
 
-  const STATIC_SEO_FIELDS: Array<{
+  const TOPIC_PAGE_SEO_FIELDS: Array<{
     section?: string;
     key?: string;
     label?: string;
-    type?: 'text' | 'number' | 'textarea' | 'select' | 'color';
+    type?: 'text' | 'number' | 'textarea' | 'select';
     options?: Array<{ value: string; label: string }>;
     placeholder?: string;
     required?: boolean;
@@ -152,29 +128,18 @@ export default function StaticSeoPage() {
     { section: "Basic Info" },
     { key: "name", label: "Name", type: "text", required: true, placeholder: "Enter name" },
     { key: "slug", label: "Slug", type: "text", placeholder: "Enter URL slug" },
-    { key: "title", label: "Title", type: "text", placeholder: "Enter page title" },
-    { key: "description", label: "Description", type: "text", placeholder: "Enter meta description" },
+    { key: "meta_title", label: "Meta Title", type: "text", placeholder: "Enter meta title" },
+    { key: "meta_description", label: "Meta Description", type: "text", placeholder: "Enter meta description" },
     { key: "keywords", label: "Keywords", type: "text", placeholder: "Enter keywords (comma separated)" },
-    { key: "robots", label: "Robots", type: "text", placeholder: "e.g., index, follow" },
     { key: "canonical_url", label: "Canonical URL", type: "text", placeholder: "Enter canonical URL" },
     { key: "excerpt", label: "Excerpt", type: "text", placeholder: "Enter excerpt" },
     { key: "description_html", label: "Description HTML", type: "textarea", placeholder: "Enter HTML description" },
-    { key: "charset", label: "Charset", type: "text", placeholder: "e.g., UTF-8" },
-    { key: "xUaCompatible", label: "X-UA-Compatible", type: "text", placeholder: "e.g., IE=edge" },
-    { key: "viewport", label: "Viewport", type: "text", placeholder: "e.g., width=device-width, initial-scale=1" },
-    { key: "contentLanguage", label: "Content Language", type: "text", placeholder: "e.g., en-US" },
-    { key: "themeColor", label: "Theme Color", type: "text", placeholder: "e.g., #ffffff" },
-    { key: "mobileWebAppCapable", label: "Mobile Web App Capable", type: "text", placeholder: "e.g., yes" },
-    { key: "appleStatusBarStyle", label: "Apple Status Bar Style", type: "text", placeholder: "e.g., black-translucent" },
-    { key: "formatDetection", label: "Format Detection", type: "text", placeholder: "e.g., telephone=no" },
-    { key: "author_name", label: "Author Name", type: "text", placeholder: "Enter author name" },
-    { section: "OpenGraph" },
+    { key: "contentLanguage", label: "Content Language", type: "text", placeholder: "e.g., en" },
+    { section: "OpenGraph & Twitter" },
     { key: "ogLocale", label: "OG Locale", type: "text", placeholder: "e.g., en_US" },
-    { key: "ogTitle", label: "OG Title", type: "text", placeholder: "Enter OpenGraph title" },
-    { key: "ogDescription", label: "OG Description", type: "text", placeholder: "Enter OpenGraph description" },
+    { key: "og_twitter_Title", label: "OG/Twitter Title", type: "text", placeholder: "Enter OpenGraph/Twitter title" },
+    { key: "og_twitter_Description", label: "OG/Twitter Description", type: "text", placeholder: "Enter OpenGraph/Twitter description" },
     { key: "ogType", label: "OG Type", type: "text", placeholder: "e.g., website, article" },
-    { key: "ogSiteName", label: "OG Site Name", type: "text", placeholder: "Enter site name" },
-    { key: "ogUrl", label: "OG URL", type: "text", placeholder: "Enter OpenGraph URL" },
     { key: "openGraph.images[0]", label: "OpenGraph Image URL", type: "text", placeholder: "Enter image URL" },
     { key: "openGraph.video.url", label: "OpenGraph Video URL", type: "text", placeholder: "Enter video URL" },
     { key: "openGraph.video.secure_url", label: "OpenGraph Video Secure URL", type: "text", placeholder: "Enter secure video URL" },
@@ -183,24 +148,12 @@ export default function StaticSeoPage() {
     { key: "openGraph.video.height", label: "OpenGraph Video Height", type: "number", placeholder: "Enter height in pixels" },
     { section: "Twitter" },
     { key: "twitterCard", label: "Twitter Card", type: "text", placeholder: "e.g., summary_large_image" },
-    { key: "twitterSite", label: "Twitter Site", type: "text", placeholder: "@username" },
-    { key: "twitterTitle", label: "Twitter Title", type: "text", placeholder: "Enter Twitter card title" },
-    { key: "twitterDescription", label: "Twitter Description", type: "text", placeholder: "Enter Twitter card description" },
     { key: "twitter.image", label: "Twitter Image URL", type: "text", placeholder: "Enter Twitter card image URL" },
     { key: "twitter.player", label: "Twitter Player URL", type: "text", placeholder: "Enter Twitter player URL" },
     { key: "twitter.player_width", label: "Twitter Player Width", type: "number", placeholder: "Enter player width" },
     { key: "twitter.player_height", label: "Twitter Player Height", type: "number", placeholder: "Enter player height" },
-    { section: "Hreflang" },
-    { key: "hreflang", label: "Hreflang", type: "text", placeholder: "e.g., en-US" },
     { section: "Structured Data" },
     { key: "VideoJsonLd", label: "Video JSON-LD", type: "textarea", placeholder: "Enter Video JSON-LD script" },
-    { key: "LogoJsonLd", label: "Logo JSON-LD", type: "textarea", placeholder: "Enter Logo JSON-LD script" },
-    { key: "LogoJsonLdcontext", label: "Logo JSON-LD @context", type: "text", placeholder: "e.g., https://schema.org" },
-    { key: "LogoJsonLdtype", label: "Logo JSON-LD @type", type: "text", placeholder: "e.g., Organization" },
-    { key: "logoJsonLdurl", label: "Logo URL", type: "text", placeholder: "Enter logo URL" },
-    { key: "logoJsonLdwidth", label: "Logo Width", type: "text", placeholder: "Enter logo width in pixels" },
-    { key: "logoJsonLdheight", label: "Logo Height", type: "text", placeholder: "Enter logo height in pixels" },
-    { key: "BreadcrumbJsonLd", label: "Breadcrumb JSON-LD", type: "textarea", placeholder: "Enter Breadcrumb JSON-LD script" },
     { section: "Status" },
     { 
       key: "status", 
@@ -216,12 +169,12 @@ export default function StaticSeoPage() {
   ];
 
 
-  const fetchStaticSeos = useCallback(async () => {
+  const fetchTopicPageSeos = useCallback(async () => {
     try {
       setLoading(true);
-      const endpoint = `/static-seo?page=${page}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`;
+      const endpoint = `/topicpage-seo?page=${page}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`;
       
-      console.log('Fetching static SEOs from:', endpoint);
+      console.log('Fetching topic page SEOs from:', endpoint);
       const response = await apiFetch(endpoint);
       
       if (!response.ok) {
@@ -230,12 +183,12 @@ export default function StaticSeoPage() {
       }
       
       const data = await response.json();
-      console.log('Received static SEOs data:', data);
+      console.log('Received topic page SEOs data:', data);
       
-      setStaticSeos(data.data || []);
+      setTopicPageSeos(data.data || []);
       setTotalPages(data.pagination?.totalPages || 1);
     } catch (error) {
-      console.error('Error fetching static SEOs:', error);
+      console.error('Error fetching topic page SEOs:', error);
       // You might want to show an error toast/notification to the user here
     } finally {
       setLoading(false);
@@ -243,10 +196,10 @@ export default function StaticSeoPage() {
   }, [page, searchTerm]);
 
   useEffect(() => {
-    fetchStaticSeos();
-  }, [fetchStaticSeos]);
+    fetchTopicPageSeos();
+  }, [fetchTopicPageSeos]);
 
-  const handleOpen = (seo?: Partial<StaticSEO>) => {
+  const handleOpen = (seo?: Partial<TopicPageSEO>) => {
     if (seo) {
       setEditingSeo({ ...seo });
     } else {
@@ -255,7 +208,7 @@ export default function StaticSeoPage() {
     setOpen(true);
   };
 
-  const handleView = (seo: Partial<StaticSEO>) => {
+  const handleView = (seo: Partial<TopicPageSEO>) => {
     setSelectedSeo(seo);
     setViewOpen(true);
   };
@@ -368,8 +321,8 @@ export default function StaticSeoPage() {
 
     setEditingSeo(prev => {
       if (!prev) return prev;
-      // Cast the result to Partial<StaticSEO> since we know the structure matches
-      return updateNestedValue({ ...prev }, name!, value, type) as unknown as Partial<StaticSEO>;
+      // Cast the result to Partial<TopicPageSEO> since we know the structure matches
+      return updateNestedValue({ ...prev }, name!, value, type) as unknown as Partial<TopicPageSEO>;
     });
   };
 
@@ -379,24 +332,24 @@ export default function StaticSeoPage() {
       setLoading(true);
       if (editingSeo?._id) {
         // Update existing
-        await apiFetch(`/static-seo/${editingSeo._id}`, {
+        await apiFetch(`/topicpage-seo/${editingSeo._id}`, {
           method: 'PUT',
           body: JSON.stringify(editingSeo)
         });
-        setSnackbar({ open: true, message: 'Static SEO updated successfully', severity: 'success' });
+        setSnackbar({ open: true, message: 'Topic Page SEO updated successfully', severity: 'success' });
       } else if (editingSeo) {
         // Create new
-        await apiFetch('/static-seo', {
+        await apiFetch('/topicpage-seo', {
           method: 'POST',
           body: JSON.stringify(editingSeo)
         });
-        setSnackbar({ open: true, message: 'Static SEO created successfully', severity: 'success' });
+        setSnackbar({ open: true, message: 'Topic Page SEO created successfully', severity: 'success' });
       }
-      fetchStaticSeos();
+      fetchTopicPageSeos();
       handleClose();
     } catch (error) {
-      console.error('Error saving static SEO:', error);
-      setSnackbar({ open: true, message: 'Failed to save static SEO', severity: 'error' });
+      console.error('Error saving topic page SEO:', error);
+      setSnackbar({ open: true, message: 'Failed to save topic page SEO', severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -408,14 +361,14 @@ export default function StaticSeoPage() {
       return;
     }
 
-    if (window.confirm('Are you sure you want to delete this static SEO entry?')) {
+    if (window.confirm('Are you sure you want to delete this topic page SEO entry?')) {
       try {
-        await apiFetch(`/static-seo/${id}`, { method: 'DELETE' });
-        setSnackbar({ open: true, message: 'Static SEO deleted successfully', severity: 'success' });
-        fetchStaticSeos();
+        await apiFetch(`/topicpage-seo/${id}`, { method: 'DELETE' });
+        setSnackbar({ open: true, message: 'Topic Page SEO deleted successfully', severity: 'success' });
+        fetchTopicPageSeos();
       } catch (error) {
-        console.error('Error deleting static SEO:', error);
-        setSnackbar({ open: true, message: 'Failed to delete static SEO', severity: 'error' });
+        console.error('Error deleting topic page SEO:', error);
+        setSnackbar({ open: true, message: 'Failed to delete topic page SEO', severity: 'error' });
       }
     }
   };
@@ -439,7 +392,7 @@ export default function StaticSeoPage() {
       ) : (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Typography variant="h4">Static SEO Management</Typography>
+            <Typography variant="h4">Topic Page SEO Management</Typography>
             {pageAccess === 'all access' && (
               <Button
                 variant="contained"
@@ -447,7 +400,7 @@ export default function StaticSeoPage() {
                 startIcon={<AddIcon />}
                 onClick={() => handleOpen()}
               >
-                Add New Static SEO
+                Add New Topic Page SEO
               </Button>
             )}
           </Box>
@@ -455,13 +408,13 @@ export default function StaticSeoPage() {
           <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', backgroundColor: 'background.paper', borderRadius: 1, px: 2, py: 1, maxWidth: 400 }}>
             <SearchIcon color="action" sx={{ mr: 1 }} />
             <InputBase
-              placeholder="Search static SEO..."
+              placeholder="Search topic page SEO..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  fetchStaticSeos();
+                  fetchTopicPageSeos();
                 }
               }}
               sx={{ flex: 1 }}
@@ -474,7 +427,7 @@ export default function StaticSeoPage() {
             <TableHead>
               <TableRow sx={{ backgroundColor: 'primary.main' }}>
                 <TableCell sx={{ color: 'common.white', fontWeight: 'bold' }}>Name</TableCell>
-                <TableCell sx={{ color: 'common.white', fontWeight: 'bold' }}>Title</TableCell>
+                <TableCell sx={{ color: 'common.white', fontWeight: 'bold' }}>Meta Title</TableCell>
                 <TableCell sx={{ color: 'common.white', fontWeight: 'bold' }}>Slug</TableCell>
                 <TableCell sx={{ color: 'common.white', fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell align="right" sx={{ color: 'common.white', fontWeight: 'bold' }}>Actions</TableCell>
@@ -487,17 +440,17 @@ export default function StaticSeoPage() {
                     Loading...
                   </TableCell>
                 </TableRow>
-              ) : staticSeos.length === 0 ? (
+              ) : topicPageSeos.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
-                    No static SEO entries found
+                    No topic page SEO entries found
                   </TableCell>
                 </TableRow>
               ) : (
-                staticSeos.map((seo) => (
+                topicPageSeos.map((seo) => (
                   <TableRow key={seo._id}>
                     <TableCell>{seo.name}</TableCell>
-                    <TableCell>{seo.title || '-'}</TableCell>
+                    <TableCell>{seo.meta_title || '-'}</TableCell>
                     <TableCell>{seo.slug || '-'}</TableCell>
                     <TableCell>
                       <Chip
@@ -555,7 +508,7 @@ export default function StaticSeoPage() {
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'primary.main', color: 'white' }}>
             <Typography variant="h6">
-              {editingSeo?._id ? 'Edit Static SEO' : 'Create New Static SEO'}
+              {editingSeo?._id ? 'Edit Topic Page SEO' : 'Create New Topic Page SEO'}
             </Typography>
             <IconButton color="inherit" onClick={handleClose} edge="end">
               <CloseIcon />
@@ -583,7 +536,7 @@ export default function StaticSeoPage() {
                 background: '#555',
               }
             }}>
-              {STATIC_SEO_FIELDS.map((field, index) => {
+              {TOPIC_PAGE_SEO_FIELDS.map((field, index) => {
                 if ('section' in field) {
                   return (
                     <Typography key={`section-${index}`} variant="h6" sx={{ mt: 2, mb: 1, color: 'primary.main' }}>
@@ -775,28 +728,28 @@ export default function StaticSeoPage() {
               </Box>
 
               {/* Meta Tags Section */}
-              {(selectedSeo.title || selectedSeo.description || selectedSeo.keywords) && (
+              {(selectedSeo.meta_title || selectedSeo.meta_description || selectedSeo.keywords) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Meta Tags
                   </Typography>
                   <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
-                    {selectedSeo.title && (
+                    {selectedSeo.meta_title && (
                       <Box>
-                        <Typography variant="subtitle2" color="text.secondary">Title</Typography>
-                        <Typography>{selectedSeo.title}</Typography>
+                        <Typography variant="subtitle2" color="text.secondary">Meta Title</Typography>
+                        <Typography>{String(selectedSeo.meta_title)}</Typography>
                       </Box>
                     )}
-                    {selectedSeo.description && (
+                    {selectedSeo.meta_description && (
                       <Box>
-                        <Typography variant="subtitle2" color="text.secondary">Description</Typography>
-                        <Typography>{selectedSeo.description}</Typography>
+                        <Typography variant="subtitle2" color="text.secondary">Meta Description</Typography>
+                        <Typography>{String(selectedSeo.meta_description)}</Typography>
                       </Box>
                     )}
                     {selectedSeo.keywords && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Keywords</Typography>
-                        <Typography>{selectedSeo.keywords}</Typography>
+                        <Typography>{String(selectedSeo.keywords)}</Typography>
                       </Box>
                     )}
                   </Box>
@@ -804,28 +757,28 @@ export default function StaticSeoPage() {
               )}
 
               {/* Open Graph Section */}
-              {(selectedSeo.ogTitle || selectedSeo.ogDescription || selectedSeo.ogType) && (
+              {(selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.ogType) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Open Graph
                   </Typography>
                   <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
-                    {selectedSeo.ogTitle && (
+                    {selectedSeo.og_twitter_Title && (
                       <Box>
-                        <Typography variant="subtitle2" color="text.secondary">OG Title</Typography>
-                        <Typography>{selectedSeo.ogTitle}</Typography>
+                        <Typography variant="subtitle2" color="text.secondary">OG/Twitter Title</Typography>
+                        <Typography>{String(selectedSeo.og_twitter_Title)}</Typography>
                       </Box>
                     )}
-                    {selectedSeo.ogDescription && (
+                    {selectedSeo.og_twitter_Description && (
                       <Box>
-                        <Typography variant="subtitle2" color="text.secondary">OG Description</Typography>
-                        <Typography>{selectedSeo.ogDescription}</Typography>
+                        <Typography variant="subtitle2" color="text.secondary">OG/Twitter Description</Typography>
+                        <Typography>{String(selectedSeo.og_twitter_Description)}</Typography>
                       </Box>
                     )}
                     {selectedSeo.ogType && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">OG Type</Typography>
-                        <Typography>{selectedSeo.ogType}</Typography>
+                        <Typography>{String(selectedSeo.ogType)}</Typography>
                       </Box>
                     )}
                     {selectedSeo.openGraph?.images?.[0] && (
@@ -843,7 +796,7 @@ export default function StaticSeoPage() {
               )}
 
               {/* Twitter Card Section */}
-              {(selectedSeo.twitterTitle || selectedSeo.twitterDescription || selectedSeo.twitterCard) && (
+              {(selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.twitterCard) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Twitter Card
@@ -852,26 +805,26 @@ export default function StaticSeoPage() {
                     {selectedSeo.twitterCard && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Card Type</Typography>
-                        <Typography>{selectedSeo.twitterCard}</Typography>
+                        <Typography>{String(selectedSeo.twitterCard)}</Typography>
                       </Box>
                     )}
-                    {selectedSeo.twitterTitle && (
+                    {selectedSeo.og_twitter_Title && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Twitter Title</Typography>
-                        <Typography>{selectedSeo.twitterTitle}</Typography>
+                        <Typography>{String(selectedSeo.og_twitter_Title)}</Typography>
                       </Box>
                     )}
-                    {selectedSeo.twitterDescription && (
+                    {selectedSeo.og_twitter_Description && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Twitter Description</Typography>
-                        <Typography>{selectedSeo.twitterDescription}</Typography>
+                        <Typography>{String(selectedSeo.og_twitter_Description)}</Typography>
                       </Box>
                     )}
                     {selectedSeo.twitter?.image && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">Twitter Image</Typography>
                         <Box component="img" 
-                          src={selectedSeo.twitter.image} 
+                          src={String(selectedSeo.twitter.image)} 
                           alt="Twitter Card" 
                           sx={{ maxWidth: '100%', maxHeight: '200px', mt: 1, borderRadius: 1 }}
                         />
@@ -882,7 +835,7 @@ export default function StaticSeoPage() {
               )}
 
               {/* JSON-LD Section */}
-              {(selectedSeo.VideoJsonLd || selectedSeo.LogoJsonLd || selectedSeo.BreadcrumbJsonLd) && (
+              {selectedSeo.VideoJsonLd && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Structured Data
@@ -899,37 +852,7 @@ export default function StaticSeoPage() {
                           maxHeight: '200px',
                           fontSize: '0.8rem'
                         }}>
-                          {selectedSeo.VideoJsonLd}
-                        </Box>
-                      </Box>
-                    )}
-                    {selectedSeo.LogoJsonLd && (
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">Logo JSON-LD</Typography>
-                        <Box component="pre" sx={{ 
-                          bgcolor: 'grey.100', 
-                          p: 2, 
-                          borderRadius: 1,
-                          overflow: 'auto',
-                          maxHeight: '200px',
-                          fontSize: '0.8rem'
-                        }}>
-                          {selectedSeo.LogoJsonLd}
-                        </Box>
-                      </Box>
-                    )}
-                    {selectedSeo.BreadcrumbJsonLd && (
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">Breadcrumb JSON-LD</Typography>
-                        <Box component="pre" sx={{ 
-                          bgcolor: 'grey.100', 
-                          p: 2, 
-                          borderRadius: 1,
-                          overflow: 'auto',
-                          maxHeight: '200px',
-                          fontSize: '0.8rem'
-                        }}>
-                          {selectedSeo.BreadcrumbJsonLd}
+                          {String(selectedSeo.VideoJsonLd)}
                         </Box>
                       </Box>
                     )}

@@ -28,28 +28,9 @@ interface Location {
   country: string | { _id: string; name: string };
   state: string | { _id: string; name: string };
   city: string | { _id: string; name: string };
-  timezone: string;
   language: string;
   latitude?: number;
   longitude?: number;
-  // Local Business JSON-LD fields
-  LocalBusinessJsonLd?: string;
-  LocalBusinessJsonLdtype?: string;
-  LocalBusinessJsonLdcontext?: string;
-  LocalBusinessJsonLdname?: string;
-  LocalBusinessJsonLdtelephone?: string;
-  LocalBusinessJsonLdareaserved?: string;
-  LocalBusinessJsonLdaddress?: string;
-  LocalBusinessJsonLdaddresstype?: string;
-  LocalBusinessJsonLdaddressstreetAddress?: string;
-  LocalBusinessJsonLdaddressaddressLocality?: string;
-  LocalBusinessJsonLdaddressaddressRegion?: string;
-  LocalBusinessJsonLdaddresspostalCode?: string;
-  LocalBusinessJsonLdaddressaddressCountry?: string;
-  LocalBusinessJsonLdgeo?: string;
-  LocalBusinessJsonLdgeotype?: string;
-  LocalBusinessJsonLdgeolatitude?: string;
-  LocalBusinessJsonLdgeolongitude?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -91,26 +72,9 @@ interface FormState {
   country: string;
   state: string;
   city: string;
-  timezone: string;
   language: string;
-  // Local Business JSON-LD fields
-  LocalBusinessJsonLd?: string;
-  LocalBusinessJsonLdtype?: string;
-  LocalBusinessJsonLdcontext?: string;
-  LocalBusinessJsonLdname?: string;
-  LocalBusinessJsonLdtelephone?: string;
-  LocalBusinessJsonLdareaserved?: string;
-  LocalBusinessJsonLdaddress?: string;
-  LocalBusinessJsonLdaddresstype?: string;
-  LocalBusinessJsonLdaddressstreetAddress?: string;
-  LocalBusinessJsonLdaddressaddressLocality?: string;
-  LocalBusinessJsonLdaddressaddressRegion?: string;
-  LocalBusinessJsonLdaddresspostalCode?: string;
-  LocalBusinessJsonLdaddressaddressCountry?: string;
-  LocalBusinessJsonLdgeo?: string;
-  LocalBusinessJsonLdgeotype?: string;
-  LocalBusinessJsonLdgeolatitude?: string;
-  LocalBusinessJsonLdgeolongitude?: string;
+  latitude?: number;
+  longitude?: number;
   country_name?: string;
   state_name?: string;
   city_name?: string;
@@ -147,26 +111,9 @@ export default function LocationPage() {
     country: '',
     state: '',
     city: '',
-    timezone: '',
-    language: '',
-    // Initialize LocalBusinessJsonLd fields
-    LocalBusinessJsonLd: '',
-    LocalBusinessJsonLdtype: '',
-    LocalBusinessJsonLdcontext: '',
-    LocalBusinessJsonLdname: '',
-    LocalBusinessJsonLdtelephone: '',
-    LocalBusinessJsonLdareaserved: '',
-    LocalBusinessJsonLdaddress: '',
-    LocalBusinessJsonLdaddresstype: '',
-    LocalBusinessJsonLdaddressstreetAddress: '',
-    LocalBusinessJsonLdaddressaddressLocality: '',
-    LocalBusinessJsonLdaddressaddressRegion: '',
-    LocalBusinessJsonLdaddresspostalCode: '',
-    LocalBusinessJsonLdaddressaddressCountry: '',
-    LocalBusinessJsonLdgeo: '',
-    LocalBusinessJsonLdgeotype: '',
-    LocalBusinessJsonLdgeolatitude: '',
-    LocalBusinessJsonLdgeolongitude: ''
+    language: 'en',
+    latitude: undefined,
+    longitude: undefined
   });
   const [editId, setEditId] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -199,8 +146,6 @@ export default function LocationPage() {
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [locationDetails, setLocationDetails] = useState<LocationDetailOption[]>([]);
-  const [timezoneSearch, setTimezoneSearch] = useState('');
-  const [languageSearch, setLanguageSearch] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
@@ -416,23 +361,7 @@ export default function LocationPage() {
     [getFilteredLocations]
   );
 
-  const selectedCountryName = useMemo(() => {
-    if (!form.country) return '';
-    const country = countries.find(c => c._id === form.country);
-    return country?.name || '';
-  }, [form.country, countries]);
-
-  const selectedStateName = useMemo(() => {
-    if (!form.state) return '';
-    const state = states.find(s => s._id === form.state);
-    return state?.name || '';
-  }, [form.state, states]);
-
-  const selectedCityName = useMemo(() => {
-    if (!form.city) return '';
-    const city = cities.find(c => c._id === form.city);
-    return city?.name || '';
-  }, [form.city, cities]);
+ 
 
   // Handle location selection from dropdown
   const handleLocationSelect = (value: string | null) => {
@@ -445,8 +374,8 @@ export default function LocationPage() {
         name: location.name,
         slug: location.slug,
         pincode: location.pincode || '',
-        LocalBusinessJsonLdgeolatitude: location.latitude?.toString() || '',
-        LocalBusinessJsonLdgeolongitude: location.longitude?.toString() || ''
+        latitude: location.latitude,
+        longitude: location.longitude
       }));
     }
   };
@@ -461,74 +390,15 @@ export default function LocationPage() {
         name: '',
         slug: '',
         pincode: '',
-        LocalBusinessJsonLdgeolatitude: '',
-        LocalBusinessJsonLdgeolongitude: ''
+        latitude: undefined,
+        longitude: undefined
       }));
     }
   };
 
   useEffect(() => {
-    setForm(prev => {
-      const updates: Partial<FormState> = {};
-
-      if (prev.LocalBusinessJsonLdareaserved !== selectedCityName) {
-        updates.LocalBusinessJsonLdareaserved = selectedCityName;
-      }
-      if (prev.LocalBusinessJsonLdaddressaddressLocality !== selectedCityName) {
-        updates.LocalBusinessJsonLdaddressaddressLocality = selectedCityName;
-      }
-      if (prev.LocalBusinessJsonLdaddressaddressRegion !== selectedStateName) {
-        updates.LocalBusinessJsonLdaddressaddressRegion = selectedStateName;
-      }
-      if (prev.LocalBusinessJsonLdaddressaddressCountry !== selectedCountryName) {
-        updates.LocalBusinessJsonLdaddressaddressCountry = selectedCountryName;
-      }
-      if (prev.LocalBusinessJsonLdaddresspostalCode !== prev.pincode) {
-        updates.LocalBusinessJsonLdaddresspostalCode = prev.pincode;
-      }
-
-      const latitude = prev.LocalBusinessJsonLdgeolatitude;
-      const longitude = prev.LocalBusinessJsonLdgeolongitude;
-      const hasGeo = Boolean(latitude && longitude);
-      const geoJson = hasGeo
-        ? JSON.stringify({
-          '@type': 'GeoCoordinates',
-          latitude,
-          longitude,
-        })
-        : '';
-      const geoType = hasGeo ? 'GeoCoordinates' : '';
-
-      if (prev.LocalBusinessJsonLdgeo !== geoJson) {
-        updates.LocalBusinessJsonLdgeo = geoJson;
-      }
-      if (prev.LocalBusinessJsonLdgeotype !== geoType) {
-        updates.LocalBusinessJsonLdgeotype = geoType;
-      }
-
-      if (Object.keys(updates).length === 0) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        ...updates,
-      };
-    });
-  }, [selectedCityName, selectedStateName, selectedCountryName, form.pincode, form.LocalBusinessJsonLdgeolatitude, form.LocalBusinessJsonLdgeolongitude]);
-
-  // Helper function to clean form data before submission
-  // const cleanFormData = (data: FormState) => {
-  //   return {
-  //     ...data,
-  //     country: data.country || undefined,
-  //     state: data.state || undefined,
-  //     city: data.city || undefined,
-  //     pincode: data.pincode || undefined,
-  //     timezone: data.timezone || undefined,
-  //     language: data.language || undefined
-  //   };
-  // };
+    // This effect is no longer needed as we removed LocalBusinessJsonLd fields
+  }, []);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -576,27 +446,9 @@ export default function LocationPage() {
       if (form.country) requestBody.country = form.country;
       if (form.state) requestBody.state = form.state;
       if (form.city) requestBody.city = form.city;
-      if (form.timezone) requestBody.timezone = form.timezone;
       if (form.language) requestBody.language = form.language;
-
-      // Add LocalBusinessJsonLd fields
-      if (form.LocalBusinessJsonLd !== undefined) requestBody.LocalBusinessJsonLd = form.LocalBusinessJsonLd;
-      if (form.LocalBusinessJsonLdtype !== undefined) requestBody.LocalBusinessJsonLdtype = form.LocalBusinessJsonLdtype;
-      if (form.LocalBusinessJsonLdcontext !== undefined) requestBody.LocalBusinessJsonLdcontext = form.LocalBusinessJsonLdcontext;
-      if (form.LocalBusinessJsonLdname !== undefined) requestBody.LocalBusinessJsonLdname = form.LocalBusinessJsonLdname;
-      if (form.LocalBusinessJsonLdtelephone !== undefined) requestBody.LocalBusinessJsonLdtelephone = form.LocalBusinessJsonLdtelephone;
-      if (form.LocalBusinessJsonLdareaserved !== undefined) requestBody.LocalBusinessJsonLdareaserved = form.LocalBusinessJsonLdareaserved;
-      if (form.LocalBusinessJsonLdaddress !== undefined) requestBody.LocalBusinessJsonLdaddress = form.LocalBusinessJsonLdaddress;
-      if (form.LocalBusinessJsonLdaddresstype !== undefined) requestBody.LocalBusinessJsonLdaddresstype = form.LocalBusinessJsonLdaddresstype;
-      if (form.LocalBusinessJsonLdaddressstreetAddress !== undefined) requestBody.LocalBusinessJsonLdaddressstreetAddress = form.LocalBusinessJsonLdaddressstreetAddress;
-      if (form.LocalBusinessJsonLdaddressaddressLocality !== undefined) requestBody.LocalBusinessJsonLdaddressaddressLocality = form.LocalBusinessJsonLdaddressaddressLocality;
-      if (form.LocalBusinessJsonLdaddressaddressRegion !== undefined) requestBody.LocalBusinessJsonLdaddressaddressRegion = form.LocalBusinessJsonLdaddressaddressRegion;
-      if (form.LocalBusinessJsonLdaddresspostalCode !== undefined) requestBody.LocalBusinessJsonLdaddresspostalCode = form.LocalBusinessJsonLdaddresspostalCode;
-      if (form.LocalBusinessJsonLdaddressaddressCountry !== undefined) requestBody.LocalBusinessJsonLdaddressaddressCountry = form.LocalBusinessJsonLdaddressaddressCountry;
-      if (form.LocalBusinessJsonLdgeo !== undefined) requestBody.LocalBusinessJsonLdgeo = form.LocalBusinessJsonLdgeo;
-      if (form.LocalBusinessJsonLdgeotype !== undefined) requestBody.LocalBusinessJsonLdgeotype = form.LocalBusinessJsonLdgeotype;
-      if (form.LocalBusinessJsonLdgeolatitude !== undefined) requestBody.LocalBusinessJsonLdgeolatitude = form.LocalBusinessJsonLdgeolatitude;
-      if (form.LocalBusinessJsonLdgeolongitude !== undefined) requestBody.LocalBusinessJsonLdgeolongitude = form.LocalBusinessJsonLdgeolongitude;
+      if (form.latitude !== undefined) requestBody.latitude = form.latitude;
+      if (form.longitude !== undefined) requestBody.longitude = form.longitude;
 
       const response = await apiFetch(url, {
         method,
@@ -626,26 +478,9 @@ export default function LocationPage() {
         country: '',
         state: '',
         city: '',
-        timezone: '',
-        language: '',
-        // Reset LocalBusinessJsonLd fields
-        LocalBusinessJsonLd: '',
-        LocalBusinessJsonLdtype: '',
-        LocalBusinessJsonLdcontext: '',
-        LocalBusinessJsonLdname: '',
-        LocalBusinessJsonLdtelephone: '',
-        LocalBusinessJsonLdareaserved: '',
-        LocalBusinessJsonLdaddress: '',
-        LocalBusinessJsonLdaddresstype: '',
-        LocalBusinessJsonLdaddressstreetAddress: '',
-        LocalBusinessJsonLdaddressaddressLocality: '',
-        LocalBusinessJsonLdaddressaddressRegion: '',
-        LocalBusinessJsonLdaddresspostalCode: '',
-        LocalBusinessJsonLdaddressaddressCountry: '',
-        LocalBusinessJsonLdgeo: '',
-        LocalBusinessJsonLdgeotype: '',
-        LocalBusinessJsonLdgeolatitude: '',
-        LocalBusinessJsonLdgeolongitude: ''
+        language: 'en',
+        latitude: undefined,
+        longitude: undefined
       });
       setEditId(null);
       setOpen(false);
@@ -749,26 +584,9 @@ export default function LocationPage() {
       country: countryId,
       state: getId(location.state),
       city: getId(location.city),
-      timezone: location.timezone || '',
-      language: location.language || '',
-      // Set LocalBusinessJsonLd fields
-      LocalBusinessJsonLd: location.LocalBusinessJsonLd || '',
-      LocalBusinessJsonLdtype: location.LocalBusinessJsonLdtype || '',
-      LocalBusinessJsonLdcontext: location.LocalBusinessJsonLdcontext || '',
-      LocalBusinessJsonLdname: location.LocalBusinessJsonLdname || '',
-      LocalBusinessJsonLdtelephone: location.LocalBusinessJsonLdtelephone || '',
-      LocalBusinessJsonLdareaserved: location.LocalBusinessJsonLdareaserved || '',
-      LocalBusinessJsonLdaddress: location.LocalBusinessJsonLdaddress || '',
-      LocalBusinessJsonLdaddresstype: location.LocalBusinessJsonLdaddresstype || '',
-      LocalBusinessJsonLdaddressstreetAddress: location.LocalBusinessJsonLdaddressstreetAddress || '',
-      LocalBusinessJsonLdaddressaddressLocality: location.LocalBusinessJsonLdaddressaddressLocality || '',
-      LocalBusinessJsonLdaddressaddressRegion: location.LocalBusinessJsonLdaddressaddressRegion || '',
-      LocalBusinessJsonLdaddresspostalCode: location.LocalBusinessJsonLdaddresspostalCode || '',
-      LocalBusinessJsonLdaddressaddressCountry: location.LocalBusinessJsonLdaddressaddressCountry || '',
-      LocalBusinessJsonLdgeo: location.LocalBusinessJsonLdgeo || '',
-      LocalBusinessJsonLdgeotype: location.LocalBusinessJsonLdgeotype || '',
-      LocalBusinessJsonLdgeolatitude: location.LocalBusinessJsonLdgeolatitude || '',
-      LocalBusinessJsonLdgeolongitude: location.LocalBusinessJsonLdgeolongitude || '',
+      language: location.language || 'en',
+      latitude: location.latitude,
+      longitude: location.longitude,
       country_name: countryName,
       state_name: getName(location.state),
       city_name: getName(location.city)
@@ -785,70 +603,6 @@ export default function LocationPage() {
   };
 
   // Handle form open/close
-  const allTimezones = [
-    { value: "UTC", label: "UTC" },
-    { value: "Asia/Kolkata", label: "Asia/Kolkata (IST)" },
-    { value: "Asia/Dubai", label: "Asia/Dubai (GST)" },
-    { value: "Asia/Tokyo", label: "Asia/Tokyo (JST)" },
-    { value: "Asia/Shanghai", label: "Asia/Shanghai (CST)" },
-    { value: "Asia/Singapore", label: "Asia/Singapore (SGT)" },
-    { value: "Asia/Seoul", label: "Asia/Seoul (KST)" },
-    { value: "Asia/Jakarta", label: "Asia/Jakarta (WIB)" },
-    { value: "Asia/Bangkok", label: "Asia/Bangkok (ICT)" },
-    { value: "Asia/Karachi", label: "Asia/Karachi (PKT)" },
-    { value: "America/New_York", label: "America/New_York (EST)" },
-    { value: "America/Chicago", label: "America/Chicago (CST)" },
-    { value: "America/Denver", label: "America/Denver (MST)" },
-    { value: "America/Los_Angeles", label: "America/Los_Angeles (PST)" },
-    { value: "Europe/London", label: "Europe/London (GMT)" },
-    { value: "Europe/Paris", label: "Europe/Paris (CET)" },
-    { value: "Europe/Berlin", label: "Europe/Berlin (CET)" },
-    { value: "Australia/Sydney", label: "Australia/Sydney (AEST)" },
-    { value: "Australia/Melbourne", label: "Australia/Melbourne (AEST)" },
-    { value: "Pacific/Auckland", label: "Pacific/Auckland (NZST)" }
-  ];
-
-  const allLanguages = [
-    { code: "en", name: "English" },
-    { code: "hi", name: "Hindi" },
-    { code: "mr", name: "Marathi" },
-    { code: "gu", name: "Gujarati" },
-    { code: "kn", name: "Kannada" },
-    { code: "ml", name: "Malayalam" },
-    { code: "pa", name: "Punjabi" },
-    { code: "or", name: "Oriya" },
-    { code: "as", name: "Assamese" },
-    { code: "ne", name: "Nepali" },
-    { code: "si", name: "Sinhala" },
-    { code: "es", name: "Spanish" },
-    { code: "fr", name: "French" },
-    { code: "de", name: "German" },
-    { code: "zh", name: "Chinese" },
-    { code: "ja", name: "Japanese" },
-    { code: "ru", name: "Russian" },
-    { code: "ar", name: "Arabic" },
-    { code: "pt", name: "Portuguese" },
-    { code: "bn", name: "Bengali" },
-    { code: "te", name: "Telugu" },
-    { code: "ta", name: "Tamil" },
-    { code: "ur", name: "Urdu" },
-    { code: "tr", name: "Turkish" },
-    { code: "ko", name: "Korean" },
-    { code: "it", name: "Italian" },
-    { code: "nl", name: "Dutch" },
-    { code: "th", name: "Thai" }
-  ];
-
-  // Filter timezones and languages based on search
-  const filteredTimezones = allTimezones.filter(tz =>
-    tz.label.toLowerCase().includes(timezoneSearch.toLowerCase())
-  );
-
-  const filteredLanguages = allLanguages.filter(lang =>
-    lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
-    lang.code.toLowerCase().includes(languageSearch.toLowerCase())
-  );
-
   const handleOpen = () => {
     setForm({
       name: '',
@@ -857,26 +611,9 @@ export default function LocationPage() {
       country: '',
       state: '',
       city: '',
-      timezone: 'Asia/Kolkata',
       language: 'en',
-      // Initialize LocalBusinessJsonLd fields
-      LocalBusinessJsonLd: '',
-      LocalBusinessJsonLdtype: '',
-      LocalBusinessJsonLdcontext: '',
-      LocalBusinessJsonLdname: '',
-      LocalBusinessJsonLdtelephone: '',
-      LocalBusinessJsonLdareaserved: '',
-      LocalBusinessJsonLdaddress: '',
-      LocalBusinessJsonLdaddresstype: '',
-      LocalBusinessJsonLdaddressstreetAddress: '',
-      LocalBusinessJsonLdaddressaddressLocality: '',
-      LocalBusinessJsonLdaddressaddressRegion: '',
-      LocalBusinessJsonLdaddresspostalCode: '',
-      LocalBusinessJsonLdaddressaddressCountry: '',
-      LocalBusinessJsonLdgeo: '',
-      LocalBusinessJsonLdgeotype: '',
-      LocalBusinessJsonLdgeolatitude: '',
-      LocalBusinessJsonLdgeolongitude: ''
+      latitude: undefined,
+      longitude: undefined
     });
     setEditId(null);
     setOpen(true);
@@ -1100,7 +837,6 @@ export default function LocationPage() {
                 <TableCell>State</TableCell>
                 <TableCell>Country</TableCell>
                 <TableCell>Pincode</TableCell>
-                <TableCell>Timezone</TableCell>
                 <TableCell>Language</TableCell>
                 <TableCell>Slug</TableCell>
                 <TableCell>Actions</TableCell>
@@ -1112,18 +848,17 @@ export default function LocationPage() {
                   <TableRow key={location._id}>
                     <TableCell>{location.name}</TableCell>
                     <TableCell>{
-                      typeof location.city === 'object' ? location.city?.name : ''
+                      typeof location.city === 'object' && location.city ? location.city.name : ''
                     }</TableCell>
                     <TableCell>{
-                      typeof location.state === 'object' ? location.state?.name : ''
+                      typeof location.state === 'object' && location.state ? location.state.name : ''
                     }</TableCell>
                     <TableCell>{
-                      typeof location.country === 'object' ? location.country.name : ''
+                      typeof location.country === 'object' && location.country ? location.country.name : ''
                     }</TableCell>
-                    <TableCell>{location.pincode}</TableCell>
-                    <TableCell>{location.timezone}</TableCell>
-                    <TableCell>{location.language}</TableCell>
-                    <TableCell>{location.slug}</TableCell>
+                    <TableCell>{location.pincode || ''}</TableCell>
+                    <TableCell>{location.language || ''}</TableCell>
+                    <TableCell>{location.slug || ''}</TableCell>
                     <TableCell>
                       <IconButton
                         onClick={() => handleView(location)}
@@ -1153,7 +888,7 @@ export default function LocationPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={8} align="center">
                     {search ? 'No matching locations found' : 'No locations available'}
                   </TableCell>
                 </TableRow>
@@ -1340,220 +1075,36 @@ export default function LocationPage() {
                     helperText="Auto-generated from name but can be edited"
                   />
 
-                  <Autocomplete
-                    options={filteredTimezones}
-                    getOptionLabel={(option) => option.label}
-                    value={allTimezones.find(tz => tz.value === form.timezone) || null}
-                    onChange={(_, newValue) => {
-                      setForm(prev => ({
-                        ...prev,
-                        timezone: newValue?.value || ''
-                      }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        margin="normal"
-                        label="Timezone"
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimezoneSearch(e.target.value)}
-                        value={timezoneSearch}
-                        fullWidth
-                      />
-                    )}
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Language"
+                    name="language"
+                    value={form.language}
+                    onChange={handleChange}
+                    helperText="Language code (e.g., en, hi, es)"
                   />
 
-                  <Autocomplete
-                    options={filteredLanguages}
-                    getOptionLabel={(option) => `${option.name} (${option.code})`}
-                    value={allLanguages.find(lang => lang.code === form.language) || null}
-                    onChange={(_, newValue) => {
-                      setForm(prev => ({
-                        ...prev,
-                        language: newValue?.code || ''
-                      }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        margin="normal"
-                        label="Language"
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLanguageSearch(e.target.value)}
-                        value={languageSearch}
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Box>
-              </Box>
-
-              {/* LocalBusinessJsonLd Section */}
-              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                <Typography variant="h6" gutterBottom>Local Business JSON-LD</Typography>
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Local Business JSON"
-                  name="LocalBusinessJsonLd"
-                  value={form.LocalBusinessJsonLd || ''}
-                  onChange={handleChange}
-                  multiline
-                  rows={3}
-                  helperText="Raw JSON for Local Business"
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Local Business Type"
-                  name="LocalBusinessJsonLdtype"
-                  value={form.LocalBusinessJsonLdtype || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Context"
-                  name="LocalBusinessJsonLdcontext"
-                  value={form.LocalBusinessJsonLdcontext || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Business Name"
-                  name="LocalBusinessJsonLdname"
-                  value={form.LocalBusinessJsonLdname || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Telephone"
-                  name="LocalBusinessJsonLdtelephone"
-                  value={form.LocalBusinessJsonLdtelephone || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Area Served"
-                  name="LocalBusinessJsonLdareaserved"
-                  value={form.LocalBusinessJsonLdareaserved || ''}
-                  onChange={handleChange}
-                />
-
-                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Address</Typography>
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Address JSON"
-                  name="LocalBusinessJsonLdaddress"
-                  value={form.LocalBusinessJsonLdaddress || ''}
-                  onChange={handleChange}
-                  multiline
-                  rows={3}
-                  helperText="Raw JSON for Address"
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Address Type"
-                  name="LocalBusinessJsonLdaddresstype"
-                  value={form.LocalBusinessJsonLdaddresstype || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Street Address"
-                  name="LocalBusinessJsonLdaddressstreetAddress"
-                  value={form.LocalBusinessJsonLdaddressstreetAddress || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Address Locality"
-                  name="LocalBusinessJsonLdaddressaddressLocality"
-                  value={form.LocalBusinessJsonLdaddressaddressLocality || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Address Region"
-                  name="LocalBusinessJsonLdaddressaddressRegion"
-                  value={form.LocalBusinessJsonLdaddressaddressRegion || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Postal Code"
-                  name="LocalBusinessJsonLdaddresspostalCode"
-                  value={form.LocalBusinessJsonLdaddresspostalCode || ''}
-                  onChange={handleChange}
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Address Country"
-                  name="LocalBusinessJsonLdaddressaddressCountry"
-                  value={form.LocalBusinessJsonLdaddressaddressCountry || ''}
-                  onChange={handleChange}
-                />
-
-                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Geo Coordinates</Typography>
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Geo JSON"
-                  name="LocalBusinessJsonLdgeo"
-                  value={form.LocalBusinessJsonLdgeo || ''}
-                  onChange={handleChange}
-                  multiline
-                  rows={2}
-                  helperText="Raw JSON for Geo Coordinates"
-                />
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Geo Type"
-                  name="LocalBusinessJsonLdgeotype"
-                  value={form.LocalBusinessJsonLdgeotype || ''}
-                  onChange={handleChange}
-                />
-
-                <Box sx={{ display: 'flex', gap: 2 }}>
                   <TextField
                     margin="normal"
                     fullWidth
                     label="Latitude"
-                    name="LocalBusinessJsonLdgeolatitude"
-                    value={form.LocalBusinessJsonLdgeolatitude || ''}
-                    onChange={handleChange}
+                    name="latitude"
+                    type="number"
+                    value={form.latitude || ''}
+                    onChange={(e) => setForm(prev => ({ ...prev, latitude: e.target.value ? Number(e.target.value) : undefined }))}
+                    helperText="Geographic latitude"
                   />
+
                   <TextField
                     margin="normal"
                     fullWidth
                     label="Longitude"
-                    name="LocalBusinessJsonLdgeolongitude"
-                    value={form.LocalBusinessJsonLdgeolongitude || ''}
-                    onChange={handleChange}
+                    name="longitude"
+                    type="number"
+                    value={form.longitude || ''}
+                    onChange={(e) => setForm(prev => ({ ...prev, longitude: e.target.value ? Number(e.target.value) : undefined }))}
+                    helperText="Geographic longitude"
                   />
                 </Box>
               </Box>
@@ -1587,91 +1138,41 @@ export default function LocationPage() {
                   <TableBody>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold', width: '200px' }}>Name</TableCell>
-                      <TableCell>{selectedLocation.name}</TableCell>
+                      <TableCell>{selectedLocation.name || 'N/A'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Slug</TableCell>
-                      <TableCell>{selectedLocation.slug}</TableCell>
+                      <TableCell>{selectedLocation.slug || 'N/A'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
-                      <TableCell>{selectedLocation.pincode}</TableCell>
+                      <TableCell>{selectedLocation.pincode || 'N/A'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
-                      <TableCell>{typeof selectedLocation.country === 'object' ? selectedLocation.country.name : selectedLocation.country}</TableCell>
+                      <TableCell>{typeof selectedLocation.country === 'object' && selectedLocation.country ? selectedLocation.country.name : (selectedLocation.country || 'N/A')}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
-                      <TableCell>{typeof selectedLocation.state === 'object' ? selectedLocation.state.name : selectedLocation.state}</TableCell>
+                      <TableCell>{typeof selectedLocation.state === 'object' && selectedLocation.state ? selectedLocation.state.name : (selectedLocation.state || 'N/A')}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>
-                      <TableCell>{typeof selectedLocation.city === 'object' ? selectedLocation.city.name : selectedLocation.city}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Timezone</TableCell>
-                      <TableCell>{selectedLocation.timezone || 'N/A'}</TableCell>
+                      <TableCell>{typeof selectedLocation.city === 'object' && selectedLocation.city ? selectedLocation.city.name : (selectedLocation.city || 'N/A')}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Language</TableCell>
                       <TableCell>{selectedLocation.language || 'N/A'}</TableCell>
                     </TableRow>
+                    {selectedLocation.latitude && selectedLocation.longitude && (
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Coordinates</TableCell>
+                        <TableCell>{selectedLocation.latitude}, {selectedLocation.longitude}</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
-
-              {selectedLocation.LocalBusinessJsonLdname && (
-                <>
-                  <Typography variant="h6" gutterBottom>Business Information</Typography>
-                  <TableContainer component={Paper}>
-                    <Table size="small">
-                      <TableBody>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold', width: '250px' }}>Business Name</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdname}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Telephone</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdtelephone || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Area Served</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdareaserved || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Street Address</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressstreetAddress || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Locality</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressLocality || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Region</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressRegion || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Postal Code</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddresspostalCode || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
-                          <TableCell>{selectedLocation.LocalBusinessJsonLdaddressaddressCountry || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Geo Coordinates</TableCell>
-                          <TableCell>
-                            {selectedLocation.LocalBusinessJsonLdgeolatitude && selectedLocation.LocalBusinessJsonLdgeolongitude
-                              ? `${selectedLocation.LocalBusinessJsonLdgeolatitude}, ${selectedLocation.LocalBusinessJsonLdgeolongitude}`
-                              : 'N/A'}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </>
-              )}
 
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button

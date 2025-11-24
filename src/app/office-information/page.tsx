@@ -25,10 +25,6 @@ interface OfficeInformation {
   n8nApiKey: string;
   n8nAuthHeader: string;
   n8nAuthScheme: string;
-  gaId: string;
-  clarityId: string;
-  companyLogoUrl: string;
-  microsofttoken: string;
   facebook?: string;
   instagram?: string;
   youtube?: string;
@@ -245,47 +241,7 @@ const ViewOfficeDetails = ({ open, onClose, office }: { open: boolean; onClose: 
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{office.n8nAuthScheme}</Typography>
                 </Box>
               )}
-              {office.gaId && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Google Analytics ID</Typography>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{office.gaId}</Typography>
-                </Box>
-              )}
-              {office.clarityId && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Microsoft Clarity ID</Typography>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{office.clarityId}</Typography>
-                </Box>
-              )}
-              {office.microsofttoken && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Microsoft Token</Typography>
-                  <Typography variant="body2" sx={{ 
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
-                    whiteSpace: 'pre-wrap',
-                    backgroundColor: '#f5f5f5',
-                    p: 2,
-                    borderRadius: 1,
-                    border: '1px solid #eee',
-                    minHeight: '60px'
-                  }}>
-                    {office.microsofttoken}
-                  </Typography>
-                </Box>
-              )}
             </Box>
-            {office.companyLogoUrl && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Company Logo</Typography>
-                <Box 
-                  component="img" 
-                  src={office.companyLogoUrl} 
-                  alt="Company Logo" 
-                  sx={{ maxWidth: '100%', maxHeight: '200px', borderRadius: 1, border: '1px solid #eee' }}
-                />
-              </Box>
-            )}
           </Box>
         </Box>
       </DialogContent>
@@ -389,18 +345,6 @@ const OfficeInfoForm = React.memo(({
             sx={{ gridColumn: '1 / -1' }}
           />
           <TextField label="N8N Auth Header" name="n8nAuthHeader" value={form.n8nAuthHeader} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField 
-            label="Microsoft Token" 
-            name="microsofttoken" 
-            value={form.microsofttoken} 
-            onChange={handleChange} 
-            fullWidth 
-            multiline
-            rows={2}
-            disabled={submitting || viewOnly}
-            sx={{ gridColumn: '1 / -1' }}
-            helperText="Microsoft authentication token"
-          />
           <FormControl fullWidth disabled={submitting || viewOnly}>
             <InputLabel>N8N Auth Scheme</InputLabel>
             <Select
@@ -417,18 +361,6 @@ const OfficeInfoForm = React.memo(({
               <MenuItem value="Basic">Basic</MenuItem>
             </Select>
           </FormControl>
-          <TextField label="Google Analytics ID" name="gaId" value={form.gaId} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Clarity ID" name="clarityId" value={form.clarityId} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField 
-            label="Logo URL" 
-            name="companyLogoUrl" 
-            value={form.companyLogoUrl} 
-            onChange={handleChange} 
-            required 
-            fullWidth 
-            disabled={submitting || viewOnly} 
-            sx={{ gridColumn: '1 / -1' }}
-          />
           <TextField 
             label="Facebook URL" 
             name="facebook" 
@@ -523,11 +455,7 @@ export default function OfficeInfoPage() {
     whatsappNumber: '',
     n8nApiKey: '',
     n8nAuthHeader: '',
-    n8nAuthScheme: 'Bearer',
-    gaId: '',
-    clarityId: '',
-    companyLogoUrl: '',
-    microsofttoken: ''
+    n8nAuthScheme: 'Bearer'
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -581,11 +509,7 @@ export default function OfficeInfoPage() {
       whatsappNumber: '',
       n8nApiKey: '',
       n8nAuthHeader: '',
-      n8nAuthScheme: 'Bearer',
-      gaId: '',
-      clarityId: '',
-      companyLogoUrl: '',
-      microsofttoken: ''
+      n8nAuthScheme: 'Bearer'
     });
     setEditId(null);
     setError(null);

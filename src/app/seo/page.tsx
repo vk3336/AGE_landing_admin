@@ -30,72 +30,10 @@ const SEO_FIELDS = [
     helperText: "Select the physical location of the product"
   },
   { 
-    key: "locationCode", 
-    label: "Location Code", 
-    type: "text",
-    helperText: "Unique code identifying the product's storage location"
-  },
-  { 
-    key: "productdescription", 
-    label: "Product Description", 
-    type: "textarea",
-    helperText: "Detailed description of the product's features and benefits"
-  },
-  { 
     key: "slug", 
     label: "Slug", 
     type: "text",
     helperText: "URL-friendly version of the product name (auto-generated if left blank)"
-  },
-  
-  { section: "Product Location" },
-  { 
-    key: "productlocationtitle", 
-    label: "Title", 
-    type: "text",
-    helperText: "Main heading for the product's location section"
-  },
-  { 
-    key: "productlocationtagline", 
-    label: "Tagline", 
-    type: "text",
-    helperText: "Short, catchy phrase about the product's location"
-  },
-  { 
-    key: "productlocationdescription1", 
-    label: "Description 1", 
-    type: "textarea", 
-    rows: 6,
-    helperText: "First paragraph of the location description (supports HTML formatting)"
-  },
-  { 
-    key: "productlocationdescription2", 
-    label: "Description 2", 
-    type: "textarea", 
-    rows: 6,
-    helperText: "Second paragraph of the location description (supports HTML formatting)"
-  },
-  
-  { section: "Page Meta" },
-  { 
-    key: "title", 
-    label: "Page Title", 
-    type: "text",
-    helperText: "Page title (50-60 characters recommended)",
-    maxLength: 60
-  },
-  { 
-    key: "description", 
-    label: "Meta Description", 
-    type: "textarea",
-    helperText: "Brief page summary (150-160 characters recommended)",
-    maxLength: 160
-  },
-  { 
-    key: "keywords", 
-    label: "Keywords", 
-    type: "text",
-    helperText: "Comma-separated list of relevant keywords"
   },
   { 
     key: "canonical_url", 
@@ -105,38 +43,58 @@ const SEO_FIELDS = [
     disabled: true
   },
   { 
-    key: "robots", 
-    label: "Robots Meta", 
+    key: "excerpt", 
+    label: "Excerpt", 
+    type: "textarea",
+    helperText: "A short summary of the page content"
+  },
+  
+  { section: "Product Location Meta" },
+  { 
+    key: "meta_og_twitter_title_product_location", 
+    label: "OG/Twitter Title (Product Location)", 
     type: "text",
-    helperText: "Search engine indexing instructions (e.g., index,follow or noindex,nofollow)"
+    helperText: "Combined title for OG and Twitter cards for product location"
   },
   { 
-    key: "viewport", 
-    label: "Viewport", 
-    type: "autocomplete",
-    options: [
-      "width=device-width, initial-scale=1",
-      "width=device-width, initial-scale=1, maximum-scale=1",
-      "width=device-width, initial-scale=1, shrink-to-fit=no"
-    ],
-    helperText: "Controls viewport settings for mobile devices",
-    defaultValue: "width=device-width, initial-scale=1"
+    key: "meta_og_twitter_description_product_location", 
+    label: "OG/Twitter Description (Product Location)", 
+    type: "textarea",
+    helperText: "Combined description for OG and Twitter cards for product location"
   },
   { 
-    key: "charset", 
-    label: "Charset", 
-    type: "autocomplete",
-    options: ["UTF-8", "ISO-8859-1", "windows-1252"],
-    helperText: "Character encoding (usually UTF-8)",
-    defaultValue: "UTF-8"
+    key: "productlocationtitle", 
+    label: "Product Location Title", 
+    type: "text",
+    helperText: "Main heading for the product's location section"
   },
   { 
-    key: "xUaCompatible", 
-    label: "X-UA-Compatible", 
-    type: "autocomplete",
-    options: ["IE=edge", "IE=EmulateIE11", "IE=EmulateIE10", "IE=9"],
-    helperText: "Forces IE to use the specified rendering engine",
-    defaultValue: "IE=edge"
+    key: "productlocationtagline", 
+    label: "Product Location Tagline", 
+    type: "text",
+    helperText: "Short, catchy phrase about the product's location"
+  },
+  { 
+    key: "productlocationdescription1", 
+    label: "Product Location Description 1", 
+    type: "textarea", 
+    rows: 6,
+    helperText: "First paragraph of the location description (supports HTML formatting)"
+  },
+  { 
+    key: "productlocationdescription2", 
+    label: "Product Location Description 2", 
+    type: "textarea", 
+    rows: 6,
+    helperText: "Second paragraph of the location description (supports HTML formatting)"
+  },
+  
+  { section: "SEO Keywords" },
+  { 
+    key: "keywords", 
+    label: "Keywords", 
+    type: "text",
+    helperText: "Comma-separated list of relevant keywords"
   },
   { 
     key: "contentLanguage", 
@@ -146,86 +104,8 @@ const SEO_FIELDS = [
     helperText: "Language of the content (e.g., en-US)",
     defaultValue: "en-US"
   },
-  { 
-    key: "themeColor", 
-    label: "Theme Color", 
-    type: "color",
-    helperText: "Color of browser UI elements on mobile devices"
-  },
-  { 
-    key: "mobileWebAppCapable", 
-    label: "Mobile Web App Capable", 
-    type: "text",
-    helperText: "Set to 'yes' to enable full-screen mode on iOS"
-  },
-  { 
-    key: "appleStatusBarStyle", 
-    label: "Apple Status Bar Style", 
-    type: "text",
-    helperText: "Style of iOS status bar (default, black, black-translucent)"
-  },
-  { 
-    key: "formatDetection", 
-    label: "Format Detection", 
-    type: "autocomplete",
-    options: [
-      "telephone=no,date=no,address=no,email=no,url=no",
-      "telephone=yes,date=no,address=no,email=no,url=no",
-      "telephone=no,date=yes,address=no,email=no,url=no",
-      "telephone=no,date=no,address=yes,email=no,url=no"
-    ],
-    helperText: "Controls automatic detection of phone numbers, addresses, etc.",
-    defaultValue: "telephone=no,date=no,address=no,email=no,url=no"
-  },
   
   { section: "OpenGraph" },
-  { 
-    key: "ogTitle", 
-    label: "OG Title", 
-    type: "text",
-    helperText: "Title for social media shares (auto-synced with page title)",
-    maxLength: 60
-  },
-  { 
-    key: "ogDescription", 
-    label: "OG Description", 
-    type: "textarea",
-    helperText: "Description for social media shares (2-4 sentences recommended)",
-    maxLength: 300
-  },
-  { 
-    key: "ogType", 
-    label: "OG Type", 
-    type: "autocomplete",
-    options: [
-      "website",
-      "article",
-      "book",
-      "profile",
-      "music.song",
-      "music.album",
-      "music.playlist",
-      "music.radio_station",
-      "video.movie",
-      "video.episode",
-      "video.tv_show",
-      "video.other"
-    ],
-    helperText: "Type of content (e.g., website, article, product, video)",
-    defaultValue: "website"
-  },
-  { 
-    key: "ogSiteName", 
-    label: "OG Site Name", 
-    type: "text",
-    helperText: "The name of your website or brand"
-  },
-  { 
-    key: "ogUrl", 
-    label: "OG URL", 
-    type: "url",
-    helperText: "The canonical URL of your page"
-  },
   { 
     key: "ogLocale", 
     label: "OG Locale", 
@@ -237,12 +117,6 @@ const SEO_FIELDS = [
     ],
     helperText: "The locale of the content (e.g., en_US, en_GB)",
     defaultValue: "en_US"
-  },
-  { 
-    key: "ogImage", 
-    label: "OG Image URL", 
-    type: "url",
-    helperText: "URL of the image to display when shared (1200x630px recommended)"
   },
   
   { section: "OpenGraph Video" },
@@ -277,41 +151,7 @@ const SEO_FIELDS = [
     helperText: "Height of the video in pixels"
   },
   
-  { section: "Twitter" },
-  { 
-    key: "twitterCard", 
-    label: "Card Type", 
-    type: "autocomplete",
-    options: ["summary", "summary_large_image", "player", "app"],
-    helperText: "Type of Twitter card (summary, summary_large_image, player, or app)",
-    defaultValue: "summary_large_image"
-  },
-  { 
-    key: "twitterSite", 
-    label: "Twitter @username", 
-    type: "text",
-    helperText: "Your Twitter @username (without the @ symbol)"
-  },
-  { 
-    key: "twitterTitle", 
-    label: "Title", 
-    type: "text",
-    helperText: "Title for Twitter card (max 70 characters)",
-    maxLength: 70
-  },
-  { 
-    key: "twitterDescription", 
-    label: "Description", 
-    type: "textarea",
-    helperText: "Description for Twitter card (max 200 characters)",
-    maxLength: 200
-  },
-  { 
-    key: "twitterImage", 
-    label: "Image URL", 
-    type: "url",
-    helperText: "Image to display in Twitter card (1200x628px recommended)"
-  },
+  { section: "Twitter Player" },
   { 
     key: "twitterPlayer", 
     label: "Player URL", 
@@ -337,62 +177,7 @@ const SEO_FIELDS = [
     label: "Video JSON-LD", 
     type: "textarea",
     helperText: "Structured data for video content in JSON-LD format"
-  },
-  
-  { section: "Breadcrumb JSON-LD" },
-  { 
-    key: "BreadcrumbJsonLd", 
-    label: "Breadcrumb JSON-LD", 
-    type: "textarea",
-    helperText: "Structured data for breadcrumb navigation in JSON-LD format"
-  },
-  { 
-    key: "BreadcrumbJsonLdtype", 
-    label: "@type", 
-    type: "autocomplete",
-    options: ["BreadcrumbList", "ItemList", "WebPage"],
-    helperText: "The type of the item (usually BreadcrumbList)",
-    defaultValue: "BreadcrumbList"
-  },
-  { 
-    key: "BreadcrumbJsonLdcontext", 
-    label: "@context", 
-    type: "autocomplete",
-    options: ["https://schema.org"],
-    helperText: "The context for the JSON-LD (usually https://schema.org)",
-    defaultValue: "https://schema.org"
-  },
-  { 
-    key: "BreadcrumbJsonLdname", 
-    label: "Name", 
-    type: "text",
-    helperText: "Name of the breadcrumb list"
-  },
-  { 
-    key: "BreadcrumbJsonLditemListElement", 
-    label: "Item List Element", 
-    type: "textarea",
-    helperText: "Array of breadcrumb items in JSON format"
-  },
-  
-  { section: "Miscellaneous" },
-  { 
-    key: "excerpt", 
-    label: "Excerpt", 
-    type: "textarea",
-    helperText: "A short summary of the page content"
-  },
-  { key: "description_html", label: "Description HTML", type: "textarea" },
-  { key: "rating_value", label: "Rating Value (1-5)", type: "number", min: 0, max: 5 },
-  { key: "rating_count", label: "Rating Count", type: "number", min: 0 },
-  { 
-    key: "hreflang", 
-    label: "Hreflang", 
-    type: "text",
-    helperText: "This field is auto-generated",
-    disabled: true 
-  },
-  { key: "author_name", label: "Author Name", type: "text" }
+  }
 ];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;

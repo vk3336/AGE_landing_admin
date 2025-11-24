@@ -462,7 +462,7 @@ const Sidebar = React.memo(() => {
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText
-                primary="Static SEO"
+                primary="Topic Page SEO"
                 sx={{
                   '& .MuiTypography-root': {
                     fontSize: '13.5px',

@@ -20,7 +20,7 @@ interface Product {
   name: string;
   slug?: string;
   productdescription?: string;
-  img?: string;
+  image3?: string;
   image1?: string;
   image2?: string;
   altimg1?: string;
@@ -31,7 +31,7 @@ interface Product {
   content: string;
   design: string;
   subfinish: string;
-  subsuitable: string;
+  subsuitable: string[];
   vendor: string;
   groupcode: string;
   color: string | string[];
@@ -49,18 +49,18 @@ interface Product {
   purchasePrice?: number | string;
   salesPrice?: number | string;
   productIdentifier?: string;
-  leadtime?: string;
+  leadtime?: string[];
   sku?: string;
-  popularproduct?: boolean;
-  topratedproduct?: boolean;
-  landingPageProduct?: boolean;
-  shopyProduct?: boolean;
   rating_value?: string | number;
   rating_count?: string | number;
-  productlocationtitle?: string;
-  productlocationtagline?: string;
-  productlocationdescription1?: string;
-  productlocationdescription2?: string;
+  productTitle?: string;
+  productTagline?: string;
+  shortProductDescription?: string;
+  fullProductDescription?: string;
+  productTag?: string[];
+  ogType?: string;
+  twitterCard?: string;
+  ogImage_twitterimage?: string;
 }
 
 interface Option { _id: string; name: string; }
@@ -116,7 +116,7 @@ export default function ProductPage() {
     content: string;
     design: string;
     subfinish: string;
-    subsuitable: string;
+    subsuitable: string[];
     vendor: string;
     groupcode: string;
     colors: string[];
@@ -127,7 +127,7 @@ export default function ProductPage() {
     oz?: number | string;
     cm?: number | string;
     inch?: number | string;
-    img?: File | string;
+    image3?: File | string;
     image1?: File | string;
     image2?: File | string;
     altimg1?: string;
@@ -140,18 +140,18 @@ export default function ProductPage() {
     purchasePrice?: number | string;
     salesPrice?: number | string;
     productIdentifier?: string;
-    leadtime?: number | string;
+    leadtime?: string[];
     sku?: string;
-    popularproduct?: boolean;
-    topratedproduct?: boolean;
-    landingPageProduct?: boolean;
-    shopyProduct?: boolean;
     rating_value?: number | string;
     rating_count?: number | string;
-    productlocationtitle?: string;
-    productlocationtagline?: string;
-    productlocationdescription1?: string;
-    productlocationdescription2?: string;
+    productTitle?: string;
+    productTagline?: string;
+    shortProductDescription?: string;
+    fullProductDescription?: string;
+    productTag?: string[];
+    ogType?: string;
+    twitterCard?: string;
+    ogImage_twitterimage?: string;
     [key: string]: string | number | boolean | File | string[] | null | undefined;
   };
 
@@ -164,7 +164,7 @@ export default function ProductPage() {
     content: "",
     design: "",
     subfinish: "",
-    subsuitable: "",
+    subsuitable: [],
     vendor: "",
     groupcode: "",
     colors: [],
@@ -175,7 +175,7 @@ export default function ProductPage() {
     oz: "",
     cm: "",
     inch: "",
-    img: undefined,
+    image3: undefined,
     image1: undefined,
     image2: undefined,
     altimg1: "",
@@ -187,26 +187,33 @@ export default function ProductPage() {
     purchasePrice: "",
     salesPrice: "",
     productIdentifier: "",
-    leadtime: "",
+    leadtime: [],
     sku: "",
-    popularproduct: false,
-    topratedproduct: false,
-    landingPageProduct: false,
-    shopyProduct: false,
     rating_value: "",
     rating_count: "",
-    productlocationtitle: "",
-    productlocationtagline: "",
-    productlocationdescription1: "",
-    productlocationdescription2: "",
+    productTitle: "",
+    productTagline: "",
+    shortProductDescription: "",
+    fullProductDescription: "",
+    productTag: [],
+    ogType: "",
+    twitterCard: "summary_large_image",
+    ogImage_twitterimage: "",
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [image3Preview, setImage3Preview] = useState<string | null>(null);
   const [image1Preview, setImage1Preview] = useState<string | null>(null);
   const [image2Preview, setImage2Preview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [formImgDims, setFormImgDims] = useState<{img?: [number, number], image1?: [number, number], image2?: [number, number]}>({});
+  const [formImgDims, setFormImgDims] = useState<{image3?: [number, number], image1?: [number, number], image2?: [number, number]}>({});
   const [formVideoDims, setFormVideoDims] = useState<[number, number] | undefined>(undefined);
+  
+  // State for subsuitable builder
+  const [subsuitableInput, setSubsuitableInput] = useState({
+    gender: '',
+    clothType: '',
+    number: ''
+  });
   
   // Helper function to safely get image URL
   const getSafeImageUrl = (img: string | undefined | null): string | null => {
@@ -228,7 +235,7 @@ export default function ProductPage() {
     { key: "content", label: "Content" },
     { key: "design", label: "Design" },
     { key: "subfinish", label: "Subfinish" },
-    { key: "subsuitable", label: "Subsuitable" },
+    // subsuitable is now handled separately as a custom component
     { key: "vendor", label: "Vendor" },
     { key: "groupcode", label: "Groupcode" },
     { key: "color", label: "Color" },
@@ -236,7 +243,7 @@ export default function ProductPage() {
     // ...add any other dropdown fields you use
   ], []);
   // Add state for image dimensions
-  const [imgDims, setImgDims] = useState<{img?: [number, number], image1?: [number, number], image2?: [number, number]}>({});
+  const [imgDims, setImgDims] = useState<{image3?: [number, number], image1?: [number, number], image2?: [number, number]}>({});
   // Add state for video dimensions
   const [videoDims, setVideoDims] = useState<[number, number] | undefined>(undefined);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -374,6 +381,30 @@ export default function ProductPage() {
           colors = [(product.color as ColorObject)._id];
         }
       }
+
+      // Handle subsuitable - ensure we always have an array
+      let subsuitable: string[] = [];
+      if (product.subsuitable) {
+        if (Array.isArray(product.subsuitable)) {
+          subsuitable = product.subsuitable.filter(Boolean) as string[];
+        }
+      }
+
+      // Handle leadtime - ensure we always have an array
+      let leadtime: string[] = [];
+      if (product.leadtime) {
+        if (Array.isArray(product.leadtime)) {
+          leadtime = product.leadtime.filter(Boolean) as string[];
+        }
+      }
+
+      // Handle productTag - ensure we always have an array
+      let productTag: string[] = [];
+      if (product.productTag) {
+        if (Array.isArray(product.productTag)) {
+          productTag = product.productTag.filter(Boolean) as string[];
+        }
+      }
       
       // Generate slug from name if not exists
       const slug = product.slug || generateSlug(product.name);
@@ -387,7 +418,7 @@ export default function ProductPage() {
         content: getFieldValue(product.content),
         design: getFieldValue(product.design),
         subfinish: getFieldValue(product.subfinish),
-        subsuitable: getFieldValue(product.subsuitable),
+        subsuitable: subsuitable,
         vendor: getFieldValue(product.vendor),
         groupcode: getFieldValue(product.groupcode),
         colors: colors,
@@ -398,7 +429,7 @@ export default function ProductPage() {
         oz: product.oz !== undefined && product.oz !== null ? String(product.oz) : "",
         cm: product.cm !== undefined && product.cm !== null ? String(product.cm) : "",
         inch: product.inch !== undefined && product.inch !== null ? String(product.inch) : "",
-        img: product.img,
+        image3: product.image3,
         image1: product.image1,
         image2: product.image2,
         altimg1: product.altimg1 || "",
@@ -410,24 +441,24 @@ export default function ProductPage() {
         purchasePrice: product.purchasePrice !== undefined ? String(product.purchasePrice) : "",
         salesPrice: product.salesPrice !== undefined ? String(product.salesPrice) : "",
         productIdentifier: product.productIdentifier || "",
-        leadtime: product.leadtime || "",
+        leadtime: leadtime,
         sku: product.sku || "",
-        popularproduct: product.popularproduct || false,
-        topratedproduct: product.topratedproduct || false,
-        landingPageProduct: product.landingPageProduct || false,
-        shopyProduct: product.shopyProduct || false,
         rating_value: product.rating_value || "",
         rating_count: product.rating_count || "",
-        productlocationtitle: product.productlocationtitle || "",
-        productlocationtagline: product.productlocationtagline || "",
-        productlocationdescription1: product.productlocationdescription1 || "",
-        productlocationdescription2: product.productlocationdescription2 || ""
+        productTitle: product.productTitle || "",
+        productTagline: product.productTagline || "",
+        shortProductDescription: product.shortProductDescription || "",
+        fullProductDescription: product.fullProductDescription || "",
+        productTag: productTag,
+        ogType: product.ogType || "",
+        twitterCard: product.twitterCard || "summary_large_image",
+        ogImage_twitterimage: product.ogImage_twitterimage || ""
       };
       
       console.log('Form data to be set:', formData); // Debug log
       setForm(formData);
       setEditId(product._id || null);
-      setImagePreview(getSafeImageUrl(product.img));
+      setImage3Preview(getSafeImageUrl(product.image3));
       setImage1Preview(getSafeImageUrl(product.image1));
       setImage2Preview(getSafeImageUrl(product.image2));
       setVideoPreview(getSafeImageUrl(product.video));
@@ -439,7 +470,7 @@ export default function ProductPage() {
         content: "",
         design: "",
         subfinish: "",
-        subsuitable: "",
+        subsuitable: [],
         vendor: "",
         groupcode: "",
         colors: [],
@@ -450,28 +481,29 @@ export default function ProductPage() {
         oz: "",
         cm: "",
         inch: "",
-        img: undefined,
+        image3: undefined,
         image1: undefined,
         image2: undefined,
         video: undefined,
         quantity: "",
       });
       setEditId(null);
-      setImagePreview(null);
+      setImage3Preview(null);
       setImage1Preview(null);
       setImage2Preview(null);
       setVideoPreview(null);
     }
     setOpen(true);
-  }, [setForm, setEditId, setImagePreview, setImage1Preview, setImage2Preview, setVideoPreview, setOpen]);
+  }, [setForm, setEditId, setImage3Preview, setImage1Preview, setImage2Preview, setVideoPreview, setOpen]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
     setEditId(null);
-    setImagePreview(null);
+    setImage3Preview(null);
     setImage1Preview(null);
     setImage2Preview(null);
     setVideoPreview(null);
+    setSubsuitableInput({ gender: '', clothType: '', number: '' });
     setForm({
       name: "",
       category: "",
@@ -479,7 +511,7 @@ export default function ProductPage() {
       content: "",
       design: "",
       subfinish: "",
-      subsuitable: "",
+      subsuitable: [],
       vendor: "",
       groupcode: "",
       colors: [],
@@ -490,7 +522,7 @@ export default function ProductPage() {
       oz: "",
       cm: "",
       inch: "",
-      img: undefined,
+      image3: undefined,
       image1: undefined,
       image2: undefined,
       altimg1: "",
@@ -525,7 +557,7 @@ export default function ProductPage() {
     setSelectedProduct(null);
   }, []);
 
-  const handleDeleteImage = useCallback(async (imageType: 'img' | 'image1' | 'image2') => {
+  const handleDeleteImage = useCallback(async (imageType: 'image3' | 'image1' | 'image2') => {
     try {
       // If this is an existing image (not a new upload), delete it from the server
       if (form[imageType] && typeof form[imageType] === 'string' && editId) {
@@ -546,9 +578,9 @@ export default function ProductPage() {
       }));
       
       // Clear the preview and dimensions
-      if (imageType === 'img') {
-        setImagePreview(null);
-        setFormImgDims(dims => ({ ...dims, img: undefined }));
+      if (imageType === 'image3') {
+        setImage3Preview(null);
+        setFormImgDims(dims => ({ ...dims, image3: undefined }));
       }
       if (imageType === 'image1') {
         setImage1Preview(null);
@@ -560,7 +592,7 @@ export default function ProductPage() {
       }
       
       // Reset the file input
-      if (imageType === 'img' && fileInputRef.current) fileInputRef.current.value = '';
+      if (imageType === 'image3' && fileInputRef.current) fileInputRef.current.value = '';
       if (imageType === 'image1' && image1InputRef.current) image1InputRef.current.value = '';
       if (imageType === 'image2' && image2InputRef.current) image2InputRef.current.value = '';
       
@@ -573,8 +605,8 @@ export default function ProductPage() {
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setForm((prev) => ({ ...prev, img: file }));
-      setImagePreview(URL.createObjectURL(file));
+      setForm((prev) => ({ ...prev, image3: file }));
+      setImage3Preview(URL.createObjectURL(file));
     }
   }, []);
 
@@ -592,6 +624,37 @@ export default function ProductPage() {
       setForm((prev) => ({ ...prev, image2: file }));
       setImage2Preview(URL.createObjectURL(file));
     }
+  }, []);
+
+  // Handler for adding subsuitable item
+  const handleAddSubsuitable = useCallback(() => {
+    const { gender, clothType, number } = subsuitableInput;
+    
+    // Validate inputs
+    if (!gender || !clothType || !number) {
+      alert('Please fill in all fields: Gender, Type of Cloth, and Number');
+      return;
+    }
+    
+    // Concatenate the values: "gender-clothType-number"
+    const concatenatedValue = `${gender}-${clothType}-${number}`;
+    
+    // Add to form.subsuitable array
+    setForm(prev => ({
+      ...prev,
+      subsuitable: [...prev.subsuitable, concatenatedValue]
+    }));
+    
+    // Clear inputs
+    setSubsuitableInput({ gender: '', clothType: '', number: '' });
+  }, [subsuitableInput]);
+
+  // Handler for removing subsuitable item
+  const handleRemoveSubsuitable = useCallback((index: number) => {
+    setForm(prev => ({
+      ...prev,
+      subsuitable: prev.subsuitable.filter((_, i) => i !== index)
+    }));
   }, []);
 
   // Function to generate a URL-friendly slug from a string
@@ -765,6 +828,30 @@ export default function ProductPage() {
         }
       }
 
+      // Handle subsuitable - ensure we always have an array
+      let subsuitable: string[] = [];
+      if (selected.subsuitable) {
+        if (Array.isArray(selected.subsuitable)) {
+          subsuitable = selected.subsuitable.filter(Boolean) as string[];
+        }
+      }
+
+      // Handle leadtime - ensure we always have an array
+      let leadtime: string[] = [];
+      if (selected.leadtime) {
+        if (Array.isArray(selected.leadtime)) {
+          leadtime = selected.leadtime.filter(Boolean) as string[];
+        }
+      }
+
+      // Handle productTag - ensure we always have an array
+      let productTag: string[] = [];
+      if (selected.productTag) {
+        if (Array.isArray(selected.productTag)) {
+          productTag = selected.productTag.filter(Boolean) as string[];
+        }
+      }
+
       setForm({
         name: selected.name,
         slug: selected.slug || '',
@@ -774,7 +861,7 @@ export default function ProductPage() {
         content: getId(selected.content),
         design: getId(selected.design),
         subfinish: getId(selected.subfinish),
-        subsuitable: getId(selected.subsuitable),
+        subsuitable: subsuitable,
         vendor: getId(selected.vendor),
         groupcode: getId(selected.groupcode),
         colors: colors,
@@ -785,7 +872,7 @@ export default function ProductPage() {
         oz: selected.oz !== undefined && selected.oz !== null ? String(selected.oz) : "",
         cm: selected.cm !== undefined && selected.cm !== null ? String(selected.cm) : "",
         inch: selected.inch !== undefined && selected.inch !== null ? String(selected.inch) : "",
-        img: selected.img,
+        image3: selected.image3,
         image1: selected.image1,
         image2: selected.image2,
         altimg1: selected.altimg1 || "",
@@ -797,27 +884,27 @@ export default function ProductPage() {
         purchasePrice: selected.purchasePrice !== undefined ? String(selected.purchasePrice) : "",
         salesPrice: selected.salesPrice !== undefined ? String(selected.salesPrice) : "",
         productIdentifier: selected.productIdentifier || "",
-        leadtime: selected.leadtime || "",
+        leadtime: leadtime,
         sku: selected.sku || "",
-        popularproduct: selected.popularproduct || false,
-        topratedproduct: selected.topratedproduct || false,
-        landingPageProduct: selected.landingPageProduct || false,
-        shopyProduct: selected.shopyProduct || false,
         rating_value: selected.rating_value || "",
         rating_count: selected.rating_count || "",
-        productlocationtitle: selected.productlocationtitle || "",
-        productlocationtagline: selected.productlocationtagline || "",
-        productlocationdescription1: selected.productlocationdescription1 || "",
-        productlocationdescription2: selected.productlocationdescription2 || ""
+        productTitle: selected.productTitle || "",
+        productTagline: selected.productTagline || "",
+        shortProductDescription: selected.shortProductDescription || "",
+        fullProductDescription: selected.fullProductDescription || "",
+        productTag: productTag,
+        ogType: selected.ogType || "",
+        twitterCard: selected.twitterCard || "summary_large_image",
+        ogImage_twitterimage: selected.ogImage_twitterimage || ""
       });
-      setImagePreview(selected.img ? getImageUrl(selected.img) || null : null);
+      setImage3Preview(selected.image3 ? getImageUrl(selected.image3) || null : null);
       setImage1Preview(selected.image1 ? getImageUrl(selected.image1) || null : null);
       setImage2Preview(selected.image2 ? getImageUrl(selected.image2) || null : null);
       setVideoPreview(selected.video ? getImageUrl(selected.video) || null : null);
     } else {
       setForm(prev => ({ ...prev, name: value.label || "" }));
     }
-  }, [products, getId, setForm, setImagePreview, setImage1Preview, setImage2Preview, setVideoPreview]);
+  }, [products, getId, setForm, setImage3Preview, setImage1Preview, setImage2Preview, setVideoPreview]);
 
   // Add effect to auto-calculate oz and inch
   // Only auto-calculate oz if oz is empty (not set from backend or user input)
@@ -972,7 +1059,7 @@ export default function ProductPage() {
                   <TableRow key={product._id} sx={{ '&:hover': { bgcolor: '#f8f9fa' } }}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {product.img && (
+                        {product.image3 && (
                           <Box sx={{ 
                             width: 50, 
                             height: 50, 
@@ -983,7 +1070,7 @@ export default function ProductPage() {
                             overflow: 'hidden'
                           }}>
                             <Image
-                              src={getImageUrl(product.img) || ''}
+                              src={getImageUrl(product.image3) || ''}
                               alt={product.name}
                               fill
                               style={{ objectFit: 'contain' }}
@@ -1144,9 +1231,9 @@ export default function ProductPage() {
                     }
                   }}
                 >
-                  {imagePreview ? 'Change' : 'Upload'}
+                  {image3Preview ? 'Change' : 'Upload'}
                 </Button>
-                {imagePreview && (
+                {image3Preview && (
                   <Box>
                     <Box sx={{ 
                       position: 'relative',
@@ -1162,7 +1249,7 @@ export default function ProductPage() {
                       }
                     }}>
                       <Image
-                        src={imagePreview}
+                        src={image3Preview}
                         alt="Preview"
                         width={200}
                         height={200}
@@ -1173,7 +1260,7 @@ export default function ProductPage() {
                         }}
                         onLoad={e => {
                           const target = e.target as HTMLImageElement;
-                          setFormImgDims(dims => ({ ...dims, img: [target.naturalWidth, target.naturalHeight] }));
+                          setFormImgDims(dims => ({ ...dims, image3: [target.naturalWidth, target.naturalHeight] }));
                         }}
                       />
                       <IconButton
@@ -1181,7 +1268,7 @@ export default function ProductPage() {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteImage('img');
+                          handleDeleteImage('image3');
                         }}
                         sx={{
                           position: 'absolute',
@@ -1203,9 +1290,9 @@ export default function ProductPage() {
                         <DeleteIcon sx={{ fontSize: 16 }} />
                       </IconButton>
                     </Box>
-                    {formImgDims.img && (
+                    {formImgDims.image3 && (
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                        w: {formImgDims.img[0]} h: {formImgDims.img[1]}
+                        w: {formImgDims.image3[0]} h: {formImgDims.image3[1]}
                       </Typography>
                     )}
                   </Box>
@@ -1693,6 +1780,114 @@ export default function ProductPage() {
                 />
               </Box>
 
+              {/* Subsuitable Builder - Custom Component */}
+              <Box sx={{ gridColumn: '1 / -1', p: 2, bgcolor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50' }}>
+                  Subsuitable Configuration
+                </Typography>
+                
+                {/* Input Row */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr auto' }, gap: 2, mb: 2 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Gender</InputLabel>
+                    <Select
+                      value={subsuitableInput.gender}
+                      onChange={(e) => setSubsuitableInput(prev => ({ ...prev, gender: e.target.value }))}
+                      label="Gender"
+                      disabled={pageAccess === 'only view'}
+                      sx={{ bgcolor: 'white' }}
+                    >
+                      <MenuItem value="Male">Male</MenuItem>
+                      <MenuItem value="Female">Female</MenuItem>
+                      <MenuItem value="Unisex">Unisex</MenuItem>
+                      <MenuItem value="Kids">Kids</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Type of Cloth</InputLabel>
+                    <Select
+                      value={subsuitableInput.clothType}
+                      onChange={(e) => setSubsuitableInput(prev => ({ ...prev, clothType: e.target.value }))}
+                      label="Type of Cloth"
+                      disabled={pageAccess === 'only view'}
+                      sx={{ bgcolor: 'white' }}
+                    >
+                      <MenuItem value="T-Shirt">T-Shirt</MenuItem>
+                      <MenuItem value="Shirt">Shirt</MenuItem>
+                      <MenuItem value="Pants">Pants</MenuItem>
+                      <MenuItem value="Jeans">Jeans</MenuItem>
+                      <MenuItem value="Dress">Dress</MenuItem>
+                      <MenuItem value="Skirt">Skirt</MenuItem>
+                      <MenuItem value="Jacket">Jacket</MenuItem>
+                      <MenuItem value="Coat">Coat</MenuItem>
+                      <MenuItem value="Sweater">Sweater</MenuItem>
+                      <MenuItem value="Hoodie">Hoodie</MenuItem>
+                      <MenuItem value="Shorts">Shorts</MenuItem>
+                      <MenuItem value="Suit">Suit</MenuItem>
+                      <MenuItem value="Blazer">Blazer</MenuItem>
+                      <MenuItem value="Top">Top</MenuItem>
+                      <MenuItem value="Blouse">Blouse</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <TextField
+                    label="Number"
+                    type="number"
+                    size="small"
+                    value={subsuitableInput.number}
+                    onChange={(e) => setSubsuitableInput(prev => ({ ...prev, number: e.target.value }))}
+                    disabled={pageAccess === 'only view'}
+                    sx={{ bgcolor: 'white' }}
+                    inputProps={{ min: 0 }}
+                  />
+
+                  <Button
+                    variant="contained"
+                    onClick={handleAddSubsuitable}
+                    disabled={pageAccess === 'only view' || !subsuitableInput.gender || !subsuitableInput.clothType || !subsuitableInput.number}
+                    sx={{ 
+                      bgcolor: '#27ae60',
+                      '&:hover': { bgcolor: '#229954' },
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Box>
+
+                {/* Display Added Items */}
+                {form.subsuitable.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" sx={{ color: '#7f8c8d', display: 'block', mb: 1 }}>
+                      Added Items ({form.subsuitable.length}):
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {form.subsuitable.map((item, index) => (
+                        <Chip
+                          key={index}
+                          label={item}
+                          onDelete={() => handleRemoveSubsuitable(index)}
+                          deleteIcon={<ClearIcon />}
+                          disabled={pageAccess === 'only view'}
+                          sx={{ 
+                            bgcolor: '#e3f2fd',
+                            color: '#1976d2',
+                            fontWeight: 500,
+                            '& .MuiChip-deleteIcon': {
+                              color: '#d32f2f',
+                              '&:hover': {
+                                color: '#b71c1c'
+                              }
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
               {/* UM field */}
               <FormControl fullWidth required>
                 <InputLabel>UM</InputLabel>
@@ -1725,16 +1920,39 @@ export default function ProductPage() {
                 </Select>
               </FormControl>
 
-              {/* Lead Time */}
-              <TextField
-                label="Lead Time (days)"
-                type="number"
-                value={form.leadtime || ""}
-                onChange={e => setForm(prev => ({ ...prev, leadtime: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
+              {/* Lead Time - Array Field */}
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={form.leadtime || []}
+                  onChange={(_, newValue) => {
+                    setForm(prev => ({ ...prev, leadtime: newValue as string[] }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Lead Time"
+                      placeholder="Add lead time values..."
+                      helperText="Press Enter to add multiple values"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={index}
+                        label={option}
+                        size="small"
+                        sx={{ m: 0.5 }}
+                      />
+                    ))
+                  }
+                  disabled={pageAccess === 'only view'}
+                />
+              </Box>
 
               {/* Currency, GSM, OZ, CM, INCH */}
               <Autocomplete
@@ -1851,53 +2069,7 @@ export default function ProductPage() {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
 
-              {/* Product Flags Section */}
-              <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Flags</Typography>
-              </Box>
-
-              <Box sx={{ gridColumn: '1 / -1', display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={Boolean(form.popularproduct)}
-                      onChange={e => setForm(prev => ({ ...prev, popularproduct: e.target.checked }))}
-                      disabled={pageAccess === 'only view'}
-                    />
-                  }
-                  label="Popular Product"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={Boolean(form.topratedproduct)}
-                      onChange={e => setForm(prev => ({ ...prev, topratedproduct: e.target.checked }))}
-                      disabled={pageAccess === 'only view'}
-                    />
-                  }
-                  label="Top Rated"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={Boolean(form.landingPageProduct)}
-                      onChange={e => setForm(prev => ({ ...prev, landingPageProduct: e.target.checked }))}
-                      disabled={pageAccess === 'only view'}
-                    />
-                  }
-                  label="Landing Page Product"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={Boolean(form.shopyProduct)}
-                      onChange={e => setForm(prev => ({ ...prev, shopyProduct: e.target.checked }))}
-                      disabled={pageAccess === 'only view'}
-                    />
-                  }
-                  label="Shopy Product"
-                />
-              </Box>
+              {/* Product Flags Section - REMOVED as per model changes */}
 
               {/* Ratings Section */}
               <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
@@ -1936,7 +2108,7 @@ export default function ProductPage() {
               />
             </Box>
 
-            {/* Product Location Information */}
+            {/* Catalog Information */}
             <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
                 Catalog Information
@@ -1944,24 +2116,24 @@ export default function ProductPage() {
               <Box sx={{ display: 'grid', gap: 2 }}>
                 <TextField
                   label="Title"
-                  value={form.productlocationtitle || ""}
-                  onChange={e => setForm(prev => ({ ...prev, productlocationtitle: e.target.value }))}
+                  value={form.productTitle || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productTitle: e.target.value }))}
                   fullWidth
                   disabled={pageAccess === 'only view'}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
                   label="Tagline"
-                  value={form.productlocationtagline || ""}
-                  onChange={e => setForm(prev => ({ ...prev, productlocationtagline: e.target.value }))}
+                  value={form.productTagline || ""}
+                  onChange={e => setForm(prev => ({ ...prev, productTagline: e.target.value }))}
                   fullWidth
                   disabled={pageAccess === 'only view'}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Description 1"
-                  value={form.productlocationdescription1 || ""}
-                  onChange={e => setForm(prev => ({ ...prev, productlocationdescription1: e.target.value }))}
+                  label="Short Description"
+                  value={form.shortProductDescription || ""}
+                  onChange={e => setForm(prev => ({ ...prev, shortProductDescription: e.target.value }))}
                   fullWidth
                   multiline
                   minRows={2}
@@ -1976,9 +2148,9 @@ export default function ProductPage() {
                   }}
                 />
                 <TextField
-                  label="Description 2"
-                  value={form.productlocationdescription2 || ""}
-                  onChange={e => setForm(prev => ({ ...prev, productlocationdescription2: e.target.value }))}
+                  label="Full Description"
+                  value={form.fullProductDescription || ""}
+                  onChange={e => setForm(prev => ({ ...prev, fullProductDescription: e.target.value }))}
                   fullWidth
                   multiline
                   minRows={2}
@@ -2018,22 +2190,22 @@ export default function ProductPage() {
                 {/* Main Image */}
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Main Image</Typography>
-                  {selectedProduct.img && (
+                  {selectedProduct.image3 && (
                     <Box>
                       <Image
-                        src={getImageUrl(selectedProduct.img) || ""}
+                        src={getImageUrl(selectedProduct.image3) || ""}
                         alt="Main"
                         width={200}
                         height={200}
                         style={{ borderRadius: '8px' }}
                         onLoad={e => {
                           const target = e.target as HTMLImageElement;
-                          setImgDims(dims => ({ ...dims, img: [target.naturalWidth, target.naturalHeight] }));
+                          setImgDims(dims => ({ ...dims, image3: [target.naturalWidth, target.naturalHeight] }));
                         }}
                       />
-                      {imgDims.img && (
+                      {imgDims.image3 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {imgDims.img[0]} h: {imgDims.img[1]}
+                          w: {imgDims.image3[0]} h: {imgDims.image3[1]}
                         </Typography>
                       )}
                     </Box>
@@ -2242,6 +2414,85 @@ export default function ProductPage() {
                     })()}
                   </Box>
                 </Box>
+                
+                {/* Subsuitable field - display as chips */}
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>
+                    Subsuitable
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                    {selectedProduct.subsuitable && Array.isArray(selectedProduct.subsuitable) && selectedProduct.subsuitable.length > 0 ? (
+                      selectedProduct.subsuitable.map((item, index) => (
+                        <Chip
+                          key={index}
+                          label={item}
+                          size="small"
+                          sx={{ 
+                            bgcolor: '#e3f2fd',
+                            color: '#1976d2',
+                            fontWeight: 500,
+                            mb: 0.5
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Lead Time field - display as chips */}
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>
+                    Lead Time
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                    {selectedProduct.leadtime && Array.isArray(selectedProduct.leadtime) && selectedProduct.leadtime.length > 0 ? (
+                      selectedProduct.leadtime.map((item, index) => (
+                        <Chip
+                          key={index}
+                          label={item}
+                          size="small"
+                          sx={{ 
+                            bgcolor: '#fff3e0',
+                            color: '#f57c00',
+                            fontWeight: 500,
+                            mb: 0.5
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Product Tags field - display as chips */}
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>
+                    Product Tags
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                    {selectedProduct.productTag && Array.isArray(selectedProduct.productTag) && selectedProduct.productTag.length > 0 ? (
+                      selectedProduct.productTag.map((tag, index) => (
+                        <Chip
+                          key={index}
+                          label={tag}
+                          size="small"
+                          sx={{ 
+                            bgcolor: '#f3e5f5',
+                            color: '#7b1fa2',
+                            fontWeight: 500,
+                            mb: 0.5
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#2c3e50' }}>-</Typography>
+                    )}
+                  </Box>
+                </Box>
+
                 {/* Product Details - First Column */}
                 <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Details</Typography>
@@ -2287,54 +2538,8 @@ export default function ProductPage() {
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Product ID</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.productIdentifier || '-'}</Typography>
                 </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Lead Time</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.leadtime || '-'}</Typography>
-                </Box>
                 
-                {/* Product Flags */}
-                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Flags</Typography>
-                </Box>
-                
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Chip 
-                    label={selectedProduct.popularproduct ? 'Popular Product' : 'Not Popular'} 
-                    size="small" 
-                    sx={{ 
-                      width: 'fit-content',
-                      bgcolor: selectedProduct.popularproduct ? '#e3f2fd' : '#f5f5f5',
-                      color: selectedProduct.popularproduct ? '#1976d2' : '#757575'
-                    }} 
-                  />
-                  <Chip 
-                    label={selectedProduct.topratedproduct ? 'Top Rated' : 'Not Top Rated'} 
-                    size="small" 
-                    sx={{ 
-                      width: 'fit-content',
-                      bgcolor: selectedProduct.topratedproduct ? '#e8f5e9' : '#f5f5f5',
-                      color: selectedProduct.topratedproduct ? '#2e7d32' : '#757575'
-                    }} 
-                  />
-                  <Chip 
-                    label={selectedProduct.landingPageProduct ? 'Featured on Landing Page' : 'Not on Landing Page'} 
-                    size="small" 
-                    sx={{ 
-                      width: 'fit-content',
-                      bgcolor: selectedProduct.landingPageProduct ? '#fff3e0' : '#f5f5f5',
-                      color: selectedProduct.landingPageProduct ? '#e65100' : '#757575'
-                    }} 
-                  />
-                  <Chip 
-                    label={selectedProduct.shopyProduct ? 'Shopy Product' : 'Not a Shopy Product'} 
-                    size="small" 
-                    sx={{ 
-                      width: 'fit-content',
-                      bgcolor: selectedProduct.shopyProduct ? '#f3e5f5' : '#f5f5f5',
-                      color: selectedProduct.shopyProduct ? '#7b1fa2' : '#757575'
-                    }} 
-                  />
-                </Box>
+                {/* Product Flags Section - REMOVED as per model changes */}
                 
                 {/* Ratings */}
                 {selectedProduct.rating_value && (
@@ -2359,38 +2564,38 @@ export default function ProductPage() {
                   </Box>
                 )}
                 
-                {/* Product Location Information */}
-                {(selectedProduct.productlocationtitle || selectedProduct.productlocationtagline || selectedProduct.productlocationdescription1 || selectedProduct.productlocationdescription2) && (
+                {/* Catalog Information */}
+                {(selectedProduct.productTitle || selectedProduct.productTagline || selectedProduct.shortProductDescription || selectedProduct.fullProductDescription) && (
                   <Box sx={{ gridColumn: '1 / -1', mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
-                      Product Location Information
+                      Catalog Information
                     </Typography>
                     
-                    {selectedProduct.productlocationtitle && (
+                    {selectedProduct.productTitle && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Title:</Typography>
-                        <Typography variant="body2">{selectedProduct.productlocationtitle}</Typography>
+                        <Typography variant="body2">{selectedProduct.productTitle}</Typography>
                       </Box>
                     )}
                     
-                    {selectedProduct.productlocationtagline && (
+                    {selectedProduct.productTagline && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Tagline:</Typography>
-                        <Typography variant="body2">{selectedProduct.productlocationtagline}</Typography>
+                        <Typography variant="body2">{selectedProduct.productTagline}</Typography>
                       </Box>
                     )}
                     
-                    {selectedProduct.productlocationdescription1 && (
+                    {selectedProduct.shortProductDescription && (
                       <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Description 1:</Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.productlocationdescription1}</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Short Description:</Typography>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.shortProductDescription}</Typography>
                       </Box>
                     )}
                     
-                    {selectedProduct.productlocationdescription2 && (
+                    {selectedProduct.fullProductDescription && (
                       <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Description 2:</Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.productlocationdescription2}</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Full Description:</Typography>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.fullProductDescription}</Typography>
                       </Box>
                     )}
                   </Box>

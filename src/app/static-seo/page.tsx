@@ -22,6 +22,7 @@ interface TopicPageSEO {
   // Basic Identification
   name: string;
   slug?: string;
+  producttag?: string | string[];
   
   // Standard Meta Tags
   meta_title?: string;
@@ -110,6 +111,7 @@ export default function TopicPageSeoPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedSeo, setSelectedSeo] = useState<Partial<TopicPageSEO> | null>(null);
   const [open, setOpen] = useState(false);
+  const [availableProductTags, setAvailableProductTags] = useState<string[]>([]);
   
   // Update page access after component mounts (client-side only)
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function TopicPageSeoPage() {
     { key: "meta_title", label: "Meta Title", type: "text", placeholder: "Enter meta title" },
     { key: "meta_description", label: "Meta Description", type: "text", placeholder: "Enter meta description" },
     { key: "keywords", label: "Keywords", type: "text", placeholder: "Enter keywords (comma separated)" },
+    { key: "producttag", label: "Product Tag", type: "select", placeholder: "Select product tags" },
     { key: "canonical_url", label: "Canonical URL", type: "text", placeholder: "Enter canonical URL" },
     { key: "excerpt", label: "Excerpt", type: "text", placeholder: "Enter excerpt" },
     { key: "description_html", label: "Description HTML", type: "textarea", placeholder: "Enter HTML description" },
@@ -195,9 +198,33 @@ export default function TopicPageSeoPage() {
     }
   }, [page, searchTerm]);
 
+  // Fetch available product tags from the products API and dedupe
+  const fetchProductTags = useCallback(async () => {
+    try {
+      // Request only productTag field to minimize payload
+      const res = await apiFetch('/product?fields=productTag');
+      if (!res.ok) return;
+      const json = await res.json().catch(() => ({}));
+      const products = json.data || [];
+      const allTags: string[] = [];
+      for (const p of products) {
+        if (Array.isArray(p.productTag)) {
+          for (const t of p.productTag) {
+            if (t && typeof t === 'string') allTags.push(t.trim());
+          }
+        }
+      }
+      const unique = Array.from(new Set(allTags)).filter(Boolean);
+      setAvailableProductTags(unique.sort((a, b) => a.localeCompare(b)));
+    } catch (err) {
+      console.error('Error fetching product tags:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTopicPageSeos();
-  }, [fetchTopicPageSeos]);
+    fetchProductTags();
+  }, [fetchTopicPageSeos, fetchProductTags]);
 
   const handleOpen = (seo?: Partial<TopicPageSEO>) => {
     if (seo) {
@@ -573,6 +600,39 @@ export default function TopicPageSeoPage() {
                 }, editingSeo as NestedValue);
 
                 if (field.type === 'select' && field.key) {
+                  // Special handling for producttag: use availableProductTags and allow multiple selection
+                  if (field.key === 'producttag') {
+                    return (
+                      <FormControl key={field.key} fullWidth margin="normal">
+                        <InputLabel>{field.label}</InputLabel>
+                        <Select
+                          name={field.key}
+                          multiple
+                          value={Array.isArray(value) ? value : (value ? [String(value)] : [])}
+                          onChange={(e) => {
+                            // Forward a compatible event shape to handleChange
+                            const target = e.target as HTMLInputElement & { name?: string; value?: unknown };
+                            handleChange({ target });
+                          }}
+                          label={field.label}
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                              {(Array.isArray(selected) ? selected : []).map((val) => (
+                                <Chip key={String(val)} label={String(val)} size="small" />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          {availableProductTags.map((tag) => (
+                            <MenuItem key={tag} value={tag}>
+                              {tag}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    );
+                  }
+
                   return (
                     <FormControl key={field.key} fullWidth margin="normal">
                       <InputLabel>{field.label}</InputLabel>
@@ -707,6 +767,12 @@ export default function TopicPageSeoPage() {
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">Slug</Typography>
                     <Typography>{selectedSeo.slug}</Typography>
+                  </Box>
+                )}
+                {selectedSeo.producttag && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Product Tag</Typography>
+                    <Typography>{Array.isArray(selectedSeo.producttag) ? selectedSeo.producttag.join(', ') : String(selectedSeo.producttag)}</Typography>
                   </Box>
                 )}
                 {selectedSeo.status && (

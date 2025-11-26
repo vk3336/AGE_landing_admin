@@ -78,8 +78,6 @@ const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
 const filterModels = [
-
-
   { name: "Country", path: "/country" },
   { name: "State", path: "/state" },
   { name: "City", path: "/city" },
@@ -89,7 +87,10 @@ const filterModels = [
   { name: "Office Information", path: "/office-information" },
   { name: "About Us", path: "/aboutus" },
   { name: "Blog", path: "/blog" },
+
   { name: "Shofy Users", path: "/shofy-users" },
+  { name: "Vendor", path: "/vendor" },
+  { name: "Author", path: "/author" },
 
   { name: "Category", path: "/category" },
   { name: "Color", path: "/color" },
@@ -97,17 +98,15 @@ const filterModels = [
   { name: "Content", path: "/content" },
   { name: "Design", path: "/design" },
   { name: "Groupcode", path: "/groupcode" },
-   { name: "Motif", path: "/motif" },
+  { name: "Motif", path: "/motif" },
   { name: "Finish", path: "/finish" },
 
- 
   { name: "Subfinish", path: "/subfinish" },
-   { name: "Structure", path: "/structure" },
+  { name: "Structure", path: "/structure" },
   { name: "Substructure", path: "/substructure" },
   
-  { name: "Suitablefor", path: "/suitablefor" },
-  { name: "Subsuitable", path: "/subsuitable" },
-  { name: "Vendor", path: "/vendor" },
+  // { name: "Suitablefor", path: "/suitablefor" },
+  // { name: "Subsuitable", path: "/subsuitable" },
 ];
 
 // Create DattaAble theme
@@ -516,6 +515,59 @@ const Sidebar = React.memo(() => {
             {!isCollapsed && (
               <ListItemText
                 primary="Public-SEO"
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontSize: '13.5px',
+                    fontWeight: 500
+                  }
+                }}
+              />
+            )}
+          </ListItemButton>
+          
+          {/* Default SEO */}
+          <ListItemButton
+            component={NextLink}
+            href="/defaultseo"
+            sx={{
+              borderRadius: '10px',
+              mb: 0.75,
+              py: 1.1,
+              px: isCollapsed ? 0 : 1.5,
+              transition: 'all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              minHeight: 42,
+              borderLeft: '3px solid transparent',
+              ...(pathname === '/defaultseo' && {
+                backgroundColor: 'primary.main',
+                color: 'white',
+                borderLeftColor: 'primary.dark',
+                boxShadow: '0 6px 16px rgba(115,103,240,0.22)',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }),
+              '&:hover': {
+                backgroundColor: pathname === '/defaultseo' ? 'primary.dark' : 'action.hover',
+                transform: 'translateX(2px)',
+                boxShadow: pathname === '/defaultseo' ? '0 8px 18px rgba(115,103,240,0.28)' : '0 4px 10px rgba(0,0,0,0.06)',
+                borderLeftColor: 'primary.main',
+              },
+              '&:active': { transform: 'translateX(1px) scale(0.99)' },
+            }}
+          >
+            <ListItemIcon sx={{
+              color: pathname === '/defaultseo' ? 'white' : 'text.secondary',
+              minWidth: 0,
+              mr: isCollapsed ? 0 : 1.25,
+              justifyContent: 'center',
+              display: 'flex'
+            }}>
+              <DescriptionIcon fontSize="small" />
+            </ListItemIcon>
+            {!isCollapsed && (
+              <ListItemText
+                primary="Default SEO"
                 sx={{
                   '& .MuiTypography-root': {
                     fontSize: '13.5px',

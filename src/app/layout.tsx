@@ -26,7 +26,6 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PublicIcon from '@mui/icons-material/Public';
 import { usePathname } from "next/navigation";
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
@@ -37,6 +36,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import DescriptionIcon from '@mui/icons-material/Description';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
 
 // Sidebar context for managing collapse state
 interface SidebarContextType {
@@ -472,7 +472,7 @@ const Sidebar = React.memo(() => {
             )}
           </ListItemButton>
 
-          {/* public SEO */}
+          {/* public SEO
           <ListItemButton
             component={NextLink}
             href="/public-seo"
@@ -523,7 +523,7 @@ const Sidebar = React.memo(() => {
                 }}
               />
             )}
-          </ListItemButton>
+          </ListItemButton> */}
           
           {/* Default SEO */}
           <ListItemButton
@@ -563,7 +563,7 @@ const Sidebar = React.memo(() => {
               justifyContent: 'center',
               display: 'flex'
             }}>
-              <DescriptionIcon fontSize="small" />
+                <BookmarksIcon fontSize="small" />
             </ListItemIcon>
             {!isCollapsed && (
               <ListItemText

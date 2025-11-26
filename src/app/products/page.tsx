@@ -45,9 +45,9 @@ interface Product {
   video?: string;
   videoThumbnail?: string;
   altvideo?: string;
-  quantity?: number;
   purchasePrice?: number | string;
   salesPrice?: number | string;
+  vendorFabricCode?: string;
   productIdentifier?: string;
   leadtime?: string[];
   sku?: string;
@@ -136,9 +136,9 @@ export default function ProductPage() {
     video?: File | string;
     videoThumbnail?: string;
     altvideo?: string;
-    quantity?: number | string;
     purchasePrice?: number | string;
     salesPrice?: number | string;
+    vendorFabricCode?: string;
     productIdentifier?: string;
     leadtime?: string[];
     sku?: string;
@@ -183,9 +183,9 @@ export default function ProductPage() {
     altimg3: "",
     video: undefined,
     altvideo: "",
-    quantity: "",
     purchasePrice: "",
     salesPrice: "",
+    vendorFabricCode: "",
     productIdentifier: "",
     leadtime: [],
     sku: "",
@@ -214,6 +214,14 @@ export default function ProductPage() {
     clothType: '',
     number: ''
   });
+
+  // State for tracking editable subsuitable items
+  interface EditableSubsuitableItem {
+    gender: string;
+    clothType: string;
+    number: string;
+  }
+  const [editableSubsuitableItems, setEditableSubsuitableItems] = useState<EditableSubsuitableItem[]>([]);
   
   // Helper function to safely get image URL
   const getSafeImageUrl = (img: string | undefined | null): string | null => {
@@ -386,9 +394,33 @@ export default function ProductPage() {
       let subsuitable: string[] = [];
       if (product.subsuitable) {
         if (Array.isArray(product.subsuitable)) {
-          subsuitable = product.subsuitable.filter(Boolean) as string[];
+          // If array elements contain commas, split them
+          subsuitable = product.subsuitable
+            .flatMap(item => {
+              if (typeof item === 'string' && item.includes(',')) {
+                // Split by comma to get individual items
+                return item.split(',').map(s => s.trim()).filter(Boolean);
+              }
+              return item;
+            })
+            .filter(Boolean) as string[];
         }
       }
+
+      // Parse subsuitable items into editable format for display
+      const parsedItems: EditableSubsuitableItem[] = subsuitable.map(item => {
+        const parts = item.split('-');
+        if (parts.length >= 3) {
+          return {
+            gender: parts[0],
+            clothType: parts[1],
+            number: parts[2]
+          };
+        }
+        // Fallback for invalid format
+        return { gender: '', clothType: '', number: item };
+      });
+      setEditableSubsuitableItems(parsedItems);
 
       // Handle leadtime - ensure we always have an array
       let leadtime: string[] = [];
@@ -437,9 +469,9 @@ export default function ProductPage() {
         altimg3: product.altimg3 || "",
         video: product.video,
         altvideo: product.altvideo || "",
-        quantity: product.quantity !== undefined && product.quantity !== null ? String(product.quantity) : "",
         purchasePrice: product.purchasePrice !== undefined ? String(product.purchasePrice) : "",
         salesPrice: product.salesPrice !== undefined ? String(product.salesPrice) : "",
+        vendorFabricCode: product.vendorFabricCode || "",
         productIdentifier: product.productIdentifier || "",
         leadtime: leadtime,
         sku: product.sku || "",
@@ -485,7 +517,6 @@ export default function ProductPage() {
         image1: undefined,
         image2: undefined,
         video: undefined,
-        quantity: "",
       });
       setEditId(null);
       setImage3Preview(null);
@@ -504,6 +535,7 @@ export default function ProductPage() {
     setImage2Preview(null);
     setVideoPreview(null);
     setSubsuitableInput({ gender: '', clothType: '', number: '' });
+    setEditableSubsuitableItems([]);
     setForm({
       name: "",
       category: "",
@@ -530,7 +562,6 @@ export default function ProductPage() {
       altimg3: "",
       video: undefined,
       altvideo: "",
-      quantity: "",
     });
   }, []);
 
@@ -636,14 +667,11 @@ export default function ProductPage() {
       return;
     }
     
-    // Concatenate the values: "gender-clothType-number"
-    const concatenatedValue = `${gender}-${clothType}-${number}`;
-    
-    // Add to form.subsuitable array
-    setForm(prev => ({
+    // Add to editableSubsuitableItems array
+    setEditableSubsuitableItems(prev => [
       ...prev,
-      subsuitable: [...prev.subsuitable, concatenatedValue]
-    }));
+      { gender, clothType, number }
+    ]);
     
     // Clear inputs
     setSubsuitableInput({ gender: '', clothType: '', number: '' });
@@ -651,11 +679,38 @@ export default function ProductPage() {
 
   // Handler for removing subsuitable item
   const handleRemoveSubsuitable = useCallback((index: number) => {
+    setEditableSubsuitableItems(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // Handler for updating a specific subsuitable item field
+  const handleUpdateSubsuitableItem = useCallback((index: number, field: 'gender' | 'clothType' | 'number', value: string) => {
+    setEditableSubsuitableItems(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  }, []);
+
+  // Sync editableSubsuitableItems to form.subsuitable whenever editableSubsuitableItems changes
+  useEffect(() => {
+    if (editableSubsuitableItems.length === 0) {
+      setForm(prev => ({
+        ...prev,
+        subsuitable: []
+      }));
+      return;
+    }
+    
+    // Concatenate all items with hyphen, then join all with comma into a single string
+    const concatenatedString = editableSubsuitableItems
+      .map(item => `${item.gender}-${item.clothType}-${item.number}`)
+      .join(',');
+    
     setForm(prev => ({
       ...prev,
-      subsuitable: prev.subsuitable.filter((_, i) => i !== index)
+      subsuitable: [concatenatedString] // Store as single element array with comma-separated string
     }));
-  }, []);
+  }, [editableSubsuitableItems]);
 
   // Function to generate a URL-friendly slug from a string
   const generateSlug = (str: string): string => {
@@ -880,9 +935,9 @@ export default function ProductPage() {
         altimg3: selected.altimg3 || "",
         video: selected.video,
         altvideo: selected.altvideo || "",
-        quantity: selected.quantity !== undefined && selected.quantity !== null ? String(selected.quantity) : "",
         purchasePrice: selected.purchasePrice !== undefined ? String(selected.purchasePrice) : "",
         salesPrice: selected.salesPrice !== undefined ? String(selected.salesPrice) : "",
+        vendorFabricCode: selected.vendorFabricCode || "",
         productIdentifier: selected.productIdentifier || "",
         leadtime: leadtime,
         sku: selected.sku || "",
@@ -1857,31 +1912,88 @@ export default function ProductPage() {
                 </Box>
 
                 {/* Display Added Items */}
-                {form.subsuitable.length > 0 && (
+                {editableSubsuitableItems.length > 0 && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="caption" sx={{ color: '#7f8c8d', display: 'block', mb: 1 }}>
-                      Added Items ({form.subsuitable.length}):
+                      Added Items ({editableSubsuitableItems.length}):
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {form.subsuitable.map((item, index) => (
-                        <Chip
-                          key={index}
-                          label={item}
-                          onDelete={() => handleRemoveSubsuitable(index)}
-                          deleteIcon={<ClearIcon />}
-                          disabled={pageAccess === 'only view'}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {editableSubsuitableItems.map((item, index) => (
+                        <Box 
+                          key={index} 
                           sx={{ 
-                            bgcolor: '#e3f2fd',
-                            color: '#1976d2',
-                            fontWeight: 500,
-                            '& .MuiChip-deleteIcon': {
-                              color: '#d32f2f',
-                              '&:hover': {
-                                color: '#b71c1c'
-                              }
-                            }
+                            display: 'grid', 
+                            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr auto' }, 
+                            gap: 2, 
+                            p: 1.5, 
+                            bgcolor: 'white', 
+                            borderRadius: '6px',
+                            border: '1px solid #e0e0e0'
                           }}
-                        />
+                        >
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Gender</InputLabel>
+                            <Select
+                              value={item.gender}
+                              onChange={(e) => handleUpdateSubsuitableItem(index, 'gender', e.target.value)}
+                              label="Gender"
+                              disabled={pageAccess === 'only view'}
+                            >
+                              <MenuItem value="Male">Male</MenuItem>
+                              <MenuItem value="Female">Female</MenuItem>
+                              <MenuItem value="Unisex">Unisex</MenuItem>
+                              <MenuItem value="Kids">Kids</MenuItem>
+                            </Select>
+                          </FormControl>
+
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Type of Cloth</InputLabel>
+                            <Select
+                              value={item.clothType}
+                              onChange={(e) => handleUpdateSubsuitableItem(index, 'clothType', e.target.value)}
+                              label="Type of Cloth"
+                              disabled={pageAccess === 'only view'}
+                            >
+                              <MenuItem value="T-Shirt">T-Shirt</MenuItem>
+                              <MenuItem value="Shirt">Shirt</MenuItem>
+                              <MenuItem value="Pants">Pants</MenuItem>
+                              <MenuItem value="Jeans">Jeans</MenuItem>
+                              <MenuItem value="Dress">Dress</MenuItem>
+                              <MenuItem value="Skirt">Skirt</MenuItem>
+                              <MenuItem value="Jacket">Jacket</MenuItem>
+                              <MenuItem value="Coat">Coat</MenuItem>
+                              <MenuItem value="Sweater">Sweater</MenuItem>
+                              <MenuItem value="Hoodie">Hoodie</MenuItem>
+                              <MenuItem value="Shorts">Shorts</MenuItem>
+                              <MenuItem value="Suit">Suit</MenuItem>
+                              <MenuItem value="Blazer">Blazer</MenuItem>
+                              <MenuItem value="Top">Top</MenuItem>
+                              <MenuItem value="Blouse">Blouse</MenuItem>
+                            </Select>
+                          </FormControl>
+
+                          <TextField
+                            label="Number"
+                            type="number"
+                            size="small"
+                            value={item.number}
+                            onChange={(e) => handleUpdateSubsuitableItem(index, 'number', e.target.value)}
+                            disabled={pageAccess === 'only view'}
+                            inputProps={{ min: 0 }}
+                          />
+
+                          <IconButton
+                            onClick={() => handleRemoveSubsuitable(index)}
+                            disabled={pageAccess === 'only view'}
+                            sx={{ 
+                              color: '#d32f2f',
+                              '&:hover': { bgcolor: '#ffebee' },
+                              alignSelf: 'center'
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
                       ))}
                     </Box>
                   </Box>
@@ -2037,15 +2149,6 @@ export default function ProductPage() {
                   ),
                 }}
               />
-              <TextField
-                label="MOQ (Minimum Order Quantity)"
-                type="number"
-                value={form.quantity || ""}
-                onChange={e => setForm(prev => ({ ...prev, quantity: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
 
               {/* Product Identification Section */}
               <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
@@ -2056,6 +2159,14 @@ export default function ProductPage() {
                 label="SKU"
                 value={form.sku || ""}
                 onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
+                fullWidth
+                disabled={pageAccess === 'only view'}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+              <TextField
+                label="Vendor Fabric Code"
+                value={form.vendorFabricCode || ""}
+                onChange={e => setForm(prev => ({ ...prev, vendorFabricCode: e.target.value }))}
                 fullWidth
                 disabled={pageAccess === 'only view'}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
@@ -2163,6 +2274,72 @@ export default function ProductPage() {
                       resize: 'vertical',
                     }
                   }}
+                />
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={form.productTag || []}
+                  onChange={(_, newValue) => {
+                    setForm(prev => ({ ...prev, productTag: newValue as string[] }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Product Tags"
+                      placeholder="Add product tags..."
+                      helperText="Press Enter to add multiple tags"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={index}
+                        label={option}
+                        size="small"
+                        sx={{ m: 0.5 }}
+                      />
+                    ))
+                  }
+                  disabled={pageAccess === 'only view'}
+                />
+              </Box>
+            </Box>
+
+            {/* SEO / Social Media */}
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                SEO / Social Media
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 2 }}>
+                <TextField
+                  label="OG Type"
+                  value={form.ogType || ""}
+                  onChange={e => setForm(prev => ({ ...prev, ogType: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  helperText="Open Graph type (e.g., website, article, product)"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Twitter Card"
+                  value={form.twitterCard || ""}
+                  onChange={e => setForm(prev => ({ ...prev, twitterCard: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  helperText="Twitter card type (default: summary_large_image)"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="OG Image / Twitter Image URL"
+                  value={form.ogImage_twitterimage || ""}
+                  onChange={e => setForm(prev => ({ ...prev, ogImage_twitterimage: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  helperText="Image URL for Open Graph and Twitter cards"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
               </Box>
             </Box>
@@ -2506,6 +2683,26 @@ export default function ProductPage() {
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>UM</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.um || '-'}</Typography>
                 </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Currency</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.currency || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>GSM</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.gsm || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>OZ</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.oz || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>CM</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.cm || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>INCH</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.inch || '-'}</Typography>
+                </Box>
                 
                 {/* Pricing Information */}
                 <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
@@ -2520,10 +2717,6 @@ export default function ProductPage() {
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Sales Price</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.salesPrice || '-'}</Typography>
                 </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Quantity</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.quantity || '0'}</Typography>
-                </Box>
                 
                 {/* Product Identification */}
                 <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
@@ -2533,6 +2726,10 @@ export default function ProductPage() {
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>SKU</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.sku || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Vendor Fabric Code</Typography>
+                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.vendorFabricCode || '-'}</Typography>
                 </Box>
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Product ID</Typography>
@@ -2600,30 +2797,36 @@ export default function ProductPage() {
                     )}
                   </Box>
                 )}
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Currency</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.currency || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>GSM</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.gsm || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>OZ</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.oz || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>CM</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.cm || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>INCH</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.inch || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Quantity</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.quantity ?? '-'}</Typography>
-                </Box>
+                
+                {/* SEO / Social Media */}
+                {(selectedProduct.ogType || selectedProduct.twitterCard || selectedProduct.ogImage_twitterimage) && (
+                  <Box sx={{ gridColumn: '1 / -1', mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                      SEO / Social Media
+                    </Typography>
+                    
+                    {selectedProduct.ogType && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>OG Type:</Typography>
+                        <Typography variant="body2">{selectedProduct.ogType}</Typography>
+                      </Box>
+                    )}
+                    
+                    {selectedProduct.twitterCard && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Twitter Card:</Typography>
+                        <Typography variant="body2">{selectedProduct.twitterCard}</Typography>
+                      </Box>
+                    )}
+                    
+                    {selectedProduct.ogImage_twitterimage && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>OG Image / Twitter Image URL:</Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{selectedProduct.ogImage_twitterimage}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </Box>
             </Box>
           )}

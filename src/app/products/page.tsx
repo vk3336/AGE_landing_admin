@@ -2670,11 +2670,7 @@ export default function ProductPage() {
                   </Box>
                 </Box>
 
-                {/* Product Details - First Column */}
-                <Box sx={{ gridColumn: '1 / -1', mt: 2, mb: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50', borderBottom: '1px solid #eee', pb: 1 }}>Product Details</Typography>
-                </Box>
-                
+               
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Motif</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{hasName(selectedProduct.motif) ? selectedProduct.motif.name || '-' : selectedProduct.motif || '-'}</Typography>

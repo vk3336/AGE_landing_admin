@@ -59,6 +59,8 @@ export default function AuthorPage() {
   const [open, setOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [viewImageDimensions, setViewImageDimensions] = useState<{ width: number; height: number } | null>(null);
   
   // Update page access after component mounts (client-side only)
   useEffect(() => {
@@ -103,6 +105,15 @@ export default function AuthorPage() {
     if (author) {
       setEditingAuthor({ ...author });
       setImagePreview(author.authorimage || null);
+      // when opening edit for existing author, compute dimensions from url
+      if (author.authorimage) {
+        const img = new window.Image();
+        img.onload = () => setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => setImageDimensions(null);
+        img.src = author.authorimage;
+      } else {
+        setImageDimensions(null);
+      }
     } else {
       setEditingAuthor({});
       setImagePreview(null);
@@ -114,11 +125,21 @@ export default function AuthorPage() {
   const handleView = (author: Partial<Author>) => {
     setSelectedAuthor(author);
     setViewOpen(true);
+    // compute dimensions for view
+    if (author.authorimage) {
+      const img = new window.Image();
+      img.onload = () => setViewImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => setViewImageDimensions(null);
+      img.src = author.authorimage;
+    } else {
+      setViewImageDimensions(null);
+    }
   };
 
   const handleViewClose = () => {
     setViewOpen(false);
     setSelectedAuthor(null);
+    setViewImageDimensions(null);
   };
 
   const handleClose = () => {
@@ -140,6 +161,20 @@ export default function AuthorPage() {
       reader.readAsDataURL(file);
     }
   };
+
+  // compute dimensions when preview changes (for edit/create)
+  useEffect(() => {
+    setImageDimensions(null);
+    if (!imagePreview) return;
+    const img = new window.Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      setImageDimensions(null);
+    };
+    img.src = imagePreview;
+  }, [imagePreview]);
 
   type InputChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
   type GenericChangeEvent = { target: { name?: string; value: unknown } } | { currentTarget: { name?: string; value: unknown } } | { name: string; value: unknown };
@@ -509,6 +544,11 @@ export default function AuthorPage() {
                               >
                                 <CloseIcon />
                               </IconButton>
+                              {imageDimensions && (
+                                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                  Dimensions: {imageDimensions.width} x {imageDimensions.height} px
+                                </Typography>
+                              )}
                             </Box>
                           ) : (
                             <Box sx={{ p: 3 }}>
@@ -619,6 +659,11 @@ export default function AuthorPage() {
                             {selectedAuthor.altimage && (
                               <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                                 Alt: {selectedAuthor.altimage}
+                              </Typography>
+                            )}
+                            {viewImageDimensions && (
+                              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                Dimensions: {viewImageDimensions.width} x {viewImageDimensions.height} px
                               </Typography>
                             )}
                           </Box>

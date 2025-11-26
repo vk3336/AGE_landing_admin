@@ -70,8 +70,8 @@ function getDefaultSeoPermission() {
     if (email && superAdmin && email === superAdmin) return 'all access';
     
     const perms = JSON.parse(localStorage.getItem('admin-permissions') || '{}');
-    if (perms && perms.defaultseo) {
-      return perms.defaultseo;
+    if (perms && perms.seo) {
+      return perms.seo;
     }
   } catch (error) {
     console.error('Error checking permissions:', error);
@@ -330,18 +330,26 @@ export default function DefaultSeoPage() {
         </Box>
       ) : (
         <Box>
+          {pageAccess === 'only view' && (
+            <Box sx={{ mb: 2 }}>
+              <Paper elevation={2} sx={{ p: 2, bgcolor: '#fffbe6', border: '1px solid #ffe58f' }}>
+                <Typography color="#ad6800" fontWeight={600}>
+                  You have view-only access. To make changes, contact your admin.
+                </Typography>
+              </Paper>
+            </Box>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h4">Default SEO Management</Typography>
-            {pageAccess === 'all access' && (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpen()}
-              >
-                Add New Default SEO
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpen()}
+              disabled={pageAccess !== 'all access'}
+            >
+              Add New Default SEO
+            </Button>
           </Box>
 
           <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', backgroundColor: 'background.paper', borderRadius: 1, px: 2, py: 1, maxWidth: 400 }}>
@@ -408,16 +416,20 @@ export default function DefaultSeoPage() {
                           <IconButton onClick={() => handleView(seo)} title="View">
                             <VisibilityIcon color="info" />
                           </IconButton>
-                          {pageAccess === 'all access' && (
-                            <>
-                              <IconButton onClick={() => handleOpen(seo)} title="Edit">
-                                <EditIcon color="primary" />
-                              </IconButton>
-                              <IconButton onClick={() => seo._id && handleDelete(seo._id)} title="Delete">
-                                <DeleteIcon color="error" />
-                              </IconButton>
-                            </>
-                          )}
+                          <IconButton 
+                            onClick={() => handleOpen(seo)} 
+                            title="Edit"
+                            disabled={pageAccess !== 'all access'}
+                          >
+                            <EditIcon color="primary" />
+                          </IconButton>
+                          <IconButton 
+                            onClick={() => seo._id && handleDelete(seo._id)} 
+                            title="Delete"
+                            disabled={pageAccess !== 'all access'}
+                          >
+                            <DeleteIcon color="error" />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))

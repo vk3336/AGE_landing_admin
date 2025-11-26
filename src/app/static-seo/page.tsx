@@ -791,10 +791,28 @@ export default function TopicPageSeoPage() {
                     />
                   </Box>
                 )}
+                {selectedSeo.contentLanguage && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Content Language</Typography>
+                    <Typography>{String(selectedSeo.contentLanguage)}</Typography>
+                  </Box>
+                )}
+                {selectedSeo.canonical_url && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Canonical URL</Typography>
+                    <Typography>{String(selectedSeo.canonical_url)}</Typography>
+                  </Box>
+                )}
+                {selectedSeo.excerpt && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Excerpt</Typography>
+                    <Typography>{String(selectedSeo.excerpt)}</Typography>
+                  </Box>
+                )}
               </Box>
 
               {/* Meta Tags Section */}
-              {(selectedSeo.meta_title || selectedSeo.meta_description || selectedSeo.keywords) && (
+              {(selectedSeo.meta_title || selectedSeo.meta_description || selectedSeo.keywords || selectedSeo.description_html) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Meta Tags
@@ -818,12 +836,27 @@ export default function TopicPageSeoPage() {
                         <Typography>{String(selectedSeo.keywords)}</Typography>
                       </Box>
                     )}
+                    {selectedSeo.description_html && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Description HTML</Typography>
+                        <Box component="pre" sx={{ 
+                          bgcolor: 'grey.100', 
+                          p: 2, 
+                          borderRadius: 1,
+                          overflow: 'auto',
+                          maxHeight: '200px',
+                          fontSize: '0.8rem'
+                        }}>
+                          {String(selectedSeo.description_html)}
+                        </Box>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               )}
 
               {/* Open Graph Section */}
-              {(selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.ogType) && (
+              {(selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.ogType || selectedSeo.ogLocale || selectedSeo.openGraph?.images?.[0] || selectedSeo.openGraph?.video?.url) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Open Graph
@@ -847,6 +880,12 @@ export default function TopicPageSeoPage() {
                         <Typography>{String(selectedSeo.ogType)}</Typography>
                       </Box>
                     )}
+                    {selectedSeo.ogLocale && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Locale</Typography>
+                        <Typography>{String(selectedSeo.ogLocale)}</Typography>
+                      </Box>
+                    )}
                     {selectedSeo.openGraph?.images?.[0] && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">OG Image</Typography>
@@ -857,12 +896,42 @@ export default function TopicPageSeoPage() {
                         />
                       </Box>
                     )}
+                    {selectedSeo.openGraph?.video?.url && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Video URL</Typography>
+                        <Typography>{String(selectedSeo.openGraph.video.url)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.openGraph?.video?.secure_url && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Video Secure URL</Typography>
+                        <Typography>{String(selectedSeo.openGraph.video.secure_url)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.openGraph?.video?.type && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Video Type</Typography>
+                        <Typography>{String(selectedSeo.openGraph.video.type)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.openGraph?.video?.width && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Video Width</Typography>
+                        <Typography>{String(selectedSeo.openGraph.video.width)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.openGraph?.video?.height && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">OG Video Height</Typography>
+                        <Typography>{String(selectedSeo.openGraph.video.height)}</Typography>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               )}
 
               {/* Twitter Card Section */}
-              {(selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.twitterCard) && (
+              {(selectedSeo.twitterCard || selectedSeo.og_twitter_Title || selectedSeo.og_twitter_Description || selectedSeo.twitter?.image || selectedSeo.twitter?.player) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
                     Twitter Card
@@ -894,6 +963,24 @@ export default function TopicPageSeoPage() {
                           alt="Twitter Card" 
                           sx={{ maxWidth: '100%', maxHeight: '200px', mt: 1, borderRadius: 1 }}
                         />
+                      </Box>
+                    )}
+                    {selectedSeo.twitter?.player && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Twitter Player URL</Typography>
+                        <Typography>{String(selectedSeo.twitter.player)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.twitter?.player_width && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Twitter Player Width</Typography>
+                        <Typography>{String(selectedSeo.twitter.player_width)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.twitter?.player_height && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Twitter Player Height</Typography>
+                        <Typography>{String(selectedSeo.twitter.player_height)}</Typography>
                       </Box>
                     )}
                   </Box>

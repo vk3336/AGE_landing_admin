@@ -19,7 +19,6 @@ interface Product {
   _id?: string;
   name: string;
   slug?: string;
-  productdescription?: string;
   image3?: string;
   image1?: string;
   image2?: string;
@@ -112,7 +111,6 @@ export default function ProductPage() {
   interface FormState {
     name: string;
     slug?: string;
-    productdescription?: string;
     category: string;
     substructure: string;
     content: string;
@@ -162,7 +160,6 @@ export default function ProductPage() {
   const [form, setForm] = useState<FormState>({
     name: "",
     slug: "",
-    productdescription: "",
     category: "",
     substructure: "",
     content: "",
@@ -448,7 +445,6 @@ export default function ProductPage() {
       const formData = {
         name: product.name,
         slug: slug,
-        productdescription: product.productdescription || '',
         category: getFieldValue(product.category),
         substructure: getFieldValue(product.substructure),
         content: getFieldValue(product.content),
@@ -918,7 +914,6 @@ export default function ProductPage() {
       setForm({
         name: selected.name,
         slug: selected.slug || '',
-        productdescription: selected.productdescription || '',
         category: getId(selected.category),
         substructure: getId(selected.substructure),
         content: getId(selected.content),
@@ -1109,7 +1104,7 @@ export default function ProductPage() {
                     Slug
                   </TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
-                    productdescription
+                    Short Description
                   </TableCell>
                  
                   <TableCell sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '14px' }}>
@@ -1163,7 +1158,7 @@ export default function ProductPage() {
                     </TableCell>
                     <TableCell>
                       <Box sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span dangerouslySetInnerHTML={{ __html: product.productdescription || 'N/A' }} />
+                        <span dangerouslySetInnerHTML={{ __html: product.shortProductDescription || 'N/A' }} />
                       </Box>
                     </TableCell>
                    
@@ -1641,7 +1636,7 @@ export default function ProductPage() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Video URL"
+                  label="YT Video URL"
                   value={form.videourl || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, videourl: e.target.value }))}
                   fullWidth
@@ -1649,7 +1644,7 @@ export default function ProductPage() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
                 <TextField
-                  label="Video Alt Text"
+                  label="YT Video Alt Text"
                   value={form.videoalt || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, videoalt: e.target.value }))}
                   fullWidth
@@ -1689,24 +1684,7 @@ export default function ProductPage() {
                   }
                 }}
               />
-              <TextField
-                label="Product Description"
-                value={form.productdescription || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, productdescription: e.target.value }))}
-                fullWidth
-                multiline
-                minRows={2}
-                maxRows={20}
-                InputProps={{ readOnly: pageAccess === 'only view' }}
-                sx={{ 
-                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  bgcolor: '#f8f9fa',
-                  '& .MuiInputBase-inputMultiline': {
-                    overflow: 'auto !important',
-                    resize: 'vertical',
-                  }
-                }}
-              />
+
             </Box>
             
             {/* Details grid */}
@@ -2518,13 +2496,13 @@ export default function ProductPage() {
                     )}
                     {selectedProduct.videourl && (
                       <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video URL:</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>YT Video URL:</Typography>
                         <Typography variant="body2">{selectedProduct.videourl}</Typography>
                       </Box>
                     )}
                     {selectedProduct.videoalt && (
                       <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video Alt Text:</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>YT Video Alt Text:</Typography>
                         <Typography variant="body2">{selectedProduct.videoalt}</Typography>
                       </Box>
                     )}
@@ -2540,19 +2518,7 @@ export default function ProductPage() {
                 <Typography variant="body2" sx={{ color: '#7f8c8d', mb: 1 }}>
                   ID: {selectedProduct._id}
                 </Typography>
-                {selectedProduct.productdescription && (
-                  <Typography variant="body1" sx={{ 
-                    color: '#2c3e50', 
-                    mt: 2, 
-                    p: 2, 
-                    bgcolor: '#f8f9fa', 
-                    borderRadius: '8px',
-                    textAlign: 'left',
-                    whiteSpace: 'pre-line'
-                  }}>
-                    <span dangerouslySetInnerHTML={{ __html: selectedProduct.productdescription }} />
-                  </Typography>
-                )}
+               
               </Box>
               {/* Details grid */}
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
@@ -2817,14 +2783,14 @@ export default function ProductPage() {
                     {selectedProduct.shortProductDescription && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Short Description:</Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.shortProductDescription}</Typography>
+                        <div dangerouslySetInnerHTML={{ __html: selectedProduct.shortProductDescription }} />
                       </Box>
                     )}
                     
                     {selectedProduct.fullProductDescription && (
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Full Description:</Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>{selectedProduct.fullProductDescription}</Typography>
+                        <div dangerouslySetInnerHTML={{ __html: selectedProduct.fullProductDescription }} />
                       </Box>
                     )}
                   </Box>

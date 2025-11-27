@@ -22,6 +22,8 @@ interface Groupcode {
   altimg?: string;
   video?: string;
   altvideo?: string;
+  videourl?: string;
+  videoalt?: string;
 }
 
 const GroupcodeRow = React.memo(({ groupcode, onEdit, onDelete, onView, viewOnly }: {
@@ -359,6 +361,44 @@ const GroupcodeForm = React.memo(({ open, onClose, editId, submitting, onSubmit,
                 },
               }}
             />
+            <TextField 
+              label="Video URL" 
+              name="videourl" 
+              value={form.videourl || ''} 
+              onChange={handleChange} 
+              fullWidth 
+              disabled={submitting || viewOnly}
+              InputProps={{ readOnly: viewOnly }}
+              variant="outlined"
+              placeholder="Enter video URL"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  '& fieldset': { borderColor: 'divider' },
+                  '&:hover fieldset': { borderColor: 'primary.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                },
+              }}
+            />
+            <TextField 
+              label="Video Alt Text" 
+              name="videoalt" 
+              value={form.videoalt || ''} 
+              onChange={handleChange} 
+              fullWidth 
+              disabled={submitting || viewOnly}
+              InputProps={{ readOnly: viewOnly }}
+              variant="outlined"
+              placeholder="Enter video alt text"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  '& fieldset': { borderColor: 'divider' },
+                  '&:hover fieldset': { borderColor: 'primary.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                },
+              }}
+            />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0, bgcolor: '#f8f9fa', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
@@ -421,6 +461,7 @@ export default function GroupcodePage() {
   // All hooks at the top
   const [pageAccess, setPageAccess] = useState<'full' | 'view' | 'denied'>('denied');
   const [groupcodes, setGroupcodes] = useState<Groupcode[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Groupcode>({ name: "" });
@@ -438,6 +479,19 @@ export default function GroupcodePage() {
   function isFile(val: unknown): val is File {
     return typeof File !== "undefined" && val instanceof File;
   }
+
+  // Attempt to play video when view dialog opens
+  useEffect(() => {
+    if (viewDialogOpen && videoRef.current) {
+      // Small delay to ensure video is loaded
+      const timer = setTimeout(() => {
+        videoRef.current?.play().catch(error => {
+          console.log('Auto-play prevented:', error);
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [viewDialogOpen]);
 
   const fetchGroupcodes = useCallback(async () => {
     try {
@@ -464,7 +518,9 @@ export default function GroupcodePage() {
     setForm(groupcode ? { 
       ...groupcode,
       img: groupcode.img || undefined,
-      video: groupcode.video || undefined
+      video: groupcode.video || undefined,
+      videourl: groupcode.videourl || undefined,
+      videoalt: groupcode.videoalt || undefined
     } : { name: "" });
     setOpen(true);
   }, []);
@@ -510,6 +566,8 @@ export default function GroupcodePage() {
       // Add alt text fields
       if (form.altimg !== undefined) formData.append("altimg", form.altimg);
       if (form.altvideo !== undefined) formData.append("altvideo", form.altvideo);
+      if (form.videourl !== undefined) formData.append("videourl", form.videourl);
+      if (form.videoalt !== undefined) formData.append("videoalt", form.videoalt);
       await apiFetch(url, {
         method,
         body: formData,
@@ -556,7 +614,9 @@ export default function GroupcodePage() {
     setViewGroupcode({
       ...latest,
       altimg: latest.altimg || '',
-      altvideo: latest.altvideo || ''
+      altvideo: latest.altvideo || '',
+      videourl: latest.videourl || '',
+      videoalt: latest.videoalt || ''
     });
     setViewDialogOpen(true);
     setImgDims(undefined);
@@ -956,32 +1016,73 @@ export default function GroupcodePage() {
                       )}
                     </Box>
                   )}
-                  {/* Video */}
-                  {viewGroupcode.video && (
-                    <Box sx={{ textAlign: 'center', minWidth: 160 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Video</Typography>
-                      <video
-                        src={viewGroupcode.video}
-                        controls
-                        style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-                        onLoadedMetadata={e => {
-                          const target = e.target as HTMLVideoElement;
-                          if (!videoDims) setVideoDims([target.videoWidth, target.videoHeight]);
-                        }}
-                      />
-                      {videoDims && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {videoDims[0]} h: {videoDims[1]}
-                        </Typography>
-                      )}
-                      {viewGroupcode.altvideo && (
+                  {/* Videos */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+                    {/* Uploaded Video */}
+                    {viewGroupcode.video && (
+                      <Box sx={{ textAlign: 'center', minWidth: 160 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Uploaded Video</Typography>
+                        <video
+                          src={viewGroupcode.video}
+                          controls
+                          style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                          onLoadedMetadata={e => {
+                            const target = e.target as HTMLVideoElement;
+                            if (!videoDims) setVideoDims([target.videoWidth, target.videoHeight]);
+                          }}
+                        />
+                        {videoDims && (
+                          <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                            w: {videoDims[0]} h: {videoDims[1]}
+                          </Typography>
+                        )}
+                        {viewGroupcode.altvideo && (
+                          <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Uploaded Video Alt Text:</Typography>
+                            <Typography variant="body2">{viewGroupcode.altvideo}</Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                    
+                    {/* Video from URL */}
+                    {viewGroupcode.videourl && (
+                      <Box sx={{ textAlign: 'center', minWidth: 160 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block', letterSpacing: 0.5 }}>Video from URL</Typography>
+                        <video
+                          ref={videoRef}
+                          src={viewGroupcode.videourl}
+                          controls
+                          loop
+                          autoPlay
+                          muted
+                          playsInline
+                          onLoadedData={() => {
+                            // Attempt to play when video data is loaded
+                            if (videoRef.current) {
+                              videoRef.current.play().catch(error => {
+                                console.log('Auto-play prevented on load:', error);
+                              });
+                            }
+                          }}
+                          style={{ maxWidth: 220, borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                        />
                         <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Video Alt Text:</Typography>
-                          <Typography variant="body2">{viewGroupcode.altvideo}</Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Video URL:</Typography>
+                          <Typography variant="body2">{viewGroupcode.videourl}</Typography>
                         </Box>
-                      )}
-                    </Box>
-                  )}
+                        {/* Show videoalt for videos from URL */}
+                        {viewGroupcode.videoalt && (
+                          <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Video URL Alt Text:</Typography>
+                            <Typography variant="body2">{viewGroupcode.videoalt}</Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                    
+
+                  </Box>
                 </Box>
               </Box>
             </>

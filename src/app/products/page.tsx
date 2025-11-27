@@ -45,6 +45,8 @@ interface Product {
   video?: string;
   videoThumbnail?: string;
   altvideo?: string;
+  videourl?: string;
+  videoalt?: string;
   purchasePrice?: number | string;
   salesPrice?: number | string;
   vendorFabricCode?: string;
@@ -136,6 +138,8 @@ export default function ProductPage() {
     video?: File | string;
     videoThumbnail?: string;
     altvideo?: string;
+    videourl?: string;
+    videoalt?: string;
     purchasePrice?: number | string;
     salesPrice?: number | string;
     vendorFabricCode?: string;
@@ -469,6 +473,8 @@ export default function ProductPage() {
         altimg3: product.altimg3 || "",
         video: product.video,
         altvideo: product.altvideo || "",
+        videourl: product.videourl || "",
+        videoalt: product.videoalt || "",
         purchasePrice: product.purchasePrice !== undefined ? String(product.purchasePrice) : "",
         salesPrice: product.salesPrice !== undefined ? String(product.salesPrice) : "",
         vendorFabricCode: product.vendorFabricCode || "",
@@ -562,6 +568,8 @@ export default function ProductPage() {
       altimg3: "",
       video: undefined,
       altvideo: "",
+      videourl: "",
+      videoalt: "",
     });
   }, []);
 
@@ -1632,6 +1640,22 @@ export default function ProductPage() {
                   disabled={pageAccess === 'only view'}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
+                <TextField
+                  label="Video URL"
+                  value={form.videourl || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, videourl: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
+                <TextField
+                  label="Video Alt Text"
+                  value={form.videoalt || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, videoalt: e.target.value }))}
+                  fullWidth
+                  disabled={pageAccess === 'only view'}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                />
               </Box>
             </Box>
 
@@ -2490,6 +2514,18 @@ export default function ProductPage() {
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video Alt Text:</Typography>
                         <Typography variant="body2">{selectedProduct.altvideo}</Typography>
+                      </Box>
+                    )}
+                    {selectedProduct.videourl && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video URL:</Typography>
+                        <Typography variant="body2">{selectedProduct.videourl}</Typography>
+                      </Box>
+                    )}
+                    {selectedProduct.videoalt && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Video Alt Text:</Typography>
+                        <Typography variant="body2">{selectedProduct.videoalt}</Typography>
                       </Box>
                     )}
                   </Box>

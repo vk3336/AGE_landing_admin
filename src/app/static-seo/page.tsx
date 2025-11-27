@@ -63,6 +63,10 @@ interface TopicPageSEO {
   // JSON-LD
   VideoJsonLd?: string;
   
+  // Video fields
+  videourl?: string;
+  videoalt?: string;
+  
   // Status
   status?: 'draft' | 'published' | 'archived';
   
@@ -157,6 +161,8 @@ export default function TopicPageSeoPage() {
     { key: "twitter.player_height", label: "Twitter Player Height", type: "number", placeholder: "Enter player height" },
     { section: "Structured Data" },
     { key: "VideoJsonLd", label: "Video JSON-LD", type: "textarea", placeholder: "Enter Video JSON-LD script" },
+    { key: "videourl", label: "Video URL", type: "text", placeholder: "Enter video URL" },
+    { key: "videoalt", label: "Video Alt Text", type: "text", placeholder: "Enter video alt text" },
     { section: "Status" },
     { 
       key: "status", 
@@ -1007,6 +1013,29 @@ export default function TopicPageSeoPage() {
                         }}>
                           {String(selectedSeo.VideoJsonLd)}
                         </Box>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+              
+              {/* Video Section */}
+              {(selectedSeo.videourl || selectedSeo.videoalt) && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '1px solid #eee', pb: 1 }}>
+                    Video Information
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
+                    {selectedSeo.videourl && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Video URL</Typography>
+                        <Typography>{String(selectedSeo.videourl)}</Typography>
+                      </Box>
+                    )}
+                    {selectedSeo.videoalt && (
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Video Alt Text</Typography>
+                        <Typography>{String(selectedSeo.videoalt)}</Typography>
                       </Box>
                     )}
                   </Box>

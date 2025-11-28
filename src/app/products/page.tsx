@@ -764,6 +764,15 @@ export default function ProductPage() {
         if (key === 'colors' && Array.isArray(value)) {
           // Handle colors array
           value.forEach(v => formData.append('color[]', v));
+        } else if (key === 'productTag' && Array.isArray(value)) {
+          // Handle productTag array - append each tag separately
+          value.forEach(v => formData.append('productTag[]', v));
+        } else if (key === 'leadtime' && Array.isArray(value)) {
+          // Handle leadtime array - append each value separately
+          value.forEach(v => formData.append('leadtime[]', v));
+        } else if (key === 'subsuitable' && Array.isArray(value)) {
+          // Handle subsuitable array - append each value separately
+          value.forEach(v => formData.append('subsuitable[]', v));
         } else if (value instanceof File) {
           // Handle new file uploads
           formData.append(key, value);

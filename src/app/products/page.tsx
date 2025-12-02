@@ -1275,7 +1275,7 @@ export default function ProductPage() {
             <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
               {/* Main Image */}
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Main Image</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image3</Typography>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -2377,7 +2377,7 @@ export default function ProductPage() {
               <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 3 }}>
                 {/* Main Image */}
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Main Image</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image3</Typography>
                   {selectedProduct.image3 && (
                     <Box>
                       <Image

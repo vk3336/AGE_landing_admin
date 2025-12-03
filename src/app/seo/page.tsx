@@ -197,15 +197,15 @@ function getSeoPagePermission() {
 interface Product {
   _id: string;
   name: string;
-  img?: string;
+  image1?: string;
 }
 
 // Type guards for dynamic property access
 function hasName(obj: unknown): obj is { name: string } {
   return Boolean(obj && typeof obj === 'object' && 'name' in obj && typeof (obj as { name?: unknown }).name === 'string');
 }
-function hasImg(obj: unknown): obj is { img: string } {
-  return Boolean(obj && typeof obj === 'object' && 'img' in obj && typeof (obj as { img?: unknown }).img === 'string');
+function hasImage1(obj: unknown): obj is { image1: string } {
+  return Boolean(obj && typeof obj === 'object' && 'image1' in obj && typeof (obj as { image1?: unknown }).image1 === 'string');
 }
 
 interface Location {
@@ -255,7 +255,11 @@ function SeoPage() {
       const data = await res.json();
       const products = data.data || [];
       // Sort products alphabetically by name
-      products.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
+      products.sort((a: Product, b: Product) => {
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        return nameA.localeCompare(nameB);
+      });
       setProducts(products);
     } catch (error) {
       console.log("error",error);
@@ -268,7 +272,11 @@ function SeoPage() {
       const data = await res.json();
       const locationsData = data.data?.locations || data.data || [];
       // Sort locations alphabetically by name
-      locationsData.sort((a: Location, b: Location) => a.name.localeCompare(b.name));
+      locationsData.sort((a: Location, b: Location) => {
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        return nameA.localeCompare(nameB);
+      });
       setLocations(locationsData);
     } catch (error) {
       console.log("error",error);
@@ -282,7 +290,11 @@ function SeoPage() {
       .then(data => {
         const products = data.data || [];
         // Sort products alphabetically by name
-        products.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
+        products.sort((a: Product, b: Product) => {
+          const nameA = a.name || '';
+          const nameB = b.name || '';
+          return nameA.localeCompare(nameB);
+        });
         setProducts(products);
       });
     
@@ -293,7 +305,11 @@ function SeoPage() {
         // Handle both response formats: { data: { locations: [...] } } and { data: [...] }
         const locationsData = data.data?.locations || data.data || [];
         // Sort locations alphabetically by name
-        locationsData.sort((a: Location, b: Location) => a.name.localeCompare(b.name));
+        locationsData.sort((a: Location, b: Location) => {
+          const nameA = a.name || '';
+          const nameB = b.name || '';
+          return nameA.localeCompare(nameB);
+        });
         setLocations(locationsData);
       })
       .catch(error => {
@@ -479,7 +495,7 @@ function SeoPage() {
       if (selectedProduct) {
         // Update product name and image in the form
         updatedForm.productName = selectedProduct.name;
-        updatedForm.productImage = selectedProduct.img || '';
+        updatedForm.productImage = selectedProduct.image1 || '';
         
         // If title is empty, set it to the product name
         if (!updatedForm.title) {
@@ -819,7 +835,7 @@ function SeoPage() {
                 // Find product by ID
                 const product = productId ? products.find(p => p._id === productId) : null;
                 const productName = product?.name || (hasName(seo.product) ? seo.product.name : '-');
-                const productImage = product?.img || (hasImg(seo.product) ? seo.product.img : undefined);
+                const productImage = product?.image1 || (hasImage1(seo.product) ? seo.product.image1 : undefined);
                 
                 return (
                 <TableRow key={typeof seo._id === 'string' ? seo._id : ''} hover>
@@ -1142,7 +1158,7 @@ function SeoPage() {
                   <Autocomplete
                     key={field.key}
                     onOpen={refreshProducts}
-                    options={products.map((p: Product) => ({ label: p.name, value: p._id, img: p.img }))}
+                    options={products.map((p: Product) => ({ label: p.name, value: p._id, image1: p.image1 }))}
                     getOptionLabel={option => {
                       if (!option) return '';
                       if (typeof option === 'string') return option;
@@ -1154,7 +1170,7 @@ function SeoPage() {
                         ? {
                             label: String(products.find(p => typeof field.key === 'string' && p._id === form[field.key])?.name ?? ''),
                             value: String(typeof field.key === 'string' ? form[field.key] ?? '' : ''),
-                            img: products.find(p => typeof field.key === 'string' && p._id === form[field.key])?.img
+                            image1: products.find(p => typeof field.key === 'string' && p._id === form[field.key])?.image1
                           }
                         : null
                     }
@@ -1172,7 +1188,7 @@ function SeoPage() {
                     renderOption={(props, option, { index }) => (
                       <ListItem {...props} key={option.value || option.label || index}>
                         <ListItemAvatar>
-                          <Avatar src={option.img ? (option.img.startsWith('http') ? option.img : `${API_URL}/images/${option.img}`) : undefined}>
+                          <Avatar src={option.image1 ? (option.image1.startsWith('http') ? option.image1 : `${API_URL}/images/${option.image1}`) : undefined}>
                             {typeof option.label === 'string' ? option.label[0] : '-'}
                           </Avatar>
                         </ListItemAvatar>
@@ -2497,7 +2513,7 @@ function SeoPage() {
                       <Box component="div">
                         <Avatar
                           variant="rounded"
-                          src={product?.img ? (product.img.startsWith('http') ? product.img : `${API_URL}/images/${product.img}`) : undefined}
+                          src={product?.image1 ? (product.image1.startsWith('http') ? product.image1 : `${API_URL}/images/${product.image1}`) : undefined}
                           sx={{ width: 100, height: 100, mr: 2 }}
                         >
                           {product?.name?.[0] || '?'}
@@ -2515,12 +2531,12 @@ function SeoPage() {
                   } 
                   // Case 2: product is an object with _id and name
                   else if (selectedSeo.product && typeof selectedSeo.product === 'object' && '_id' in selectedSeo.product) {
-                    const product = selectedSeo.product as { _id: string; name?: string; img?: string };
+                    const product = selectedSeo.product as { _id: string; name?: string; image1?: string };
                     return (
                       <Box component="div">
                         <Avatar
                           variant="rounded"
-                          src={product?.img ? (product.img.startsWith('http') ? product.img : `${API_URL}/images/${product.img}`) : undefined}
+                          src={product?.image1 ? (product.image1.startsWith('http') ? product.image1 : `${API_URL}/images/${product.image1}`) : undefined}
                           sx={{ width: 100, height: 100, mr: 2 }}
                         >
                           {product?.name?.[0] || 'P'}

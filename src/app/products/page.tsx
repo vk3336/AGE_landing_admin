@@ -492,10 +492,41 @@ export default function ProductPage() {
       console.log('Form data to be set:', formData); // Debug log
       setForm(formData);
       setEditId(product._id || null);
-      setImage3Preview(getSafeImageUrl(product.image3));
-      setImage1Preview(getSafeImageUrl(product.image1));
-      setImage2Preview(getSafeImageUrl(product.image2));
+      
+      // Set image previews and load their dimensions
+      const img1Url = getSafeImageUrl(product.image1);
+      const img2Url = getSafeImageUrl(product.image2);
+      const img3Url = getSafeImageUrl(product.image3);
+      
+      setImage1Preview(img1Url);
+      setImage2Preview(img2Url);
+      setImage3Preview(img3Url);
       setVideoPreview(getSafeImageUrl(product.video));
+      
+      // Load dimensions for existing images
+      if (img1Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image1: [img.width, img.height] }));
+        };
+        img.src = img1Url;
+      }
+      
+      if (img2Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image2: [img.width, img.height] }));
+        };
+        img.src = img2Url;
+      }
+      
+      if (img3Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image3: [img.width, img.height] }));
+        };
+        img.src = img3Url;
+      }
     } else {
       setForm({
         name: "",
@@ -536,6 +567,7 @@ export default function ProductPage() {
     setImage1Preview(null);
     setImage2Preview(null);
     setVideoPreview(null);
+    setFormImgDims({});
     setSubsuitableInput({ gender: '', clothType: '', number: '' });
     setEditableSubsuitableItems([]);
     setForm({
@@ -574,11 +606,36 @@ export default function ProductPage() {
       // Fetch the full product details to ensure we have all related data
       const res = await apiFetch(`${API_URL}/product/${product._id}`);
       const data = await res.json();
-      if (data.success && data.data) {
-        setSelectedProduct(data.data);
-      } else {
-        // Fallback to the original product data if the fetch fails
-        setSelectedProduct(product);
+      const productData = data.success && data.data ? data.data : product;
+      setSelectedProduct(productData);
+      
+      // Load dimensions for existing images
+      const img1Url = getImageUrl(productData.image1);
+      const img2Url = getImageUrl(productData.image2);
+      const img3Url = getImageUrl(productData.image3);
+      
+      if (img1Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setImgDims(dims => ({ ...dims, image1: [img.width, img.height] }));
+        };
+        img.src = img1Url;
+      }
+      
+      if (img2Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setImgDims(dims => ({ ...dims, image2: [img.width, img.height] }));
+        };
+        img.src = img2Url;
+      }
+      
+      if (img3Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setImgDims(dims => ({ ...dims, image3: [img.width, img.height] }));
+        };
+        img.src = img3Url;
       }
     } catch (error) {
       console.error('Error fetching product details:', error);
@@ -590,6 +647,8 @@ export default function ProductPage() {
   const handleViewClose = useCallback(() => {
     setViewOpen(false);
     setSelectedProduct(null);
+    setImgDims({});
+    setVideoDims(undefined);
   }, []);
 
   const handleDeleteImage = useCallback(async (imageType: 'image3' | 'image1' | 'image2') => {
@@ -1126,7 +1185,7 @@ export default function ProductPage() {
                   <TableRow key={product._id} sx={{ '&:hover': { bgcolor: '#f8f9fa' } }}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {product.image3 && (
+                        {product.image1 && (
                           <Box sx={{ 
                             width: 50, 
                             height: 50, 
@@ -1137,7 +1196,7 @@ export default function ProductPage() {
                             overflow: 'hidden'
                           }}>
                             <Image
-                              src={getImageUrl(product.image3) || ''}
+                              src={getImageUrl(product.image1) || ''}
                               alt={product.name}
                               fill
                               style={{ objectFit: 'contain' }}
@@ -1273,99 +1332,6 @@ export default function ProductPage() {
 
             {/* Media Section */}
             <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-              {/* Main Image */}
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image3</Typography>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                />
-                <Button
-                  variant="outlined"
-                  onClick={() => fileInputRef.current?.click()}
-                  startIcon={<ImageIcon />}
-                  disabled={pageAccess === 'only view'}
-                  sx={{
-                    borderRadius: '8px',
-                    borderColor: '#bdc3c7',
-                    color: '#7f8c8d',
-                    '&:hover': {
-                      borderColor: '#95a5a6',
-                      bgcolor: '#f8f9fa',
-                    }
-                  }}
-                >
-                  {image3Preview ? 'Change' : 'Upload'}
-                </Button>
-                {image3Preview && (
-                  <Box>
-                    <Box sx={{ 
-                      position: 'relative',
-                      width: 200,
-                      height: 200,
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      border: '1px solid #e0e0e0',
-                      bgcolor: '#f5f5f5',
-                      mt: 2,
-                      '&:hover .delete-btn': {
-                        opacity: 1
-                      }
-                    }}>
-                      <Image
-                        src={image3Preview}
-                        alt="Preview"
-                        width={200}
-                        height={200}
-                        style={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setFormImgDims(dims => ({ ...dims, image3: [target.naturalWidth, target.naturalHeight] }));
-                        }}
-                      />
-                      <IconButton
-                        className="delete-btn"
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteImage('image3');
-                        }}
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          backgroundColor: 'rgba(255, 0, 0, 0.7)',
-                          color: 'white',
-                          width: 28,
-                          height: 28,
-                          opacity: 0.8,
-                          transition: 'opacity 0.2s',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
-                            opacity: 1
-                          },
-                        }}
-                        disabled={pageAccess === 'only view'}
-                      >
-                        <DeleteIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Box>
-                    {formImgDims.image3 && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                        w: {formImgDims.image3[0]} h: {formImgDims.image3[1]}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              </Box>
-
               {/* Image 1 */}
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 1</Typography>
@@ -1397,8 +1363,8 @@ export default function ProductPage() {
                   <Box>
                     <Box sx={{ 
                       position: 'relative',
-                      width: 200,
-                      height: 200,
+                      width: 'auto',
+                      maxWidth: '100%',
                       borderRadius: '8px',
                       overflow: 'hidden',
                       border: '1px solid #e0e0e0',
@@ -1411,16 +1377,13 @@ export default function ProductPage() {
                       <Image
                         src={image1Preview}
                         alt="Preview 1"
-                        width={200}
-                        height={200}
+                        width={formImgDims.image1?.[0] || 200}
+                        height={formImgDims.image1?.[1] || 200}
                         style={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setFormImgDims(dims => ({ ...dims, image1: [target.naturalWidth, target.naturalHeight] }));
+                          width: 'auto',
+                          height: 'auto',
+                          maxWidth: '100%',
+                          display: 'block',
                         }}
                       />
                       <IconButton
@@ -1490,8 +1453,8 @@ export default function ProductPage() {
                   <Box>
                     <Box sx={{ 
                       position: 'relative',
-                      width: 200,
-                      height: 200,
+                      width: 'auto',
+                      maxWidth: '100%',
                       borderRadius: '8px',
                       overflow: 'hidden',
                       border: '1px solid #e0e0e0',
@@ -1504,16 +1467,13 @@ export default function ProductPage() {
                       <Image
                         src={image2Preview}
                         alt="Preview 2"
-                        width={200}
-                        height={200}
+                        width={formImgDims.image2?.[0] || 200}
+                        height={formImgDims.image2?.[1] || 200}
                         style={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setFormImgDims(dims => ({ ...dims, image2: [target.naturalWidth, target.naturalHeight] }));
+                          width: 'auto',
+                          height: 'auto',
+                          maxWidth: '100%',
+                          display: 'block',
                         }}
                       />
                       <IconButton
@@ -1546,6 +1506,96 @@ export default function ProductPage() {
                     {formImgDims.image2 && (
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
                         w: {formImgDims.image2[0]} h: {formImgDims.image2[1]}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Image 3 */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 3</Typography>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={<ImageIcon />}
+                  disabled={pageAccess === 'only view'}
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#bdc3c7',
+                    color: '#7f8c8d',
+                    '&:hover': {
+                      borderColor: '#95a5a6',
+                      bgcolor: '#f8f9fa',
+                    }
+                  }}
+                >
+                  {image3Preview ? 'Change' : 'Upload'}
+                </Button>
+                {image3Preview && (
+                  <Box>
+                    <Box sx={{ 
+                      position: 'relative',
+                      width: 'auto',
+                      maxWidth: '100%',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '1px solid #e0e0e0',
+                      bgcolor: '#f5f5f5',
+                      mt: 2,
+                      '&:hover .delete-btn': {
+                        opacity: 1
+                      }
+                    }}>
+                      <Image
+                        src={image3Preview}
+                        alt="Preview 3"
+                        width={formImgDims.image3?.[0] || 200}
+                        height={formImgDims.image3?.[1] || 200}
+                        style={{ 
+                          width: 'auto',
+                          height: 'auto',
+                          maxWidth: '100%',
+                          display: 'block',
+                        }}
+                      />
+                      <IconButton
+                        className="delete-btn"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage('image3');
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                          color: 'white',
+                          width: 28,
+                          height: 28,
+                          opacity: 0.8,
+                          transition: 'opacity 0.2s',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                            opacity: 1
+                          },
+                        }}
+                        disabled={pageAccess === 'only view'}
+                      >
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Box>
+                    {formImgDims.image3 && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                        w: {formImgDims.image3[0]} h: {formImgDims.image3[1]}
                       </Typography>
                     )}
                   </Box>
@@ -2375,30 +2425,6 @@ export default function ProductPage() {
             <Box sx={{ display: 'grid', gap: 3 }}>
               {/* Media row with labels */}
               <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 3 }}>
-                {/* Main Image */}
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image3</Typography>
-                  {selectedProduct.image3 && (
-                    <Box>
-                      <Image
-                        src={getImageUrl(selectedProduct.image3) || ""}
-                        alt="Main"
-                        width={200}
-                        height={200}
-                        style={{ borderRadius: '8px' }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setImgDims(dims => ({ ...dims, image3: [target.naturalWidth, target.naturalHeight] }));
-                        }}
-                      />
-                      {imgDims.image3 && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {imgDims.image3[0]} h: {imgDims.image3[1]}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                </Box>
                 {/* Image 1 */}
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 1</Typography>
@@ -2407,13 +2433,9 @@ export default function ProductPage() {
                       <Image
                         src={getImageUrl(selectedProduct.image1) || ""}
                         alt="Image 1"
-                        width={200}
-                        height={200}
-                        style={{ borderRadius: '8px' }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setImgDims(dims => ({ ...dims, image1: [target.naturalWidth, target.naturalHeight] }));
-                        }}
+                        width={imgDims.image1?.[0] || 200}
+                        height={imgDims.image1?.[1] || 200}
+                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
                       />
                       {imgDims.image1 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
@@ -2431,17 +2453,33 @@ export default function ProductPage() {
                       <Image
                         src={getImageUrl(selectedProduct.image2) || ""}
                         alt="Image 2"
-                        width={200}
-                        height={200}
-                        style={{ borderRadius: '8px' }}
-                        onLoad={e => {
-                          const target = e.target as HTMLImageElement;
-                          setImgDims(dims => ({ ...dims, image2: [target.naturalWidth, target.naturalHeight] }));
-                        }}
+                        width={imgDims.image2?.[0] || 200}
+                        height={imgDims.image2?.[1] || 200}
+                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
                       />
                       {imgDims.image2 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
                           w: {imgDims.image2[0]} h: {imgDims.image2[1]}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+                {/* Image 3 */}
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>Image 3</Typography>
+                  {selectedProduct.image3 && (
+                    <Box>
+                      <Image
+                        src={getImageUrl(selectedProduct.image3) || ""}
+                        alt="Image 3"
+                        width={imgDims.image3?.[0] || 200}
+                        height={imgDims.image3?.[1] || 200}
+                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
+                      />
+                      {imgDims.image3 && (
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                          w: {imgDims.image3[0]} h: {imgDims.image3[1]}
                         </Typography>
                       )}
                     </Box>

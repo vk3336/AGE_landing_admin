@@ -224,6 +224,12 @@ export default function ProductPage() {
   }
   const [editableSubsuitableItems, setEditableSubsuitableItems] = useState<EditableSubsuitableItem[]>([]);
   
+  // State for leadtime options (dynamic based on products)
+  const [leadtimeOptions, setLeadtimeOptions] = useState<string[]>([]);
+  
+  // State for productTag options (dynamic based on products)
+  const [productTagOptions, setProductTagOptions] = useState<string[]>([]);
+  
   // Helper function to safely get image URL
   const getSafeImageUrl = (img: string | undefined | null): string | null => {
     if (!img) return null;
@@ -301,7 +307,34 @@ export default function ProductPage() {
       }
       const res = await apiFetch(url);
       const data = await res.json();
-      setProducts(Array.isArray(data.data) ? (data.data as Product[]) : []);
+      const productsData = Array.isArray(data.data) ? (data.data as Product[]) : [];
+      setProducts(productsData);
+      
+      // Extract unique leadtime values from all products
+      const uniqueLeadtimes = new Set<string>();
+      const uniqueProductTags = new Set<string>();
+      
+      productsData.forEach(product => {
+        if (product.leadtime && Array.isArray(product.leadtime)) {
+          product.leadtime.forEach(lt => {
+            if (lt) {
+              uniqueLeadtimes.add(lt);
+            }
+          });
+        }
+        
+        if (product.productTag && Array.isArray(product.productTag)) {
+          product.productTag.forEach(tag => {
+            if (tag) {
+              uniqueProductTags.add(tag);
+            }
+          });
+        }
+      });
+      
+      // Sort all options alphabetically
+      setLeadtimeOptions(Array.from(uniqueLeadtimes).sort());
+      setProductTagOptions(Array.from(uniqueProductTags).sort());
     } finally {
       setProductsLoading(false);
     }
@@ -2098,7 +2131,7 @@ export default function ProductPage() {
                 <Autocomplete
                   multiple
                   freeSolo
-                  options={[]}
+                  options={leadtimeOptions}
                   value={form.leadtime || []}
                   onChange={(_, newValue) => {
                     setForm(prev => ({ ...prev, leadtime: newValue as string[] }));
@@ -2107,8 +2140,8 @@ export default function ProductPage() {
                     <TextField
                       {...params}
                       label="Lead Time"
-                      placeholder="Add lead time values..."
-                      helperText="Press Enter to add multiple values"
+                      placeholder="Select or type lead time options..."
+                      helperText="Select from dropdown or type custom values and press Enter"
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                     />
                   )}
@@ -2339,7 +2372,7 @@ export default function ProductPage() {
                 <Autocomplete
                   multiple
                   freeSolo
-                  options={[]}
+                  options={productTagOptions}
                   value={form.productTag || []}
                   onChange={(_, newValue) => {
                     setForm(prev => ({ ...prev, productTag: newValue as string[] }));
@@ -2348,8 +2381,8 @@ export default function ProductPage() {
                     <TextField
                       {...params}
                       label="Product Tags"
-                      placeholder="Add product tags..."
-                      helperText="Press Enter to add multiple tags"
+                      placeholder="Select or type product tags..."
+                      helperText="Select from dropdown or type custom tags and press Enter"
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                     />
                   )}

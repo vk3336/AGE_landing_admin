@@ -270,7 +270,7 @@ export default function ProductPage() {
       dropdownFields.forEach((f, i) => {
         const options = datas[i].data || [];
         // Sort dropdown options alphabetically by name
-        options.sort((a: Option, b: Option) => a.name.localeCompare(b.name));
+        options.sort((a: Option, b: Option) => (a.name || '').localeCompare(b.name || ''));
         newDropdowns[f.key] = options;
       });
       setDropdowns(newDropdowns);
@@ -285,7 +285,7 @@ export default function ProductPage() {
       const data = await res.json();
       const items: Option[] = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
       // Sort dropdown options alphabetically by name
-      items.sort((a: Option, b: Option) => a.name.localeCompare(b.name));
+      items.sort((a: Option, b: Option) => (a.name || '').localeCompare(b.name || ''));
       setDropdowns(prev => ({ ...prev, [key]: items }));
     } catch (error) {
       console.log("error",error);
@@ -1320,7 +1320,7 @@ export default function ProductPage() {
           <Box sx={{ display: 'grid', gap: 3 }}>
             {/* Product selection dropdown for duplication/quick fill */}
             <Autocomplete
-              options={[...products].sort((a, b) => a.name.localeCompare(b.name)).map((p: Product) => ({ label: p.name, value: p._id }))}
+              options={[...products].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((p: Product) => ({ label: p.name, value: p._id }))}
               getOptionLabel={option => typeof option === 'string' ? option : option.label}
               onChange={handleProductSelect}
               renderInput={(params) => (

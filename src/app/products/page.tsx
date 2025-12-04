@@ -684,6 +684,153 @@ export default function ProductPage() {
     setVideoDims(undefined);
   }, []);
 
+  const handleGenerateSummaryReport = useCallback(() => {
+    if (!selectedProduct) return;
+
+    // Helper function to get name from object or return string
+    const getName = (field: unknown): string => {
+      if (!field) return 'N/A';
+      if (typeof field === 'string') return field;
+      if (hasName(field)) return field.name;
+      return 'N/A';
+    };
+
+    // Helper function to format array values
+    const formatArray = (arr: unknown): string => {
+      if (!arr || !Array.isArray(arr)) return 'N/A';
+      if (arr.length === 0) return 'N/A';
+      return arr.map(item => {
+        if (typeof item === 'string') return item;
+        if (hasName(item)) return item.name;
+        return String(item);
+      }).join(', ');
+    };
+
+    // Build the summary report content
+    const reportLines = [
+      '='.repeat(80),
+      'PRODUCT SUMMARY REPORT',
+      '='.repeat(80),
+      '',
+      `Generated: ${new Date().toLocaleString()}`,
+      '',
+      '='.repeat(80),
+      'BASIC INFORMATION',
+      '='.repeat(80),
+      '',
+      `Product Name: ${selectedProduct.name}`,
+      `Product ID: ${selectedProduct._id || 'N/A'}`,
+      `Slug: ${selectedProduct.slug || 'N/A'}`,
+      `SKU: ${selectedProduct.sku || 'N/A'}`,
+      `Product Identifier: ${selectedProduct.productIdentifier || 'N/A'}`,
+      `Vendor Fabric Code: ${selectedProduct.vendorFabricCode || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'PRODUCT DETAILS',
+      '='.repeat(80),
+      '',
+      `Category: ${getName(selectedProduct.category)}`,
+      `Substructure: ${getName(selectedProduct.substructure)}`,
+      `Content: ${getName(selectedProduct.content)}`,
+      `Design: ${getName(selectedProduct.design)}`,
+      `Subfinish: ${getName(selectedProduct.subfinish)}`,
+      `Vendor: ${getName(selectedProduct.vendor)}`,
+      `Groupcode: ${getName(selectedProduct.groupcode)}`,
+      `Motif: ${getName(selectedProduct.motif)}`,
+      '',
+      `Colors: ${formatArray(selectedProduct.color)}`,
+      `Subsuitable: ${formatArray(selectedProduct.subsuitable)}`,
+      `Lead Time: ${formatArray(selectedProduct.leadtime)}`,
+      `Product Tags: ${formatArray(selectedProduct.productTag)}`,
+      '',
+      '='.repeat(80),
+      'MEASUREMENTS',
+      '='.repeat(80),
+      '',
+      `Unit of Measure: ${selectedProduct.um || 'N/A'}`,
+      `GSM: ${selectedProduct.gsm || 'N/A'}`,
+      `OZ: ${selectedProduct.oz || 'N/A'}`,
+      `CM: ${selectedProduct.cm || 'N/A'}`,
+      `INCH: ${selectedProduct.inch || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'PRICING',
+      '='.repeat(80),
+      '',
+      `Currency: ${selectedProduct.currency || 'N/A'}`,
+      `Purchase Price: ${selectedProduct.purchasePrice || 'N/A'}`,
+      `Sales Price: ${selectedProduct.salesPrice || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'RATINGS',
+      '='.repeat(80),
+      '',
+      `Rating Value: ${selectedProduct.rating_value || 'N/A'}`,
+      `Rating Count: ${selectedProduct.rating_count || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'CATALOG INFORMATION',
+      '='.repeat(80),
+      '',
+      `Product Title: ${selectedProduct.productTitle || 'N/A'}`,
+      `Product Tagline: ${selectedProduct.productTagline || 'N/A'}`,
+      '',
+      `Short Description:`,
+      selectedProduct.shortProductDescription ? selectedProduct.shortProductDescription.replace(/<[^>]*>/g, '') : 'N/A',
+      '',
+      `Full Description:`,
+      selectedProduct.fullProductDescription ? selectedProduct.fullProductDescription.replace(/<[^>]*>/g, '') : 'N/A',
+      '',
+      '='.repeat(80),
+      'MEDIA',
+      '='.repeat(80),
+      '',
+      `Image 1: ${selectedProduct.image1 || 'N/A'}`,
+      `Alt Text 1: ${selectedProduct.altimg1 || 'N/A'}`,
+      '',
+      `Image 2: ${selectedProduct.image2 || 'N/A'}`,
+      `Alt Text 2: ${selectedProduct.altimg2 || 'N/A'}`,
+      '',
+      `Image 3: ${selectedProduct.image3 || 'N/A'}`,
+      `Alt Text 3: ${selectedProduct.altimg3 || 'N/A'}`,
+      '',
+      `Video: ${selectedProduct.video || 'N/A'}`,
+      `Video Alt Text: ${selectedProduct.altvideo || 'N/A'}`,
+      `YouTube Video URL: ${selectedProduct.videourl || 'N/A'}`,
+      `YouTube Video Alt Text: ${selectedProduct.videoalt || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'SEO / SOCIAL MEDIA',
+      '='.repeat(80),
+      '',
+      `OG Type: ${selectedProduct.ogType || 'N/A'}`,
+      `Twitter Card: ${selectedProduct.twitterCard || 'N/A'}`,
+      `OG Image / Twitter Image: ${selectedProduct.ogImage_twitterimage || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'END OF REPORT',
+      '='.repeat(80),
+    ];
+
+    const reportContent = reportLines.join('\n');
+
+    // Create a blob and download it
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Generate filename with product name and timestamp
+    const sanitizedName = selectedProduct.name.replace(/<[^>]*>/g, '').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.download = `product_summary_${sanitizedName}_${timestamp}.txt`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [selectedProduct]);
+
   const handleDeleteImage = useCallback(async (imageType: 'image3' | 'image1' | 'image2') => {
     try {
       // If this is an existing image (not a new upload), delete it from the server
@@ -2451,6 +2598,20 @@ export default function ProductPage() {
             <Typography variant="h6" sx={{ ml: 2, flex: 1, fontWeight: 600 }}>
               Product Details
             </Typography>
+            <Button
+              variant="contained"
+              onClick={handleGenerateSummaryReport}
+              sx={{
+                bgcolor: '#27ae60',
+                '&:hover': { bgcolor: '#229954' },
+                borderRadius: '8px',
+                px: 3,
+                py: 1,
+                fontWeight: 600
+              }}
+            >
+              Summary Report
+            </Button>
           </Toolbar>
         </AppBar>
         <DialogContent sx={{ p: 3 }}>

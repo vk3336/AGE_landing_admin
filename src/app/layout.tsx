@@ -82,7 +82,7 @@ const filterModels = [
   { name: "State", path: "/state" },
   { name: "City", path: "/city" },
   { name: "Location", path: "/location" },
-  { name: "Location Details", path: "/location-details" },
+  { name: "Area Details", path: "/location-details" },
 
   { name: "Office Information", path: "/office-information" },
   { name: "About Us", path: "/aboutus" },

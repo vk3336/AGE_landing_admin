@@ -211,11 +211,16 @@ function hasImage1(obj: unknown): obj is { image1: string } {
 
 interface Location {
   _id: string;
+  displayName: string;
   name: string;
   city?: string;
+  cityId?: string | null;
   state?: string;
+  stateId?: string | null;
   country?: string;
+  countryId?: string | null;
   pincode?: string;
+  slug?: string;
 }
 
 type SeoFormValue = string | number | boolean | string[] | File | null | undefined | Record<string, unknown>;
@@ -269,15 +274,10 @@ function SeoPage() {
 
   const refreshLocations = useCallback(async () => {
     try {
-      const res = await apiFetch(`${API_URL}/locations?limit=1000`);
+      const res = await apiFetch(`${API_URL}/locations/for-seo?limit=1000`);
       const data = await res.json();
-      const locationsData = data.data?.locations || data.data || [];
-      // Sort locations alphabetically by name
-      locationsData.sort((a: Location, b: Location) => {
-        const nameA = a.name || '';
-        const nameB = b.name || '';
-        return nameA.localeCompare(nameB);
-      });
+      const locationsData = data.data || [];
+      // Data is already sorted by displayName from backend
       setLocations(locationsData);
     } catch (error) {
       console.log("error",error);
@@ -299,18 +299,12 @@ function SeoPage() {
         setProducts(products);
       });
     
-    // Fetch locations
-    apiFetch(`${API_URL}/locations?limit=1000`)
+    // Fetch locations with cascading display names
+    apiFetch(`${API_URL}/locations/for-seo?limit=1000`)
       .then(res => res.json())
       .then(data => {
-        // Handle both response formats: { data: { locations: [...] } } and { data: [...] }
-        const locationsData = data.data?.locations || data.data || [];
-        // Sort locations alphabetically by name
-        locationsData.sort((a: Location, b: Location) => {
-          const nameA = a.name || '';
-          const nameB = b.name || '';
-          return nameA.localeCompare(nameB);
-        });
+        const locationsData = data.data || [];
+        // Data is already sorted by displayName from backend
         setLocations(locationsData);
       })
       .catch(error => {
@@ -582,10 +576,13 @@ function SeoPage() {
     const updatedForm = { ...form };
     
     if (value) {
+      // Store the location ID
       updatedForm.location = value._id;
-      updatedForm.locationName = value.name;
       
-      // If location has city/state/country, update those fields as well
+      // Store location details for reference
+      updatedForm.locationName = value.name || value.displayName;
+      
+      // Store city/state/country information
       if (value.city) updatedForm.city = value.city;
       if (value.state) updatedForm.state = value.state;
       if (value.country) updatedForm.country = value.country;
@@ -821,9 +818,26 @@ function SeoPage() {
                   <TableCell colSpan={6} align="center">No SEO entries found</TableCell>
                 </TableRow>
               ) : seoList.map(seo => {
-                const location = seo.location && typeof seo.location === 'object' && 'name' in seo.location 
-                  ? (seo.location as { name: string }).name 
-                  : locations.find(loc => loc._id === seo.location)?.name || '-';
+                // Get location display name with cascading logic
+                let locationDisplay = '-';
+                if (seo.location && typeof seo.location === 'object') {
+                  const loc = seo.location as { name?: string; city?: { name?: string }; state?: { name?: string }; country?: { name?: string } };
+                  // Priority: location name > city > state > country
+                  if (loc.name) {
+                    locationDisplay = loc.name;
+                  } else if (loc.city?.name) {
+                    locationDisplay = loc.city.name;
+                  } else if (loc.state?.name) {
+                    locationDisplay = loc.state.name;
+                  } else if (loc.country?.name) {
+                    locationDisplay = loc.country.name;
+                  }
+                } else if (seo.location) {
+                  // If location is just an ID, find it in the locations array
+                  const foundLoc = locations.find(loc => loc._id === seo.location);
+                  locationDisplay = foundLoc?.displayName || '-';
+                }
+                const location = locationDisplay;
                 
                 // Get product ID - handle both direct ID and nested product object
                 let productId: string | undefined;
@@ -2226,7 +2240,7 @@ function SeoPage() {
                   </TextField>
                 );
               } else if (field.type === "location") {
-                // Location field with Autocomplete
+                // Location field with Autocomplete - shows cascading location names
                 return (
                   <Autocomplete
                     key={field.key}
@@ -2235,7 +2249,8 @@ function SeoPage() {
                     getOptionLabel={(option) => {
                       if (!option) return '';
                       if (typeof option === 'string') return option;
-                      return option.name || '';
+                      // Use displayName which has cascading logic: location name > city > state > country
+                      return option.displayName || option.name || '';
                     }}
                     value={locations.find(loc => loc._id === form[field.key]) || null}
                     onChange={handleLocationChange}
@@ -2244,10 +2259,22 @@ function SeoPage() {
                         {...params}
                         label={field.label}
                         name={field.key}
-                        helperText={field.helperText || ''}
+                        helperText={field.helperText || 'Shows location name, or city, state, or country if location name is not available'}
                         variant="outlined"
                         fullWidth
                       />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option._id}>
+                        <Box>
+                          <Typography variant="body1">{option.displayName}</Typography>
+                          {(option.city || option.state || option.country) && (
+                            <Typography variant="caption" color="textSecondary">
+                              {[option.city, option.state, option.country].filter(Boolean).join(', ')}
+                            </Typography>
+                          )}
+                        </Box>
+                      </li>
                     )}
                     isOptionEqualToValue={(option, value) => option._id === value._id}
                     disabled={pageAccess === 'only view'}

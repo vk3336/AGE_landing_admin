@@ -50,7 +50,6 @@ interface Product {
   purchasePrice?: number | string;
   salesPrice?: number | string;
   vendorFabricCode?: string;
-  productIdentifier?: string;
   leadtime?: string[];
   sku?: string;
   rating_value?: string | number;
@@ -142,7 +141,6 @@ export default function ProductPage() {
     purchasePrice?: number | string;
     salesPrice?: number | string;
     vendorFabricCode?: string;
-    productIdentifier?: string;
     leadtime?: string[];
     sku?: string;
     rating_value?: number | string;
@@ -188,7 +186,6 @@ export default function ProductPage() {
     purchasePrice: "",
     salesPrice: "",
     vendorFabricCode: "",
-    productIdentifier: "",
     leadtime: [],
     sku: "",
     rating_value: "",
@@ -508,7 +505,6 @@ export default function ProductPage() {
         purchasePrice: product.purchasePrice !== undefined ? String(product.purchasePrice) : "",
         salesPrice: product.salesPrice !== undefined ? String(product.salesPrice) : "",
         vendorFabricCode: product.vendorFabricCode || "",
-        productIdentifier: product.productIdentifier || "",
         leadtime: leadtime,
         sku: product.sku || "",
         rating_value: product.rating_value || "",
@@ -723,7 +719,6 @@ export default function ProductPage() {
       `Product ID: ${selectedProduct._id || 'N/A'}`,
       `Slug: ${selectedProduct.slug || 'N/A'}`,
       `SKU: ${selectedProduct.sku || 'N/A'}`,
-      `Product Identifier: ${selectedProduct.productIdentifier || 'N/A'}`,
       `Vendor Fabric Code: ${selectedProduct.vendorFabricCode || 'N/A'}`,
       '',
       '='.repeat(80),
@@ -1190,7 +1185,7 @@ export default function ProductPage() {
         purchasePrice: selected.purchasePrice !== undefined ? String(selected.purchasePrice) : "",
         salesPrice: selected.salesPrice !== undefined ? String(selected.salesPrice) : "",
         vendorFabricCode: selected.vendorFabricCode || "",
-        productIdentifier: selected.productIdentifier || "",
+        
         leadtime: leadtime,
         sku: selected.sku || "",
         rating_value: selected.rating_value || "",
@@ -2413,15 +2408,6 @@ export default function ProductPage() {
                 disabled={pageAccess === 'only view'}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
-              <TextField
-                label="Product Identifier"
-                value={form.productIdentifier || ""}
-                onChange={e => setForm(prev => ({ ...prev, productIdentifier: e.target.value }))}
-                fullWidth
-                disabled={pageAccess === 'only view'}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-
               {/* Product Flags Section - REMOVED as per model changes */}
 
               {/* Ratings Section */}
@@ -2972,10 +2958,6 @@ export default function ProductPage() {
                 <Box>
                   <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Vendor Fabric Code</Typography>
                   <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.vendorFabricCode || '-'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 600 }}>Product ID</Typography>
-                  <Typography variant="body2" sx={{ color: '#2c3e50', mt: 0.5 }}>{selectedProduct.productIdentifier || '-'}</Typography>
                 </Box>
                 
                 {/* Product Flags Section - REMOVED as per model changes */}

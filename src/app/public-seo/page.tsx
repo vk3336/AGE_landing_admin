@@ -85,7 +85,6 @@ interface SeoData {
   productlocationtagline?: string;
   productlocationdescription1?: string;
   productlocationdescription2?: string;
-  productIdentifier?: string;
   
   // Mobile & Browser
   mobileWebAppCapable?: string;
@@ -1010,10 +1009,6 @@ const paginatedData = sortedData.slice(
                       <TableRow>
                         <TableCell><strong>Location Code</strong></TableCell>
                         <TableCell>{selectedSeo.locationCode || 'N/A'}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Product Identifier</strong></TableCell>
-                        <TableCell>{selectedSeo.productIdentifier || 'N/A'}</TableCell>
                       </TableRow>
 
                       {/* JSON-LD Details */}

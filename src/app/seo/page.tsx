@@ -13,6 +13,7 @@ import { Avatar } from '@mui/material';
 import { Pagination } from '@mui/material';
 import { apiFetch } from '../../utils/apiFetch';
 import Image from 'next/image';
+import RichTextEditor from '../../components/RichTextEditor';
 
 // --- SEO Model Fields ---
 const SEO_FIELDS = [
@@ -2291,6 +2292,31 @@ function SeoPage() {
                   : "-";
                 // For ogTitle, always use the title value
                 const displayValue = field.key === 'ogTitle' ? (form.title || '') : value;
+                
+                // Use RichTextEditor for product location descriptions
+                if (field.key === 'productlocationdescription1' || field.key === 'productlocationdescription2') {
+                  return (
+                    <Box key={field.key} sx={{ mb: 2, width: '100%' }}>
+                      <RichTextEditor
+                        label={field.label}
+                        value={String(displayValue || '')}
+                        onChange={(content) => {
+                          setForm(prev => ({
+                            ...prev,
+                            [field.key as string]: content
+                          }));
+                        }}
+                        height={300}
+                        placeholder={`Enter ${field.label.toLowerCase()}...`}
+                      />
+                      {field.helperText && (
+                        <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
+                          {field.helperText}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                }
                 
                 return (
                 <TextField

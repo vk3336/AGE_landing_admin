@@ -12,6 +12,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import RichTextEditor from '../../components/RichTextEditor';
 
 
 interface AboutUs {
@@ -426,41 +427,26 @@ export default function AboutUsPage() {
               </>
             ) : (
               <>
-                <TextField
-                  name="descriptionsmall"
+                <RichTextEditor
                   label="Small Description"
                   value={form.descriptionsmall || ''}
-                  onChange={(e) => setForm({...form, descriptionsmall: e.target.value})}
-                  fullWidth
-                  margin="normal"
-                  required
-                  disabled={pageAccess === 'only view'}
-                  multiline
-                  rows={2}
+                  onChange={(content) => setForm({...form, descriptionsmall: content})}
+                  height={200}
+                  placeholder="Enter small description..."
                 />
-                <TextField
-                  name="descriptionmedium"
+                <RichTextEditor
                   label="Medium Description"
                   value={form.descriptionmedium || ''}
-                  onChange={(e) => setForm({...form, descriptionmedium: e.target.value})}
-                  fullWidth
-                  margin="normal"
-                  required
-                  disabled={pageAccess === 'only view'}
-                  multiline
-                  rows={3}
+                  onChange={(content) => setForm({...form, descriptionmedium: content})}
+                  height={300}
+                  placeholder="Enter medium description..."
                 />
-                <TextField
-                  name="descriptionlarger"
+                <RichTextEditor
                   label="Large Description"
                   value={form.descriptionlarger || ''}
-                  onChange={(e) => setForm({...form, descriptionlarger: e.target.value})}
-                  fullWidth
-                  margin="normal"
-                  required
-                  disabled={pageAccess === 'only view'}
-                  multiline
-                  rows={4}
+                  onChange={(content) => setForm({...form, descriptionlarger: content})}
+                  height={400}
+                  placeholder="Enter large description..."
                 />
               </>
             )}

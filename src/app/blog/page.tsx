@@ -22,11 +22,11 @@ import {
   DialogActions,
   InputAdornment,
   CircularProgress,
-  TextareaAutosize,
   Breadcrumbs,
   Pagination
 
 } from '@mui/material';
+import RichTextEditor from '../../components/RichTextEditor';
 import ArticleIcon from '@mui/icons-material/Article';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -292,80 +292,32 @@ const BlogForm = React.memo(({
           />
           
           <Box mt={2} mb={2}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle2" gutterBottom>
-                Paragraph 1 *
-              </Typography>
-              <Typography variant="caption" color="textSecondary">
-                Supports HTML formatting
-              </Typography>
-            </Box>
-            <TextareaAutosize
-              name="paragraph1"
+            <RichTextEditor
+              label="Paragraph 1 *"
               value={form.paragraph1 || ''}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                minHeight: '100px',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid rgba(0, 0, 0, 0.23)',
-                marginBottom: '16px',
-              }}
-              placeholder="First paragraph..."
-              disabled={viewOnly}
-              required
+              onChange={(content) => setForm(prev => ({ ...prev, paragraph1: content }))}
+              height={250}
+              placeholder="Enter the first paragraph..."
             />
           </Box>
           
           <Box mb={2}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle2" gutterBottom>
-                Paragraph 2 (Optional)
-              </Typography>
-              <Typography variant="caption" color="textSecondary">
-                Supports HTML formatting
-              </Typography>
-            </Box>
-            <TextareaAutosize
-              name="paragraph2"
+            <RichTextEditor
+              label="Paragraph 2 (Optional)"
               value={form.paragraph2 || ''}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                minHeight: '100px',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid rgba(0, 0, 0, 0.23)',
-                marginBottom: '16px',
-              }}
-              placeholder="Second paragraph..."
-              disabled={viewOnly}
+              onChange={(content) => setForm(prev => ({ ...prev, paragraph2: content }))}
+              height={250}
+              placeholder="Enter the second paragraph..."
             />
           </Box>
           
           <Box mb={2}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle2" gutterBottom>
-                Paragraph 3 (Optional)
-              </Typography>
-              <Typography variant="caption" color="textSecondary">
-                Supports HTML formatting
-              </Typography>
-            </Box>
-            <TextareaAutosize
-              name="paragraph3"
+            <RichTextEditor
+              label="Paragraph 3 (Optional)"
               value={form.paragraph3 || ''}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                minHeight: '100px',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid rgba(0, 0, 0, 0.23)',
-              }}
-              placeholder="Third paragraph..."
-              disabled={viewOnly}
+              onChange={(content) => setForm(prev => ({ ...prev, paragraph3: content }))}
+              height={250}
+              placeholder="Enter the third paragraph..."
             />
           </Box>
           

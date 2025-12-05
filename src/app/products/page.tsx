@@ -14,6 +14,7 @@ import InputBase from '@mui/material/InputBase';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Image from 'next/image';
 import { apiFetch } from '../../utils/apiFetch';
+import RichTextEditor from '../../components/RichTextEditor';
 
 interface Product {
   _id?: string;
@@ -2482,40 +2483,42 @@ export default function ProductPage() {
                   disabled={pageAccess === 'only view'}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                 />
-                <TextField
-                  label="Short Description"
-                  value={form.shortProductDescription || ""}
-                  onChange={e => setForm(prev => ({ ...prev, shortProductDescription: e.target.value }))}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  maxRows={20}
-                  disabled={pageAccess === 'only view'}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                    '& .MuiInputBase-inputMultiline': {
-                      overflow: 'auto !important',
-                      resize: 'vertical',
-                    }
-                  }}
-                />
-                <TextField
-                  label="Full Description"
-                  value={form.fullProductDescription || ""}
-                  onChange={e => setForm(prev => ({ ...prev, fullProductDescription: e.target.value }))}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  maxRows={20}
-                  disabled={pageAccess === 'only view'}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                    '& .MuiInputBase-inputMultiline': {
-                      overflow: 'auto !important',
-                      resize: 'vertical',
-                    }
-                  }}
-                />
+                {pageAccess !== 'only view' ? (
+                  <RichTextEditor
+                    label="Short Description"
+                    value={form.shortProductDescription || ""}
+                    onChange={(content) => setForm(prev => ({ ...prev, shortProductDescription: content }))}
+                    height={300}
+                    placeholder="Enter short product description..."
+                  />
+                ) : (
+                  <TextField
+                    label="Short Description"
+                    value={form.shortProductDescription || ""}
+                    fullWidth
+                    multiline
+                    disabled
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                  />
+                )}
+                {pageAccess !== 'only view' ? (
+                  <RichTextEditor
+                    label="Full Description"
+                    value={form.fullProductDescription || ""}
+                    onChange={(content) => setForm(prev => ({ ...prev, fullProductDescription: content }))}
+                    height={400}
+                    placeholder="Enter full product description..."
+                  />
+                ) : (
+                  <TextField
+                    label="Full Description"
+                    value={form.fullProductDescription || ""}
+                    fullWidth
+                    multiline
+                    disabled
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                  />
+                )}
                 <Autocomplete
                   multiple
                   freeSolo

@@ -91,6 +91,7 @@ export default function CityPage() {
   // State variables
   const [cities, setCities] = useState<City[]>([]);
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
+  const [citySuggestions, setCitySuggestions] = useState<City[]>([]); // For autocomplete dropdown
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [states, setStates] = useState<StateOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,6 +229,34 @@ export default function CityPage() {
     }
   }, []);
 
+  // Fetch city suggestions for autocomplete based on country/state
+  const fetchCitySuggestions = useCallback(async (countryId: string, stateId?: string) => {
+    try {
+      const queryParams = new URLSearchParams({
+        limit: '100', // Get more cities for suggestions
+      });
+      
+      if (stateId) {
+        queryParams.append('state', stateId);
+      } else if (countryId) {
+        queryParams.append('country', countryId);
+      }
+      
+      const res = await apiFetch(`/cities?${queryParams}`);
+      const response = await res.json();
+      
+      if (response && response.status === 'success' && response.data) {
+        const citiesData = response.data.cities || [];
+        // Sort cities alphabetically by name
+        citiesData.sort((a: City, b: City) => a.name.localeCompare(b.name));
+        setCitySuggestions(citiesData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch city suggestions:', error);
+      setCitySuggestions([]);
+    }
+  }, []);
+
   // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -263,12 +292,21 @@ export default function CityPage() {
       state: '',
       state_name: ''
     }));
+    
+    // Fetch city suggestions for the selected country
+    fetchCitySuggestions(countryId);
   };
 
   // Handle state change
   const handleStateChange = (stateId: string) => {
     const selectedState = states.find(s => s._id === stateId);
-    if (!selectedState) return;
+    if (!selectedState) {
+      // If state is cleared, fetch cities for country only
+      if (form.country) {
+        fetchCitySuggestions(form.country);
+      }
+      return;
+    }
     
     // Get the country ID whether it's a string or object
     const countryId = selectedState.country && typeof selectedState.country === 'object' 
@@ -289,6 +327,9 @@ export default function CityPage() {
       longitude: undefined,
       latitude: undefined
     }));
+    
+    // Fetch city suggestions for the selected state
+    fetchCitySuggestions(countryId, stateId);
   };
 
   // Handle form input changes
@@ -334,9 +375,9 @@ export default function CityPage() {
       setIsSubmitting(true);
       setError(null);
       
-      // Validate required fields
-      if (!form.name || !form.country || !form.state) {
-        throw new Error('Name, country, and state are required fields');
+      // Validate required fields - only name and country are required
+      if (!form.name || !form.country) {
+        throw new Error('Name and country are required fields');
       }
 
       const url = editId ? `/cities/${editId}` : '/cities';
@@ -347,7 +388,7 @@ export default function CityPage() {
         name: string;
         slug: string;
         country: string;
-        state: string;
+        state?: string;
         longitude?: number;
         latitude?: number;
       };
@@ -357,8 +398,12 @@ export default function CityPage() {
         name: form.name.trim(),
         slug: form.slug.trim() || form.name.trim().toLowerCase().replace(/\s+/g, '-'),
         country: form.country,
-        state: form.state,
       };
+
+      // Only include state if it's not empty
+      if (form.state && form.state.trim()) {
+        formData.state = form.state;
+      }
 
       // Handle number fields with proper type conversion
       if (form.longitude !== undefined) {
@@ -440,6 +485,13 @@ export default function CityPage() {
         longitude: city.longitude,
         latitude: city.latitude
       });
+      
+      // Fetch city suggestions based on state or country
+      if (stateId && countryId) {
+        fetchCitySuggestions(countryId, stateId);
+      } else if (countryId) {
+        fetchCitySuggestions(countryId);
+      }
       
       setEditId(city._id);
       setOpenForm(true);
@@ -767,8 +819,8 @@ export default function CityPage() {
                 }}
                 filterOptions={(options) => {
                   if (!form.country) {
-                    console.log('No country selected, returning no options');
-                    return [];
+                    console.log('No country selected, returning all states');
+                    return options;
                   }
                   const filtered = options.filter(option => {
                     // Handle both cases where country is a string or an object
@@ -791,33 +843,19 @@ export default function CityPage() {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="State"
+                    label="State (Optional)"
                     variant="outlined"
                     fullWidth
-                    required
                     margin="normal"
-                    disabled={!form.country}
-                    helperText={!form.country ? 'Please select a country first' : ''}
+                    helperText={!form.country ? 'Select a country to filter states' : 'Optional - select to filter cities by state'}
                   />
                 )}
-                disabled={!form.country}
-                noOptionsText={form.country ? 'No states found for this country' : 'Select a country first'}
+                noOptionsText={form.country ? 'No states found for this country' : 'No states available'}
               />
               
               <Autocomplete
                 freeSolo
-                onOpen={() => fetchCities(pagination.page, searchTerm)}
-                options={cities.filter(city => {
-                  // If no country or state is selected, don't show any suggestions
-                  if (!form.country || !form.state) return false;
-                  
-                  // Get the city's state and country
-                  const cityState = typeof city.state === 'string' ? city.state : city.state?._id;
-                  const cityCountry = typeof city.country === 'string' ? city.country : city.country?._id;
-                  
-                  // Match both state and country by ID
-                  return cityState === form.state && cityCountry === form.country;
-                })}
+                options={citySuggestions}
                 getOptionLabel={(option) => {
                   if (typeof option === 'string') return option;
                   return option.name;
@@ -867,10 +905,12 @@ export default function CityPage() {
                     name="name"
                     required
                     autoFocus
-                    placeholder={!form.country || !form.state 
-                      ? 'Please select country and state first' 
-                      : 'Start typing to search for a city...'}
-                    disabled={!form.country || !form.state}
+                    placeholder={!form.country 
+                      ? 'Please select country first' 
+                      : form.state 
+                        ? 'Type or select a city in selected state...'
+                        : 'Type or select a city in selected country...'}
+                    disabled={!form.country}
                   />
                 )}
                 renderOption={(props, option) => (
@@ -878,10 +918,12 @@ export default function CityPage() {
                     {typeof option === 'string' ? option : option.name}
                   </li>
                 )}
-                noOptionsText={!form.country || !form.state 
-                  ? 'Please select country and state first' 
-                  : 'No matching cities found'}
-                disabled={!form.country || !form.state}
+                noOptionsText={!form.country 
+                  ? 'Please select country first' 
+                  : form.state
+                    ? 'No cities found in selected state. You can type a new city name.'
+                    : 'No cities found in selected country. You can type a new city name.'}
+                disabled={!form.country}
               />
               
               <TextField

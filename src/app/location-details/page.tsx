@@ -306,9 +306,14 @@ export default function LocationDetailsPage() {
     }, [form.country, states]);
 
     const availableCities = useMemo(() => {
-        if (!form.state) return [];
-        return cities.filter((city) => getEntityId(city.state) === form.state);
-    }, [cities, form.state]);
+        if (!form.country) return [];
+        // If state is selected, filter cities by state
+        if (form.state) {
+            return cities.filter((city) => getEntityId(city.state) === form.state);
+        }
+        // If only country is selected, filter cities by country
+        return cities.filter((city) => getEntityId(city.country) === form.country);
+    }, [cities, form.country, form.state]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -338,8 +343,8 @@ export default function LocationDetailsPage() {
         event.preventDefault();
         if (submitting) return;
 
-        if (!form.country || !form.state || !form.city) {
-            setError("Please select country, state, and city.");
+        if (!form.country) {
+            setError("Please select a country.");
             return;
         }
 
@@ -356,10 +361,11 @@ export default function LocationDetailsPage() {
                 name: form.name.trim(),
                 slug: form.slug.trim(),
                 country: form.country,
-                state: form.state,
-                city: form.city,
                 pincode: form.pincode.trim(),
             };
+
+            if (form.state) payload.state = form.state;
+            if (form.city) payload.city = form.city;
 
             if (form.latitude) payload.latitude = Number(form.latitude);
             if (form.longitude) payload.longitude = Number(form.longitude);
@@ -611,9 +617,8 @@ export default function LocationDetailsPage() {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="State"
-                                        required
-                                        helperText={!form.country ? "Select a country first" : undefined}
+                                        label="State (Optional)"
+                                        helperText={!form.country ? "Select a country first" : "Optional - Select to filter cities"}
                                     />
                                 )}
                             />
@@ -628,13 +633,18 @@ export default function LocationDetailsPage() {
                                         city: value?._id || "",
                                     }));
                                 }}
-                                disabled={!form.state}
+                                disabled={!form.country}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="City"
-                                        required
-                                        helperText={!form.state ? "Select a state first" : undefined}
+                                        label="City (Optional)"
+                                        helperText={
+                                            !form.country 
+                                                ? "Select a country first" 
+                                                : form.state 
+                                                    ? "Showing cities from selected state" 
+                                                    : "Showing cities from selected country"
+                                        }
                                     />
                                 )}
                             />
@@ -644,7 +654,7 @@ export default function LocationDetailsPage() {
                                 value={form.pincode}
                                 onChange={handleChange}
                                 required
-                                inputProps={{ pattern: "^[0-9A-Za-z- ]+$" }}
+                                inputProps={{ pattern: "^[0-9A-Za-z\\- ]+$" }}
                             />
                             <TextField
                                 label="Location Name"

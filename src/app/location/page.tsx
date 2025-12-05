@@ -39,6 +39,9 @@ interface Country {
   _id: string;
   name: string;
   code: string;
+  slug?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface State {
@@ -46,6 +49,9 @@ interface State {
   name: string;
   code: string;
   country: string | { _id: string; name: string };
+  slug?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface City {
@@ -53,6 +59,9 @@ interface City {
   name: string;
   pincode: string;
   state: string | { _id: string; name: string };
+  slug?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface LocationDetailOption {
@@ -167,9 +176,10 @@ export default function LocationPage() {
     }
   }, []);
 
-  const refreshStates = useCallback(async () => {
+  const refreshStates = useCallback(async (countryId?: string) => {
     try {
-      const res = await apiFetch('/states');
+      const url = countryId ? `/states?country=${countryId}&limit=1000` : '/states?limit=1000';
+      const res = await apiFetch(url);
       const data = await res.json();
       let list: State[] = [];
       if (data?.status === 'success' && data.data?.states) {
@@ -185,9 +195,15 @@ export default function LocationPage() {
     }
   }, []);
 
-  const refreshCities = useCallback(async () => {
+  const refreshCities = useCallback(async (stateId?: string, countryId?: string) => {
     try {
-      const res = await apiFetch('/cities');
+      let url = '/cities?limit=1000';
+      if (stateId) {
+        url += `&state=${stateId}`;
+      } else if (countryId) {
+        url += `&country=${countryId}`;
+      }
+      const res = await apiFetch(url);
       const data = await res.json();
       let list: City[] = [];
       if (data?.status === 'success' && data.data?.cities) {
@@ -347,22 +363,6 @@ export default function LocationPage() {
     }));
   };
 
-  // Get locations filtered by selected city - handles both API and local data
-  const getFilteredLocations = useCallback(() => {
-    if (!form.city) return [];
-    return locationDetails.filter(detail => {
-      const cityId = typeof detail.city === 'object' ? detail.city._id : detail.city;
-      return cityId === form.city;
-    });
-  }, [form.city, locationDetails]);
-
-  const filteredLocationOptions: LocationDetailOption[] = useMemo(
-    () => getFilteredLocations(),
-    [getFilteredLocations]
-  );
-
- 
-
   // Handle location selection from dropdown
   const handleLocationSelect = (value: string | null) => {
     if (!value) return;
@@ -406,27 +406,16 @@ export default function LocationPage() {
     setSubmitting(true);
     setError(null);
 
-    // Validation for required fields in order
+    // Validation - only country is required
     if (!form.country) {
-      setError('Please select a country first');
+      setError('Please select a country');
       setSubmitting(false);
       return;
     }
 
-    if (!form.state) {
-      setError('Please select a state after selecting a country');
-      setSubmitting(false);
-      return;
-    }
-
-    if (!form.city) {
-      setError('Please select a city after selecting a state');
-      setSubmitting(false);
-      return;
-    }
-
-    if (!form.name || !form.slug) {
-      setError('Location name and slug are required');
+    // If location name is provided, slug is also required
+    if (form.name && !form.slug) {
+      setError('Slug is required when location name is provided');
       setSubmitting(false);
       return;
     }
@@ -624,73 +613,157 @@ export default function LocationPage() {
     setError(null);
   };
 
-  // Get states filtered by selected country
-  const getFilteredStates = useCallback(() => {
-    if (!form.country) return [];
+  // States and cities are now filtered by the backend, so we just use them directly
+  const filteredStates = useMemo(() => {
     if (!Array.isArray(states)) return [];
+    return states.sort((a, b) => a.name.localeCompare(b.name));
+  }, [states]);
 
-    return states.filter(state => {
-      const countryId = typeof state.country === 'object' ? state.country._id : state.country;
-      return countryId === form.country;
-    });
-  }, [form.country, states]);
-
-  // Get cities filtered by selected state
-  const getFilteredCities = useCallback(() => {
-    if (!form.state) return [];
+  const filteredCities = useMemo(() => {
     if (!Array.isArray(cities)) return [];
+    return cities.sort((a, b) => a.name.localeCompare(b.name));
+  }, [cities]);
 
-    return cities.filter(city => {
-      const stateId = typeof city.state === 'object' ? city.state._id : city.state;
-      return stateId === form.state;
-    });
-  }, [form.state, cities]);
 
-  // Get locations filtered by selected city - handled by the main implementation
+  // Get locations filtered by selected country, state, or city
+  const filteredLocationOptions: LocationDetailOption[] = useMemo(() => {
+    if (!Array.isArray(locationDetails) || locationDetails.length === 0) return [];
+    
+    // If city is selected, filter by city
+    if (form.city) {
+      return locationDetails.filter(detail => {
+        const cityId = typeof detail.city === 'object' ? detail.city._id : detail.city;
+        return cityId === form.city;
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    // If state is selected (but no city), show all locations from cities in that state
+    if (form.state) {
+      const stateCities = filteredCities.map(c => c._id);
+      return locationDetails.filter(detail => {
+        const cityId = typeof detail.city === 'object' ? detail.city._id : detail.city;
+        return stateCities.includes(cityId);
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    // If only country is selected, show all locations from cities in that country
+    if (form.country) {
+      const countryCities = filteredCities.map(c => c._id);
+      return locationDetails.filter(detail => {
+        const cityId = typeof detail.city === 'object' ? detail.city._id : detail.city;
+        return countryCities.includes(cityId);
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return [];
+  }, [form.city, form.state, form.country, locationDetails, filteredCities]);
 
   // Handle country change
-  const handleCountryChange = (value: string) => {
-    setForm(prev => ({
-      ...prev,
-      country: value,
-      // Reset dependent fields when country changes
-      state: '',
-      city: '',
-      state_name: '',
-      city_name: ''
-    }));
+  const handleCountryChange = (event: React.SyntheticEvent, value: Country | null) => {
+    if (value) {
+      setForm(prev => ({
+        ...prev,
+        country: value._id,
+        country_name: value.name,
+        slug: value.slug || '',
+        latitude: value.latitude,
+        longitude: value.longitude,
+        // Reset dependent fields when country changes
+        state: '',
+        city: '',
+        name: '',
+        state_name: '',
+        city_name: ''
+      }));
+      // Fetch states and cities for this country
+      refreshStates(value._id);
+      refreshCities(undefined, value._id);
+    } else {
+      setForm(prev => ({
+        ...prev,
+        country: '',
+        country_name: '',
+        slug: '',
+        latitude: undefined,
+        longitude: undefined,
+        state: '',
+        city: '',
+        name: '',
+        state_name: '',
+        city_name: ''
+      }));
+      // Reset states and cities
+      setStates([]);
+      setCities([]);
+    }
   };
 
   // Handle state change
-  const handleStateChange = (value: string) => {
-    setForm(prev => ({
-      ...prev,
-      state: value,
-      // Reset dependent fields when state changes
-      city: '',
-      city_name: ''
-    }));
+  const handleStateChange = (event: React.SyntheticEvent, value: State | null) => {
+    if (value) {
+      setForm(prev => ({
+        ...prev,
+        state: value._id,
+        state_name: value.name,
+        slug: value.slug || prev.slug,
+        latitude: value.latitude !== undefined ? value.latitude : prev.latitude,
+        longitude: value.longitude !== undefined ? value.longitude : prev.longitude,
+        // Reset dependent fields when state changes
+        city: '',
+        city_name: '',
+        name: ''
+      }));
+      // Fetch cities for this state
+      refreshCities(value._id);
+    } else {
+      // When state is cleared, restore country's slug/lat/long and fetch cities for country
+      const country = countries.find(c => c._id === form.country);
+      setForm(prev => ({
+        ...prev,
+        state: '',
+        state_name: '',
+        slug: country?.slug || '',
+        latitude: country?.latitude,
+        longitude: country?.longitude,
+        city: '',
+        city_name: '',
+        name: ''
+      }));
+      // Fetch cities for the country
+      if (form.country) {
+        refreshCities(undefined, form.country);
+      }
+    }
   };
 
-  // Handle city change - reset location and pincode
-  const handleCityChange = (event: React.SyntheticEvent, value: { _id: string; name: string } | null) => {
+  // Handle city change - update slug/lat/long and reset location
+  const handleCityChange = (event: React.SyntheticEvent, value: City | null) => {
     if (value) {
       setForm(prev => ({
         ...prev,
         city: value._id,
         city_name: value.name,
+        slug: value.slug || prev.slug,
+        latitude: value.latitude !== undefined ? value.latitude : prev.latitude,
+        longitude: value.longitude !== undefined ? value.longitude : prev.longitude,
         name: '', // Reset location name
-        slug: '',  // Reset slug
-        pincode: '' // Reset pincode
+        pincode: value.pincode || '' // Set pincode from city
       }));
     } else {
+      // When city is cleared, restore state's or country's slug/lat/long
+      const state = states.find(s => s._id === form.state);
+      const country = countries.find(c => c._id === form.country);
+      const fallback = state || country;
+      
       setForm(prev => ({
         ...prev,
         city: '',
         city_name: '',
-        name: '', // Reset location name
-        slug: '',  // Reset slug
-        pincode: '' // Reset pincode
+        slug: fallback?.slug || '',
+        latitude: fallback?.latitude,
+        longitude: fallback?.longitude,
+        name: '',
+        pincode: ''
       }));
     }
   };
@@ -952,56 +1025,57 @@ export default function LocationPage() {
                     options={Array.isArray(countries) ? countries : []}
                     getOptionLabel={(option) => option?.name || ''}
                     value={Array.isArray(countries) ? (countries.find(c => c._id === form.country) || null) : null}
-                    onChange={(_, newValue) => handleCountryChange(newValue?._id || '')}
+                    onChange={handleCountryChange}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         margin="normal"
-                        label="Country"
+                        label="Country *"
                         error={!Array.isArray(countries)}
-                        helperText={!Array.isArray(countries) ? 'Error loading countries' : ''}
+                        helperText={!Array.isArray(countries) ? 'Error loading countries' : `Required - ${countries.length} countries available`}
                         fullWidth
+                        required
                       />
                     )}
                   />
 
                   <Autocomplete
-                    onOpen={() => refreshStates()}
-                    options={getFilteredStates()}
+                    key={`state-${form.country}`}
+                    options={filteredStates}
                     getOptionLabel={(option) => option?.name || ''}
-                    value={getFilteredStates().find(s => s._id === form.state) || null}
-                    onChange={(_, newValue) => handleStateChange(newValue?._id || '')}
+                    value={filteredStates.find(s => s._id === form.state) || null}
+                    onChange={handleStateChange}
                     disabled={!form.country}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         margin="normal"
-                        label="State"
+                        label="State (Optional)"
                         error={!Array.isArray(states)}
                         helperText={!form.country ? 'Please select a country first' :
                           (!Array.isArray(states) ? 'Error loading states' :
-                            getFilteredStates().length === 0 ? 'No states available for selected country' : 'Select a state')}
+                            filteredStates.length === 0 ? 'No states available for selected country' : `Optional - ${filteredStates.length} states available`)}
                         fullWidth
                       />
                     )}
                   />
 
                   <Autocomplete
-                    onOpen={() => refreshCities()}
-                    options={getFilteredCities()}
+                    key={`city-${form.country}-${form.state}`}
+                    options={filteredCities}
                     getOptionLabel={(option) => option?.name || ''}
-                    value={getFilteredCities().find(c => c._id === form.city) || null}
+                    value={filteredCities.find(c => c._id === form.city) || null}
                     onChange={handleCityChange}
-                    disabled={!form.state}
+                    disabled={!form.country}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         margin="normal"
-                        label="City"
+                        label="City (Optional)"
                         error={!Array.isArray(cities)}
-                        helperText={!form.state ? 'Please select a state first' :
+                        helperText={!form.country ? 'Please select a country first' :
                           (!Array.isArray(cities) ? 'Error loading cities' :
-                            getFilteredCities().length === 0 ? 'No cities available for selected state' : 'Select a city')}
+                            filteredCities.length === 0 ? 'No cities available' : `Optional - ${filteredCities.length} cities available`)}
                         fullWidth
                       />
                     )}
@@ -1014,8 +1088,7 @@ export default function LocationPage() {
                     name="pincode"
                     value={form.pincode}
                     onChange={handlePincodeChange}
-                    disabled={!form.city}
-                    helperText={!form.city ? 'Please select a city first' : 'Enter pincode'}
+                    helperText="Enter pincode"
                     inputProps={{
                       pattern: '^[0-9]*$',
                       title: 'Please enter a valid pincode (numbers only)'
@@ -1029,36 +1102,50 @@ export default function LocationPage() {
                 <Typography variant="h6" gutterBottom>Basic Information</Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
                   <Autocomplete
+                    key={`location-${form.country}-${form.state}-${form.city}`}
                     onOpen={() => refreshLocationDetails()}
                     options={filteredLocationOptions.map(loc => loc.name)}
                     value={form.name}
                     onChange={handleAutocompleteChange}
-                    disabled={!form.city || filteredLocationOptions.length === 0}
+                    disabled={!form.country}
+                    freeSolo
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         margin="normal"
                         fullWidth
-                        label="Location Name"
+                        label="Location Name (Optional)"
                         name="name"
-                        placeholder="Select a location detail..."
-                        required
+                        placeholder={form.country ? "Select or type location name..." : "Select country first"}
+                        onChange={(e) => {
+                          if (!filteredLocationOptions.find(loc => loc.name === e.target.value)) {
+                            setForm(prev => ({ ...prev, name: e.target.value }));
+                          }
+                        }}
                         helperText={
-                          !form.city
-                            ? 'Please select a city first'
+                          !form.country
+                            ? 'Please select a country first'
                             : filteredLocationOptions.length === 0
-                              ? `No location details found for ${cities.find(c => c._id === form.city)?.name || 'the selected city'}`
-                              : `Select a location from Location Details for ${cities.find(c => c._id === form.city)?.name || 'the selected city'}`
+                              ? 'No locations found. You can enter a custom name.'
+                              : form.city
+                                ? `${filteredLocationOptions.length} locations available for ${cities.find(c => c._id === form.city)?.name || 'selected city'}`
+                                : form.state
+                                  ? `${filteredLocationOptions.length} locations available for ${states.find(s => s._id === form.state)?.name || 'selected state'}`
+                                  : `${filteredLocationOptions.length} locations available for ${countries.find(c => c._id === form.country)?.name || 'selected country'}`
                         }
                       />
                     )}
                     renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: string) => {
                       const location = filteredLocationOptions.find(loc => loc.name === option);
+                      const cityInfo = location?.city ? (typeof location.city === 'object' ? location.city.name : cities.find(c => c._id === location.city)?.name) : '';
                       return (
                         <li {...props} key={option}>
-                          <Box>
-                            <div>{option}</div>
-                            {location?.pincode && <div style={{ fontSize: '0.8em', color: '#666' }}>Pincode: {location.pincode}</div>}
+                          <Box sx={{ width: '100%' }}>
+                            <div style={{ fontWeight: 500 }}>{option}</div>
+                            <div style={{ fontSize: '0.85em', color: '#666', display: 'flex', gap: '12px' }}>
+                              {cityInfo && <span>City: {cityInfo}</span>}
+                              {location?.pincode && <span>Pincode: {location.pincode}</span>}
+                            </div>
                           </Box>
                         </li>
                       );
@@ -1068,11 +1155,11 @@ export default function LocationPage() {
                   <TextField
                     margin="normal"
                     fullWidth
-                    label="Slug"
+                    label="Slug (Optional)"
                     name="slug"
                     value={form.slug}
                     onChange={handleChange}
-                    helperText="Auto-generated from name but can be edited"
+                    helperText="Optional - Auto-populated from selection or generated from name"
                   />
 
                   <TextField
@@ -1091,9 +1178,10 @@ export default function LocationPage() {
                     label="Latitude"
                     name="latitude"
                     type="number"
-                    value={form.latitude || ''}
+                    value={form.latitude !== undefined ? form.latitude : ''}
                     onChange={(e) => setForm(prev => ({ ...prev, latitude: e.target.value ? Number(e.target.value) : undefined }))}
-                    helperText="Geographic latitude"
+                    helperText="Auto-populated from selection or enter manually"
+                    inputProps={{ step: "any" }}
                   />
 
                   <TextField
@@ -1102,9 +1190,10 @@ export default function LocationPage() {
                     label="Longitude"
                     name="longitude"
                     type="number"
-                    value={form.longitude || ''}
+                    value={form.longitude !== undefined ? form.longitude : ''}
                     onChange={(e) => setForm(prev => ({ ...prev, longitude: e.target.value ? Number(e.target.value) : undefined }))}
-                    helperText="Geographic longitude"
+                    helperText="Auto-populated from selection or enter manually"
+                    inputProps={{ step: "any" }}
                   />
                 </Box>
               </Box>

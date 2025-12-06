@@ -81,13 +81,13 @@ const filterModels = [
   { name: "Country", path: "/country" },
   { name: "State", path: "/state" },
   { name: "City", path: "/city" },
-  { name: "Location", path: "/location" },
+ 
   { name: "Area Details", path: "/location-details" },
-
-  { name: "Office Information", path: "/office-information" },
+   { name: "Location", path: "/location" },
+  
   { name: "About Us", path: "/aboutus" },
   { name: "Blog", path: "/blog" },
-
+  { name: "Office Information", path: "/office-information" },
   { name: "Shofy Users", path: "/shofy-users" },
   { name: "Vendor", path: "/vendor" },
   { name: "Author", path: "/author" },
@@ -104,6 +104,7 @@ const filterModels = [
   { name: "Subfinish", path: "/subfinish" },
   { name: "Structure", path: "/structure" },
   { name: "Substructure", path: "/substructure" },
+  {name : "FAQ", path: "/faqa"},
   
   // { name: "Suitablefor", path: "/suitablefor" },
   // { name: "Subsuitable", path: "/subsuitable" },

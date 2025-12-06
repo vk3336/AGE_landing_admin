@@ -16,6 +16,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import apiFetch from '../../utils/apiFetch';
+import RichTextEditor from '../../components/RichTextEditor';
 
 // Location detail options will be fetched from the API
 
@@ -31,6 +32,18 @@ interface Location {
   language: string;
   latitude?: number;
   longitude?: number;
+  locationquestion1?: string;
+  locationquestion2?: string;
+  locationquestion3?: string;
+  locationquestion4?: string;
+  locationquestion5?: string;
+  locationquestion6?: string;
+  locationanswer1?: string;
+  locationanswer2?: string;
+  locationanswer3?: string;
+  locationanswer4?: string;
+  locationanswer5?: string;
+  locationanswer6?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +97,18 @@ interface FormState {
   language: string;
   latitude?: number;
   longitude?: number;
+  locationquestion1?: string;
+  locationquestion2?: string;
+  locationquestion3?: string;
+  locationquestion4?: string;
+  locationquestion5?: string;
+  locationquestion6?: string;
+  locationanswer1?: string;
+  locationanswer2?: string;
+  locationanswer3?: string;
+  locationanswer4?: string;
+  locationanswer5?: string;
+  locationanswer6?: string;
   country_name?: string;
   state_name?: string;
   city_name?: string;
@@ -122,7 +147,19 @@ export default function LocationPage() {
     city: '',
     language: 'en',
     latitude: undefined,
-    longitude: undefined
+    longitude: undefined,
+    locationquestion1: '',
+    locationquestion2: '',
+    locationquestion3: '',
+    locationquestion4: '',
+    locationquestion5: '',
+    locationquestion6: '',
+    locationanswer1: '',
+    locationanswer2: '',
+    locationanswer3: '',
+    locationanswer4: '',
+    locationanswer5: '',
+    locationanswer6: ''
   });
   const [editId, setEditId] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -438,6 +475,20 @@ export default function LocationPage() {
       if (form.language) requestBody.language = form.language;
       if (form.latitude !== undefined) requestBody.latitude = form.latitude;
       if (form.longitude !== undefined) requestBody.longitude = form.longitude;
+      
+      // Always include FAQ fields (even if empty) to allow clearing them
+      requestBody.locationquestion1 = form.locationquestion1 || '';
+      requestBody.locationquestion2 = form.locationquestion2 || '';
+      requestBody.locationquestion3 = form.locationquestion3 || '';
+      requestBody.locationquestion4 = form.locationquestion4 || '';
+      requestBody.locationquestion5 = form.locationquestion5 || '';
+      requestBody.locationquestion6 = form.locationquestion6 || '';
+      requestBody.locationanswer1 = form.locationanswer1 || '';
+      requestBody.locationanswer2 = form.locationanswer2 || '';
+      requestBody.locationanswer3 = form.locationanswer3 || '';
+      requestBody.locationanswer4 = form.locationanswer4 || '';
+      requestBody.locationanswer5 = form.locationanswer5 || '';
+      requestBody.locationanswer6 = form.locationanswer6 || '';
 
       const response = await apiFetch(url, {
         method,
@@ -469,7 +520,19 @@ export default function LocationPage() {
         city: '',
         language: 'en',
         latitude: undefined,
-        longitude: undefined
+        longitude: undefined,
+        locationquestion1: '',
+        locationquestion2: '',
+        locationquestion3: '',
+        locationquestion4: '',
+        locationquestion5: '',
+        locationquestion6: '',
+        locationanswer1: '',
+        locationanswer2: '',
+        locationanswer3: '',
+        locationanswer4: '',
+        locationanswer5: '',
+        locationanswer6: ''
       });
       setEditId(null);
       setOpen(false);
@@ -576,6 +639,18 @@ export default function LocationPage() {
       language: location.language || 'en',
       latitude: location.latitude,
       longitude: location.longitude,
+      locationquestion1: location.locationquestion1 || '',
+      locationquestion2: location.locationquestion2 || '',
+      locationquestion3: location.locationquestion3 || '',
+      locationquestion4: location.locationquestion4 || '',
+      locationquestion5: location.locationquestion5 || '',
+      locationquestion6: location.locationquestion6 || '',
+      locationanswer1: location.locationanswer1 || '',
+      locationanswer2: location.locationanswer2 || '',
+      locationanswer3: location.locationanswer3 || '',
+      locationanswer4: location.locationanswer4 || '',
+      locationanswer5: location.locationanswer5 || '',
+      locationanswer6: location.locationanswer6 || '',
       country_name: countryName,
       state_name: getName(location.state),
       city_name: getName(location.city)
@@ -602,7 +677,19 @@ export default function LocationPage() {
       city: '',
       language: 'en',
       latitude: undefined,
-      longitude: undefined
+      longitude: undefined,
+      locationquestion1: '',
+      locationquestion2: '',
+      locationquestion3: '',
+      locationquestion4: '',
+      locationquestion5: '',
+      locationquestion6: '',
+      locationanswer1: '',
+      locationanswer2: '',
+      locationanswer3: '',
+      locationanswer4: '',
+      locationanswer5: '',
+      locationanswer6: ''
     });
     setEditId(null);
     setOpen(true);
@@ -1197,6 +1284,119 @@ export default function LocationPage() {
                   />
                 </Box>
               </Box>
+
+              {/* FAQ Section */}
+              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Typography variant="h6" gutterBottom>FAQ Section (Optional)</Typography>
+                
+                {/* FAQ 1 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 1"
+                    value={form.locationquestion1 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion1: content }))}
+                    height={200}
+                    placeholder="Enter question 1..."
+                  />
+                  <RichTextEditor
+                    label="Answer 1"
+                    value={form.locationanswer1 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer1: content }))}
+                    height={200}
+                    placeholder="Enter answer 1..."
+                  />
+                </Box>
+
+                {/* FAQ 2 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 2"
+                    value={form.locationquestion2 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion2: content }))}
+                    height={200}
+                    placeholder="Enter question 2..."
+                  />
+                  <RichTextEditor
+                    label="Answer 2"
+                    value={form.locationanswer2 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer2: content }))}
+                    height={200}
+                    placeholder="Enter answer 2..."
+                  />
+                </Box>
+
+                {/* FAQ 3 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 3"
+                    value={form.locationquestion3 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion3: content }))}
+                    height={200}
+                    placeholder="Enter question 3..."
+                  />
+                  <RichTextEditor
+                    label="Answer 3"
+                    value={form.locationanswer3 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer3: content }))}
+                    height={200}
+                    placeholder="Enter answer 3..."
+                  />
+                </Box>
+
+                {/* FAQ 4 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 4"
+                    value={form.locationquestion4 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion4: content }))}
+                    height={200}
+                    placeholder="Enter question 4..."
+                  />
+                  <RichTextEditor
+                    label="Answer 4"
+                    value={form.locationanswer4 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer4: content }))}
+                    height={200}
+                    placeholder="Enter answer 4..."
+                  />
+                </Box>
+
+                {/* FAQ 5 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 5"
+                    value={form.locationquestion5 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion5: content }))}
+                    height={200}
+                    placeholder="Enter question 5..."
+                  />
+                  <RichTextEditor
+                    label="Answer 5"
+                    value={form.locationanswer5 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer5: content }))}
+                    height={200}
+                    placeholder="Enter answer 5..."
+                  />
+                </Box>
+
+                {/* FAQ 6 */}
+                <Box sx={{ mb: 3 }}>
+                  <RichTextEditor
+                    label="Question 6"
+                    value={form.locationquestion6 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationquestion6: content }))}
+                    height={200}
+                    placeholder="Enter question 6..."
+                  />
+                  <RichTextEditor
+                    label="Answer 6"
+                    value={form.locationanswer6 || ''}
+                    onChange={(content) => setForm(prev => ({ ...prev, locationanswer6: content }))}
+                    height={200}
+                    placeholder="Enter answer 6..."
+                  />
+                </Box>
+              </Box>
             </Box>
           </DialogContent>
           <DialogActions>
@@ -1262,6 +1462,65 @@ export default function LocationPage() {
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              {/* FAQ Section */}
+              {(selectedLocation.locationquestion1 || selectedLocation.locationquestion2 || 
+                selectedLocation.locationquestion3 || selectedLocation.locationquestion4 || 
+                selectedLocation.locationquestion5 || selectedLocation.locationquestion6) && (
+                <>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>FAQ Section</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {selectedLocation.locationquestion1 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 1:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion1 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 1:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer1 || 'N/A' }} />
+                      </Paper>
+                    )}
+                    {selectedLocation.locationquestion2 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 2:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion2 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 2:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer2 || 'N/A' }} />
+                      </Paper>
+                    )}
+                    {selectedLocation.locationquestion3 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 3:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion3 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 3:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer3 || 'N/A' }} />
+                      </Paper>
+                    )}
+                    {selectedLocation.locationquestion4 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 4:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion4 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 4:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer4 || 'N/A' }} />
+                      </Paper>
+                    )}
+                    {selectedLocation.locationquestion5 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 5:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion5 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 5:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer5 || 'N/A' }} />
+                      </Paper>
+                    )}
+                    {selectedLocation.locationquestion6 && (
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Question 6:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationquestion6 }} sx={{ mb: 2 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Answer 6:</Typography>
+                        <Box dangerouslySetInnerHTML={{ __html: selectedLocation.locationanswer6 || 'N/A' }} />
+                      </Paper>
+                    )}
+                  </Box>
+                </>
+              )}
 
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button

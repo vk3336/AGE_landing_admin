@@ -62,6 +62,18 @@ interface Product {
   ogType?: string;
   twitterCard?: string;
   ogImage_twitterimage?: string;
+  productquestion1?: string;
+  productquestion2?: string;
+  productquestion3?: string;
+  productquestion4?: string;
+  productquestion5?: string;
+  productquestion6?: string;
+  productanswer1?: string;
+  productanswer2?: string;
+  productanswer3?: string;
+  productanswer4?: string;
+  productanswer5?: string;
+  productanswer6?: string;
 }
 
 interface Option { _id: string; name: string; }
@@ -153,6 +165,18 @@ export default function ProductPage() {
     ogType?: string;
     twitterCard?: string;
     ogImage_twitterimage?: string;
+    productquestion1?: string;
+    productquestion2?: string;
+    productquestion3?: string;
+    productquestion4?: string;
+    productquestion5?: string;
+    productquestion6?: string;
+    productanswer1?: string;
+    productanswer2?: string;
+    productanswer3?: string;
+    productanswer4?: string;
+    productanswer5?: string;
+    productanswer6?: string;
     [key: string]: string | number | boolean | File | string[] | null | undefined;
   };
 
@@ -198,6 +222,18 @@ export default function ProductPage() {
     ogType: "",
     twitterCard: "summary_large_image",
     ogImage_twitterimage: "",
+    productquestion1: "",
+    productquestion2: "",
+    productquestion3: "",
+    productquestion4: "",
+    productquestion5: "",
+    productquestion6: "",
+    productanswer1: "",
+    productanswer2: "",
+    productanswer3: "",
+    productanswer4: "",
+    productanswer5: "",
+    productanswer6: "",
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [image3Preview, setImage3Preview] = useState<string | null>(null);
@@ -516,7 +552,19 @@ export default function ProductPage() {
         productTag: productTag,
         ogType: product.ogType || "",
         twitterCard: product.twitterCard || "summary_large_image",
-        ogImage_twitterimage: product.ogImage_twitterimage || ""
+        ogImage_twitterimage: product.ogImage_twitterimage || "",
+        productquestion1: product.productquestion1 || "",
+        productquestion2: product.productquestion2 || "",
+        productquestion3: product.productquestion3 || "",
+        productquestion4: product.productquestion4 || "",
+        productquestion5: product.productquestion5 || "",
+        productquestion6: product.productquestion6 || "",
+        productanswer1: product.productanswer1 || "",
+        productanswer2: product.productanswer2 || "",
+        productanswer3: product.productanswer3 || "",
+        productanswer4: product.productanswer4 || "",
+        productanswer5: product.productanswer5 || "",
+        productanswer6: product.productanswer6 || ""
       };
       
       console.log('Form data to be set:', formData); // Debug log
@@ -628,6 +676,18 @@ export default function ProductPage() {
       altvideo: "",
       videourl: "",
       videoalt: "",
+      productquestion1: "",
+      productquestion2: "",
+      productquestion3: "",
+      productquestion4: "",
+      productquestion5: "",
+      productquestion6: "",
+      productanswer1: "",
+      productanswer2: "",
+      productanswer3: "",
+      productanswer4: "",
+      productanswer5: "",
+      productanswer6: "",
     });
   }, []);
 
@@ -802,6 +862,28 @@ export default function ProductPage() {
       `OG Type: ${selectedProduct.ogType || 'N/A'}`,
       `Twitter Card: ${selectedProduct.twitterCard || 'N/A'}`,
       `OG Image / Twitter Image: ${selectedProduct.ogImage_twitterimage || 'N/A'}`,
+      '',
+      '='.repeat(80),
+      'PRODUCT Q&A',
+      '='.repeat(80),
+      '',
+      `Question 1: ${selectedProduct.productquestion1 || 'N/A'}`,
+      `Answer 1: ${selectedProduct.productanswer1 ? selectedProduct.productanswer1.replace(/<[^>]*>/g, '') : 'N/A'}`,
+      '',
+      `Question 2: ${selectedProduct.productquestion2 || 'N/A'}`,
+      `Answer 2: ${selectedProduct.productanswer2 ? selectedProduct.productanswer2.replace(/<[^>]*>/g, '') : 'N/A'}`,
+      '',
+      `Question 3: ${selectedProduct.productquestion3 || 'N/A'}`,
+      `Answer 3: ${selectedProduct.productanswer3 ? selectedProduct.productanswer3.replace(/<[^>]*>/g, '') : 'N/A'}`,
+      '',
+      `Question 4: ${selectedProduct.productquestion4 || 'N/A'}`,
+      `Answer 4: ${selectedProduct.productanswer4 ? selectedProduct.productanswer4.replace(/<[^>]*>/g, '') : 'N/A'}`,
+      '',
+      `Question 5: ${selectedProduct.productquestion5 || 'N/A'}`,
+      `Answer 5: ${selectedProduct.productanswer5 ? selectedProduct.productanswer5.replace(/<[^>]*>/g, '') : 'N/A'}`,
+      '',
+      `Question 6: ${selectedProduct.productquestion6 || 'N/A'}`,
+      `Answer 6: ${selectedProduct.productanswer6 ? selectedProduct.productanswer6.replace(/<[^>]*>/g, '') : 'N/A'}`,
       '',
       '='.repeat(80),
       'END OF REPORT',
@@ -2573,6 +2655,284 @@ export default function ProductPage() {
                 />
               </Box>
             </Box>
+
+            {/* Product Q&A Section */}
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                Product Q&A
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 2 }}>
+                {/* Q&A Pair 1 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #1
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 1"
+                      value={form.productquestion1 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion1: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 1"
+                      value={form.productquestion1 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 1"
+                        value={form.productanswer1 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer1: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 1"
+                        value={form.productanswer1 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Q&A Pair 2 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #2
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 2"
+                      value={form.productquestion2 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion2: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 2"
+                      value={form.productquestion2 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 2"
+                        value={form.productanswer2 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer2: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 2"
+                        value={form.productanswer2 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Q&A Pair 3 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #3
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 3"
+                      value={form.productquestion3 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion3: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 3"
+                      value={form.productquestion3 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 3"
+                        value={form.productanswer3 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer3: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 3"
+                        value={form.productanswer3 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Q&A Pair 4 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #4
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 4"
+                      value={form.productquestion4 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion4: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 4"
+                      value={form.productquestion4 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 4"
+                        value={form.productanswer4 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer4: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 4"
+                        value={form.productanswer4 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Q&A Pair 5 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #5
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 5"
+                      value={form.productquestion5 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion5: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 5"
+                      value={form.productquestion5 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 5"
+                        value={form.productanswer5 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer5: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 5"
+                        value={form.productanswer5 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Q&A Pair 6 */}
+                <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>
+                    Q&A #6
+                  </Typography>
+                  {pageAccess !== 'only view' ? (
+                    <RichTextEditor
+                      label="Question 6"
+                      value={form.productquestion6 || ""}
+                      onChange={(content) => setForm(prev => ({ ...prev, productquestion6: content }))}
+                      height={200}
+                      placeholder="Enter question..."
+                    />
+                  ) : (
+                    <TextField
+                      label="Question 6"
+                      value={form.productquestion6 || ""}
+                      fullWidth
+                      multiline
+                      disabled
+                      sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                    />
+                  )}
+                  <Box sx={{ mt: 2 }}>
+                    {pageAccess !== 'only view' ? (
+                      <RichTextEditor
+                        label="Answer 6"
+                        value={form.productanswer6 || ""}
+                        onChange={(content) => setForm(prev => ({ ...prev, productanswer6: content }))}
+                        height={200}
+                        placeholder="Enter answer..."
+                      />
+                    ) : (
+                      <TextField
+                        label="Answer 6"
+                        value={form.productanswer6 || ""}
+                        fullWidth
+                        multiline
+                        disabled
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
       </Dialog>
@@ -3047,6 +3407,94 @@ export default function ProductPage() {
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>OG Image / Twitter Image URL:</Typography>
                         <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{selectedProduct.ogImage_twitterimage}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {/* Product Q&A Section */}
+                {(selectedProduct.productquestion1 || selectedProduct.productquestion2 || selectedProduct.productquestion3 || 
+                  selectedProduct.productquestion4 || selectedProduct.productquestion5 || selectedProduct.productquestion6) && (
+                  <Box sx={{ gridColumn: '1 / -1', mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: '8px' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50', borderBottom: '1px solid #ddd', pb: 1 }}>
+                      Product Q&A
+                    </Typography>
+                    
+                    {selectedProduct.productquestion1 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 1:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion1 }} />
+                        {selectedProduct.productanswer1 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 1:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer1 }} />
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {selectedProduct.productquestion2 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 2:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion2 }} />
+                        {selectedProduct.productanswer2 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 2:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer2 }} />
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {selectedProduct.productquestion3 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 3:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion3 }} />
+                        {selectedProduct.productanswer3 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 3:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer3 }} />
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {selectedProduct.productquestion4 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 4:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion4 }} />
+                        {selectedProduct.productanswer4 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 4:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer4 }} />
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {selectedProduct.productquestion5 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 5:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion5 }} />
+                        {selectedProduct.productanswer5 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 5:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer5 }} />
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {selectedProduct.productquestion6 && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e' }}>Question 6:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }} dangerouslySetInnerHTML={{ __html: selectedProduct.productquestion6 }} />
+                        {selectedProduct.productanswer6 && (
+                          <>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#34495e', mt: 1 }}>Answer 6:</Typography>
+                            <Typography variant="body2" dangerouslySetInnerHTML={{ __html: selectedProduct.productanswer6 }} />
+                          </>
+                        )}
                       </Box>
                     )}
                   </Box>

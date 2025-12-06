@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -38,11 +38,7 @@ export default function FAQAPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7000';
 
-  useEffect(() => {
-    fetchFAQAs();
-  }, []);
-
-  const fetchFAQAs = async () => {
+  const fetchFAQAs = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/faqa`, {
         cache: 'no-store',
@@ -57,7 +53,11 @@ export default function FAQAPage() {
     } catch (error) {
       console.error('Error fetching FAQAs:', error);
     }
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    fetchFAQAs();
+  }, [fetchFAQAs]);
 
   const handleOpen = (faqa?: FAQA) => {
     if (faqa) {
@@ -100,10 +100,10 @@ export default function FAQAPage() {
       } else {
         throw new Error(data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       setSnackbar({
         open: true,
-        message: error.message || 'Something went wrong',
+        message: error instanceof Error ? error.message : 'Something went wrong',
         severity: 'error',
       });
     }
@@ -129,10 +129,10 @@ export default function FAQAPage() {
       } else {
         throw new Error(data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       setSnackbar({
         open: true,
-        message: error.message || 'Failed to delete FAQA',
+        message: error instanceof Error ? error.message : 'Failed to delete FAQA',
         severity: 'error',
       });
     }

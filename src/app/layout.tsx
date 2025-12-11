@@ -184,9 +184,11 @@ const Sidebar = React.memo(() => {
   const [open, setOpen] = React.useState(true);
   const pathname = usePathname();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { isCollapsed } = useSidebar();
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       const email = localStorage.getItem('admin-email');
       const superAdmin = process.env.NEXT_PUBLIC_SUPER_ADMIN;
@@ -633,7 +635,7 @@ const Sidebar = React.memo(() => {
 
 
           {/* Admin Restriction */}
-          {isSuperAdmin && (
+          {mounted && isSuperAdmin && (
             <ListItemButton
               component={NextLink}
               href="/admin-restriction"
@@ -832,9 +834,11 @@ const Header = React.memo(() => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
   const [userEmail, setUserEmail] = useState('');
+  const [mounted, setMounted] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       setUserEmail(localStorage.getItem('admin-email') || '');
     }
@@ -975,7 +979,7 @@ const Header = React.memo(() => {
               Admin User
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {userEmail}
+              {mounted ? userEmail : 'Loading...'}
             </Typography>
           </Box>
           <MenuItem onClick={handleMenuClose}>
@@ -1004,8 +1008,6 @@ Header.displayName = 'Header';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = useMemo(() => createDattaAbleTheme('light'), []);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   return (
     <html lang="en">
@@ -1019,9 +1021,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CssBaseline />
           <SidebarProvider>
             <Box sx={{ display: 'flex' }}>
-              {mounted && <Sidebar />}
+              <Sidebar />
               <Box sx={{ flexGrow: 1 }}>
-                {mounted && <Header />}
+                <Header />
                 <Box
                   component="main"
                   sx={{

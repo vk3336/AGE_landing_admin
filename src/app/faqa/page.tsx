@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import RichTextEditor from '../../components/RichTextEditor';
+import { apiFetch } from '../../utils/apiFetch';
 
 interface FAQA {
   _id: string;
@@ -36,16 +37,9 @@ export default function FAQAPage() {
   const [form, setForm] = useState({ question: '', answer: '' });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7000';
-
   const fetchFAQAs = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/faqa`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
+      const response = await apiFetch('/faqa');
       const data = await response.json();
       if (data.success) {
         setFaqas(data.data);
@@ -53,7 +47,7 @@ export default function FAQAPage() {
     } catch (error) {
       console.error('Error fetching FAQAs:', error);
     }
-  }, [API_URL]);
+  }, []);
 
   useEffect(() => {
     fetchFAQAs();
@@ -78,12 +72,11 @@ export default function FAQAPage() {
 
   const handleSubmit = async () => {
     try {
-      const url = editId ? `${API_URL}/faqa/${editId}` : `${API_URL}/faqa`;
+      const url = editId ? `/faqa/${editId}` : '/faqa';
       const method = editId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
 
@@ -113,7 +106,7 @@ export default function FAQAPage() {
     if (!confirm('Are you sure you want to delete this FAQA?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/faqa/${id}`, {
+      const response = await apiFetch(`/faqa/${id}`, {
         method: 'DELETE',
       });
 

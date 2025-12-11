@@ -1070,7 +1070,10 @@ export default function ProductPage() {
       
       // Append all form fields that have values
       Object.entries(processedForm).forEach(([key, value]) => {
-        if (value === undefined || value === null || value === '') {
+        // Special handling for FAQ fields - allow empty strings to clear them
+        const isFAQField = key.startsWith('productquestion') || key.startsWith('productanswer');
+        
+        if (value === undefined || value === null || (value === '' && !isFAQField)) {
           // If this is an image field that was explicitly set to undefined, mark it for deletion
           if ((key === 'img' || key === 'image1' || key === 'image2') && deletedImages[key as keyof typeof deletedImages]) {
             formData.append(`delete_${key}`, 'true');

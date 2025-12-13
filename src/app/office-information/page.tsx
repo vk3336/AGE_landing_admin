@@ -1,13 +1,14 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, FormControl, InputLabel, Select, MenuItem, Divider
+  Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Pagination, Breadcrumbs, Link, CircularProgress, FormControl, InputLabel, Select, MenuItem, Divider, Container
 } from '@mui/material';
 import BusinessIcon from '@mui/icons-material/Business';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import HomeIcon from '@mui/icons-material/Home';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { apiFetch } from '../../utils/apiFetch';
 
 interface OfficeInformation {
@@ -59,89 +60,108 @@ const OfficeInfoRow = React.memo(({ office, onEdit, onDelete, onView, viewOnly }
 
 OfficeInfoRow.displayName = 'OfficeInfoRow';
 
-const ViewOfficeDetails = ({ open, onClose, office }: { open: boolean; onClose: () => void; office: OfficeInformation | null }) => {
+const ViewOfficeDetails = ({ office, onClose }: { office: OfficeInformation | null; onClose: () => void }) => {
   if (!office) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700, fontSize: 24, background: 'linear-gradient(90deg,#396afc,#2948ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-        Office Details
-      </DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          <Box sx={{ flex: 1, minWidth: 300 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Company Information</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Company Name</Typography>
-              <Typography variant="body1">{office.companyName}</Typography>
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Email</Typography>
-              <Typography variant="body1">{office.companyEmail}</Typography>
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Primary Phone</Typography>
-              <Typography variant="body1">{office.companyPhone1}</Typography>
-            </Box>
-            {office.companyPhone2 && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">Secondary Phone</Typography>
-                <Typography variant="body1">{office.companyPhone2}</Typography>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={onClose}
+          sx={{ mb: 2, fontWeight: 600 }}
+        >
+          Back to Office Information
+        </Button>
+        
+        <Typography variant="h4" component="h1" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(90deg,#396afc,#2948ff)', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent',
+          mb: 1
+        }}>
+          Office Details
+        </Typography>
+      </Box>
+
+      <Card sx={{ borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+            <Box>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Company Information</Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">Company Name</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>{office.companyName}</Typography>
               </Box>
-            )}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Address</Typography>
-              <Typography variant="body1" sx={{ 
-                whiteSpace: 'pre-line',
-                backgroundColor: '#f9f9f9',
-                p: 2,
-                borderRadius: 1,
-                border: '1px solid #eee',
-                minHeight: '80px'
-              }}>
-                {office.companyAddress || '-'}
-              </Typography>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">Email</Typography>
+                <Typography variant="body1">{office.companyEmail}</Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">Primary Phone</Typography>
+                <Typography variant="body1">{office.companyPhone1}</Typography>
+              </Box>
+              {office.companyPhone2 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Secondary Phone</Typography>
+                  <Typography variant="body1">{office.companyPhone2}</Typography>
+                </Box>
+              )}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">Address</Typography>
+                <Typography variant="body1" sx={{ 
+                  whiteSpace: 'pre-line',
+                  backgroundColor: '#f9f9f9',
+                  p: 2,
+                  borderRadius: 1,
+                  border: '1px solid #eee',
+                  minHeight: '80px'
+                }}>
+                  {office.companyAddress || '-'}
+                </Typography>
+              </Box>
+              {office.companyLanguages?.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Languages</Typography>
+                  <Typography variant="body1">{office.companyLanguages.join(', ')}</Typography>
+                </Box>
+              )}
+              {office.companyAwards && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Awards & Achievements</Typography>
+                  <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>{office.companyAwards}</Typography>
+                </Box>
+              )}
             </Box>
-            {office.companyLanguages?.length > 0 && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">Languages</Typography>
-                <Typography variant="body1">{office.companyLanguages.join(', ')}</Typography>
+            
+            <Box>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Additional Information</Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">Founding Date</Typography>
+                <Typography variant="body1">
+                  {office.companyFoundingDate || '-'}
+                </Typography>
               </Box>
-            )}
-            {office.companyAwards && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">Awards & Achievements</Typography>
-                <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>{office.companyAwards}</Typography>
-              </Box>
-            )}
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 300 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Additional Information</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Founding Date</Typography>
-              <Typography variant="body1">
-                {office.companyFoundingDate || '-'}
-              </Typography>
-            </Box>
-            {office.companyEmployeeRange && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">Employee Range</Typography>
-                <Typography variant="body1">{office.companyEmployeeRange}</Typography>
-              </Box>
-            )}
-            {office.whatsappNumber && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">WhatsApp Number</Typography>
-                <Typography variant="body1">{office.whatsappNumber}</Typography>
-              </Box>
-            )}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 3 }}>Social Media</Typography>
-              <Divider sx={{ mb: 2 }} />
+              {office.companyEmployeeRange && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Employee Range</Typography>
+                  <Typography variant="body1">{office.companyEmployeeRange}</Typography>
+                </Box>
+              )}
+              {office.whatsappNumber && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">WhatsApp Number</Typography>
+                  <Typography variant="body1">{office.whatsappNumber}</Typography>
+                </Box>
+              )}
+              
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>Social Media</Typography>
+              <Divider sx={{ mb: 3 }} />
               {(office.facebook || office.instagram || office.youtube || office.linkedin || office.twitter) ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 4 }}>
                   {office.facebook && (
                     <Button 
                       variant="outlined" 
@@ -209,12 +229,12 @@ const ViewOfficeDetails = ({ open, onClose, office }: { open: boolean; onClose: 
                   )}
                 </Box>
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>No social media links added</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>No social media links added</Typography>
               )}
               
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 3 }}>Integration Details</Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Integration Details</Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" color="text.secondary">n8n API Key</Typography>
                 <Typography variant="body2" sx={{ 
                   fontFamily: 'monospace', 
@@ -230,44 +250,39 @@ const ViewOfficeDetails = ({ open, onClose, office }: { open: boolean; onClose: 
                 </Typography>
               </Box>
               {office.n8nAuthHeader && (
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" color="text.secondary">n8n Auth Header</Typography>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{office.n8nAuthHeader}</Typography>
                 </Box>
               )}
               {office.n8nAuthScheme && (
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" color="text.secondary">n8n Auth Scheme</Typography>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{office.n8nAuthScheme}</Typography>
                 </Box>
               )}
             </Box>
           </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">Close</Button>
-      </DialogActions>
-    </Dialog>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 
 const OfficeInfoForm = React.memo(({ 
-  open, 
-  onClose, 
   form, 
   setForm, 
   onSubmit, 
+  onClose,
   submitting, 
   editId, 
   viewOnly, 
   error 
 }: {
-  open: boolean;
-  onClose: () => void;
   form: OfficeInformation;
   setForm: (form: OfficeInformation) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onClose: () => void;
   submitting: boolean;
   editId: string | null;
   viewOnly: boolean;
@@ -287,139 +302,247 @@ const OfficeInfoForm = React.memo(({
   const languagesString = form.companyLanguages?.join(', ') || '';
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700, fontSize: 24, background: 'linear-gradient(90deg,#396afc,#2948ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-        {editId ? "Edit Office Information" : "Add Office Information"}
-      </DialogTitle>
-      <form onSubmit={onSubmit}>
-        <DialogContent sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, pt: 3 }}>
-          <TextField label="Company Name" name="companyName" value={form.companyName} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Email" name="companyEmail" type="email" value={form.companyEmail} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Phone 1" name="companyPhone1" value={form.companyPhone1} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Phone 2" name="companyPhone2" value={form.companyPhone2} onChange={handleChange} fullWidth disabled={submitting || viewOnly} />
-          <TextField 
-            label="Address" 
-            name="companyAddress" 
-            value={form.companyAddress} 
-            onChange={handleChange} 
-            required 
-            fullWidth 
-            multiline 
-            rows={4} 
-            disabled={submitting || viewOnly} 
-            sx={{ gridColumn: '1 / -1' }}
-          />
-          <TextField 
-            label="Languages (comma separated)" 
-            name="companyLanguages" 
-            value={languagesString}
-            onChange={handleLanguageChange}
-            required 
-            fullWidth 
-            disabled={submitting || viewOnly} 
-            helperText="Enter languages separated by commas"
-          />
-          <TextField 
-            label="Founding Date" 
-            name="companyFoundingDate" 
-            value={form.companyFoundingDate} 
-            onChange={handleChange} 
-            required 
-            fullWidth 
-            disabled={submitting || viewOnly} 
-            placeholder="e.g., January 1, 2000"
-          />
-          <TextField label="Employee Range" name="companyEmployeeRange" value={form.companyEmployeeRange} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField label="Awards" name="companyAwards" value={form.companyAwards} onChange={handleChange} fullWidth multiline rows={2} disabled={submitting || viewOnly} />
-          <TextField label="WhatsApp Number" name="whatsappNumber" value={form.whatsappNumber} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <TextField 
-            label="N8N API Key" 
-            name="n8nApiKey" 
-            value={form.n8nApiKey} 
-            onChange={handleChange} 
-            required 
-            fullWidth 
-            multiline
-            rows={2}
-            disabled={submitting || viewOnly} 
-            sx={{ gridColumn: '1 / -1' }}
-          />
-          <TextField label="N8N Auth Header" name="n8nAuthHeader" value={form.n8nAuthHeader} onChange={handleChange} required fullWidth disabled={submitting || viewOnly} />
-          <FormControl fullWidth disabled={submitting || viewOnly}>
-            <InputLabel>N8N Auth Scheme</InputLabel>
-            <Select
-              name="n8nAuthScheme"
-              value={form.n8nAuthScheme}
-              onChange={(e) => {
-                const value = e.target.value as string;
-                setForm({ ...form, n8nAuthScheme: value as 'Bearer' | 'Basic' });
-              }}
-              label="N8N Auth Scheme"
-              required
-            >
-              <MenuItem value="Bearer">Bearer</MenuItem>
-              <MenuItem value="Basic">Basic</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField 
-            label="Facebook URL" 
-            name="facebook" 
-            value={form.facebook || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            placeholder="https://facebook.com/yourpage"
-          />
-          <TextField 
-            label="Instagram URL" 
-            name="instagram" 
-            value={form.instagram || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            placeholder="https://instagram.com/yourpage"
-          />
-          <TextField 
-            label="YouTube URL" 
-            name="youtube" 
-            value={form.youtube || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            placeholder="https://youtube.com/yourchannel"
-          />
-          <TextField 
-            label="LinkedIn URL" 
-            name="linkedin" 
-            value={form.linkedin || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            placeholder="https://linkedin.com/company/yourcompany"
-          />
-          <TextField 
-            label="Twitter URL" 
-            name="twitter" 
-            value={form.twitter || ''} 
-            onChange={handleChange} 
-            fullWidth 
-            disabled={submitting || viewOnly}
-            placeholder="https://twitter.com/yourhandle"
-            sx={{ gridColumn: '1 / -1' }}
-          />
-          
-          {error && (
-            <Typography sx={{ color: 'error.main', mt: 1, gridColumn: '1 / -1' }}>{error}</Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }} disabled={submitting || viewOnly}>Cancel</Button>
-          <Button type="submit" variant="contained" sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16 }} disabled={submitting || viewOnly}>
-            {submitting ? <CircularProgress size={24} /> : editId ? "Update" : "Add"}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={onClose}
+          sx={{ mb: 2, fontWeight: 600 }}
+        >
+          Back to Office Information
+        </Button>
+        
+        <Typography variant="h4" component="h1" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(90deg,#396afc,#2948ff)', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent',
+          mb: 1
+        }}>
+          {editId ? "Edit Office Information" : "Add Office Information"}
+        </Typography>
+      </Box>
+
+      <Card sx={{ borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+        <CardContent sx={{ p: 4 }}>
+          <form onSubmit={onSubmit}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <TextField 
+                label="Company Name" 
+                name="companyName" 
+                value={form.companyName} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="Email" 
+                name="companyEmail" 
+                type="email" 
+                value={form.companyEmail} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="Phone 1" 
+                name="companyPhone1" 
+                value={form.companyPhone1} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="Phone 2" 
+                name="companyPhone2" 
+                value={form.companyPhone2} 
+                onChange={handleChange} 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="Address" 
+                name="companyAddress" 
+                value={form.companyAddress} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                multiline 
+                rows={4} 
+                disabled={submitting || viewOnly} 
+                sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+              />
+              <TextField 
+                label="Languages (comma separated)" 
+                name="companyLanguages" 
+                value={languagesString}
+                onChange={handleLanguageChange}
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+                helperText="Enter languages separated by commas"
+              />
+              <TextField 
+                label="Founding Date" 
+                name="companyFoundingDate" 
+                value={form.companyFoundingDate} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+                placeholder="e.g., January 1, 2000"
+              />
+              <TextField 
+                label="Employee Range" 
+                name="companyEmployeeRange" 
+                value={form.companyEmployeeRange} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="WhatsApp Number" 
+                name="whatsappNumber" 
+                value={form.whatsappNumber} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <TextField 
+                label="Awards" 
+                name="companyAwards" 
+                value={form.companyAwards} 
+                onChange={handleChange} 
+                fullWidth 
+                multiline 
+                rows={3} 
+                disabled={submitting || viewOnly} 
+                sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+              />
+              <TextField 
+                label="N8N API Key" 
+                name="n8nApiKey" 
+                value={form.n8nApiKey} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                multiline
+                rows={2}
+                disabled={submitting || viewOnly} 
+                sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+              />
+              <TextField 
+                label="N8N Auth Header" 
+                name="n8nAuthHeader" 
+                value={form.n8nAuthHeader} 
+                onChange={handleChange} 
+                required 
+                fullWidth 
+                disabled={submitting || viewOnly} 
+              />
+              <FormControl fullWidth disabled={submitting || viewOnly}>
+                <InputLabel>N8N Auth Scheme</InputLabel>
+                <Select
+                  name="n8nAuthScheme"
+                  value={form.n8nAuthScheme}
+                  onChange={(e) => {
+                    const value = e.target.value as string;
+                    setForm({ ...form, n8nAuthScheme: value as 'Bearer' | 'Basic' });
+                  }}
+                  label="N8N Auth Scheme"
+                  required
+                >
+                  <MenuItem value="Bearer">Bearer</MenuItem>
+                  <MenuItem value="Basic">Basic</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Social Media Links</Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <TextField 
+                  label="Facebook URL" 
+                  name="facebook" 
+                  value={form.facebook || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://facebook.com/yourpage"
+                />
+                <TextField 
+                  label="Instagram URL" 
+                  name="instagram" 
+                  value={form.instagram || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://instagram.com/yourpage"
+                />
+                <TextField 
+                  label="YouTube URL" 
+                  name="youtube" 
+                  value={form.youtube || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://youtube.com/yourchannel"
+                />
+                <TextField 
+                  label="LinkedIn URL" 
+                  name="linkedin" 
+                  value={form.linkedin || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://linkedin.com/company/yourcompany"
+                />
+                <TextField 
+                  label="Twitter URL" 
+                  name="twitter" 
+                  value={form.twitter || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://twitter.com/yourhandle"
+                  sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+                />
+              </Box>
+            </Box>
+            
+            {error && (
+              <Box sx={{ mt: 3 }}>
+                <Typography sx={{ color: 'error.main' }}>{error}</Typography>
+              </Box>
+            )}
+            
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 4 }}>
+              <Button 
+                onClick={onClose} 
+                sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16, px: 4 }} 
+                disabled={submitting || viewOnly}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                sx={{ fontWeight: 700, borderRadius: 3, fontSize: 16, px: 4 }} 
+                disabled={submitting || viewOnly}
+              >
+                {submitting ? <CircularProgress size={24} /> : editId ? "Update" : "Add"}
+              </Button>
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
+    </Container>
   );
 });
 
@@ -440,7 +563,7 @@ function getOfficeInfoPagePermission() {
 export default function OfficeInfoPage() {
   const [pageAccess, setPageAccess] = useState<'all access' | 'only view' | 'no access'>('no access');
   const [officeInfo, setOfficeInfo] = useState<OfficeInformation[]>([]);
-  const [open, setOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<OfficeInformation>({
     companyName: '',
@@ -465,7 +588,6 @@ export default function OfficeInfoPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const rowsPerPage = 10;
-  const [viewOpen, setViewOpen] = useState(false);
   const [selectedOffice, setSelectedOffice] = useState<OfficeInformation | null>(null);
 
   const fetchOfficeInfo = useCallback(async () => {
@@ -513,7 +635,7 @@ export default function OfficeInfoPage() {
     });
     setEditId(null);
     setError(null);
-    setOpen(true);
+    setCurrentView('add');
   };
 
   const handleEdit = (office: OfficeInformation) => {
@@ -523,17 +645,18 @@ export default function OfficeInfoPage() {
     });
     setEditId(office._id || null);
     setError(null);
-    setOpen(true);
+    setCurrentView('edit');
   };
 
   const handleViewClick = (office: OfficeInformation) => {
     setSelectedOffice(office);
-    setViewOpen(true);
+    setCurrentView('view');
   };
 
   const handleClose = () => {
-    setOpen(false);
-    setViewOpen(false);
+    setCurrentView('list');
+    setSelectedOffice(null);
+    setEditId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -564,7 +687,7 @@ export default function OfficeInfoPage() {
       }
       
       await fetchOfficeInfo();
-      setOpen(false);
+      setCurrentView('list');
     } catch (error) {
       console.error('Error saving office information:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save office information';
@@ -629,6 +752,31 @@ export default function OfficeInfoPage() {
 
   const viewOnly = pageAccess === 'only view';
 
+  // Render different views based on currentView state
+  if (currentView === 'add' || currentView === 'edit') {
+    return (
+      <OfficeInfoForm 
+        form={form} 
+        setForm={setForm} 
+        onSubmit={handleSubmit} 
+        onClose={handleClose}
+        submitting={submitting} 
+        editId={editId} 
+        viewOnly={viewOnly}
+        error={error}
+      />
+    );
+  }
+
+  if (currentView === 'view' && selectedOffice) {
+    return (
+      <ViewOfficeDetails 
+        office={selectedOffice}
+        onClose={handleClose} 
+      />
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
@@ -664,11 +812,13 @@ export default function OfficeInfoPage() {
             value={searchTerm}
             onChange={handleSearch}
             sx={{ mb: 3, maxWidth: 400 }}
-            InputProps={{
-              sx: { borderRadius: 3, padding: '8px 16px' },
-              startAdornment: (
-                <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>🔍</Box>
-              ),
+            slotProps={{
+              input: {
+                sx: { borderRadius: 3, padding: '8px 16px' },
+                startAdornment: (
+                  <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>🔍</Box>
+                ),
+              }
             }}
           />
 
@@ -732,24 +882,6 @@ export default function OfficeInfoPage() {
           )}
         </CardContent>
       </Card>
-
-      <OfficeInfoForm 
-        open={open} 
-        onClose={handleClose} 
-        form={form} 
-        setForm={setForm} 
-        onSubmit={handleSubmit} 
-        submitting={submitting} 
-        editId={editId} 
-        viewOnly={viewOnly}
-        error={error}
-      />
-
-      <ViewOfficeDetails 
-        open={viewOpen} 
-        onClose={handleClose} 
-        office={selectedOffice}
-      />
 
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} maxWidth="sm" fullWidth>
         <DialogTitle>Confirm Delete</DialogTitle>

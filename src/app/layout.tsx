@@ -104,7 +104,7 @@ const filterModels = [
   { name: "Subfinish", path: "/subfinish" },
   { name: "Structure", path: "/structure" },
   { name: "Substructure", path: "/substructure" },
-  {name : "FAQ", path: "/faqa"},
+  {name : "FAQ", path: "/faq"},
   
   // { name: "Suitablefor", path: "/suitablefor" },
   // { name: "Subsuitable", path: "/subsuitable" },

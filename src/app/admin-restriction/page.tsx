@@ -215,7 +215,7 @@ const AdminRestrictionPage = () => {
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 140, flex: 1 }}>
-            <InputLabel id="seo-label">SEO Permission</InputLabel>
+            <InputLabel id="seo-label">P & L Permission</InputLabel>
             <Select labelId="seo-label" label="SEO Permission" value={addForm.seo} onChange={e => setAddForm(f => ({ ...f, seo: e.target.value }))}>
               <MenuItem value="all access">All Access</MenuItem>
               <MenuItem value="only view">Only View</MenuItem>
@@ -232,7 +232,7 @@ const AdminRestrictionPage = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FilterAltIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Filter
             <Inventory2Icon fontSize="small" sx={{ verticalAlign: 'middle', mx: 1 }} /> Product
-            <SearchIcon fontSize="small" sx={{ verticalAlign: 'middle', mx: 1 }} /> SEO
+            <SearchIcon fontSize="small" sx={{ verticalAlign: 'middle', mx: 1 }} /> P & L
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

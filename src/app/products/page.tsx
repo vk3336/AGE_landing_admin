@@ -1135,7 +1135,7 @@ export default function ProductPage() {
       
       // Track which images were explicitly removed
       const deletedImages = {
-        img: processedForm.img === undefined && form.img !== undefined,
+        image3: processedForm.image3 === undefined && form.image3 !== undefined,
         image1: processedForm.image1 === undefined && form.image1 !== undefined,
         image2: processedForm.image2 === undefined && form.image2 !== undefined
       };
@@ -1147,7 +1147,7 @@ export default function ProductPage() {
         
         if (value === undefined || value === null || (value === '' && !isFAQField)) {
           // If this is an image field that was explicitly set to undefined, mark it for deletion
-          if ((key === 'img' || key === 'image1' || key === 'image2') && deletedImages[key as keyof typeof deletedImages]) {
+          if ((key === 'image3' || key === 'image1' || key === 'image2') && deletedImages[key as keyof typeof deletedImages]) {
             formData.append(`delete_${key}`, 'true');
           }
           return;
@@ -1168,7 +1168,7 @@ export default function ProductPage() {
         } else if (value instanceof File) {
           // Handle new file uploads
           formData.append(key, value);
-        } else if (key === 'img' || key === 'image1' || key === 'image2' || key === 'video') {
+        } else if (key === 'image3' || key === 'image1' || key === 'image2' || key === 'video') {
           // Only append image fields if they're files
           if (value instanceof File) {
             formData.append(key, value);
@@ -1292,9 +1292,34 @@ export default function ProductPage() {
       let subsuitable: string[] = [];
       if (selected.subsuitable) {
         if (Array.isArray(selected.subsuitable)) {
-          subsuitable = selected.subsuitable.filter(Boolean) as string[];
+          // If array elements contain commas, split them
+          subsuitable = selected.subsuitable
+            .flatMap(item => {
+              if (typeof item === 'string' && item.includes(',')) {
+                // Split by comma to get individual items
+                return item.split(',').map(s => s.trim()).filter(Boolean);
+              }
+              return item;
+            })
+            .filter(Boolean) as string[];
         }
       }
+
+      // Parse subsuitable items into editable format for display
+      const parsedItems: EditableSubsuitableItem[] = subsuitable.map(item => {
+        const parts = item.split('-');
+        if (parts.length >= 3) {
+          return {
+            gender: parts[0],
+            clothType: parts[1],
+            number: parts[2]
+          };
+        }
+        // Fallback for invalid format
+        return { gender: '', clothType: '', number: item };
+      });
+      
+      setEditableSubsuitableItems(parsedItems);
 
       // Handle leadtime - ensure we always have an array
       let leadtime: string[] = [];
@@ -1339,6 +1364,8 @@ export default function ProductPage() {
         altimg3: selected.altimg3 || "",
         video: selected.video,
         altvideo: selected.altvideo || "",
+        videourl: selected.videourl || "",
+        videoalt: selected.videoalt || "",
         purchasePrice: selected.purchasePrice !== undefined ? String(selected.purchasePrice) : "",
         salesPrice: selected.salesPrice !== undefined ? String(selected.salesPrice) : "",
         vendorFabricCode: selected.vendorFabricCode || "",
@@ -1354,16 +1381,58 @@ export default function ProductPage() {
         productTag: productTag,
         ogType: selected.ogType || "",
         twitterCard: selected.twitterCard || "summary_large_image",
-        ogImage_twitterimage: selected.ogImage_twitterimage || ""
+        ogImage_twitterimage: selected.ogImage_twitterimage || "",
+        productquestion1: selected.productquestion1 || "",
+        productquestion2: selected.productquestion2 || "",
+        productquestion3: selected.productquestion3 || "",
+        productquestion4: selected.productquestion4 || "",
+        productquestion5: selected.productquestion5 || "",
+        productquestion6: selected.productquestion6 || "",
+        productanswer1: selected.productanswer1 || "",
+        productanswer2: selected.productanswer2 || "",
+        productanswer3: selected.productanswer3 || "",
+        productanswer4: selected.productanswer4 || "",
+        productanswer5: selected.productanswer5 || "",
+        productanswer6: selected.productanswer6 || ""
       });
-      setImage3Preview(selected.image3 ? getImageUrl(selected.image3) || null : null);
-      setImage1Preview(selected.image1 ? getImageUrl(selected.image1) || null : null);
-      setImage2Preview(selected.image2 ? getImageUrl(selected.image2) || null : null);
-      setVideoPreview(selected.video ? getImageUrl(selected.video) || null : null);
+      // Set image previews and load their dimensions
+      const img1Url = getSafeImageUrl(selected.image1);
+      const img2Url = getSafeImageUrl(selected.image2);
+      const img3Url = getSafeImageUrl(selected.image3);
+      
+      setImage1Preview(img1Url);
+      setImage2Preview(img2Url);
+      setImage3Preview(img3Url);
+      setVideoPreview(getSafeImageUrl(selected.video));
+      
+      // Load dimensions for existing images
+      if (img1Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image1: [img.width, img.height] }));
+        };
+        img.src = img1Url;
+      }
+      
+      if (img2Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image2: [img.width, img.height] }));
+        };
+        img.src = img2Url;
+      }
+      
+      if (img3Url) {
+        const img = new window.Image();
+        img.onload = () => {
+          setFormImgDims(dims => ({ ...dims, image3: [img.width, img.height] }));
+        };
+        img.src = img3Url;
+      }
     } else {
       setForm(prev => ({ ...prev, name: value.label || "" }));
     }
-  }, [products, getId, setForm, setImage3Preview, setImage1Preview, setImage2Preview, setVideoPreview]);
+  }, [products, getId, setForm, setImage3Preview, setImage1Preview, setImage2Preview, setVideoPreview, setEditableSubsuitableItems, getSafeImageUrl, setFormImgDims]);
 
   // Add effect to auto-calculate oz and inch
   // Only auto-calculate oz if oz is empty (not set from backend or user input)

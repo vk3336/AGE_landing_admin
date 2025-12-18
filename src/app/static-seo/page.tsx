@@ -79,7 +79,7 @@ interface TopicPageSEO {
 }
 
 function getTopicPageSeoPermission() {
-  // This function will be re-evaluated on the client side
+  // Only run on client side to avoid hydration mismatch
   if (typeof window === 'undefined') return 'no access';
   
   try {
@@ -116,9 +116,11 @@ export default function TopicPageSeoPage() {
   const [selectedSeo, setSelectedSeo] = useState<Partial<TopicPageSEO> | null>(null);
   const [open, setOpen] = useState(false);
   const [availableProductTags, setAvailableProductTags] = useState<string[]>([]);
+  const [isClient, setIsClient] = useState(false);
   
   // Update page access after component mounts (client-side only)
   useEffect(() => {
+    setIsClient(true);
     setPageAccess(getTopicPageSeoPermission());
   }, []);
 
@@ -359,7 +361,10 @@ export default function TopicPageSeoPage() {
     });
   };
 
-  const handleSubmit = async () => {   // No need to check for 'no access' here as it's already handled at the component level
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
 
     try {
       setLoading(true);
@@ -406,13 +411,22 @@ export default function TopicPageSeoPage() {
     }
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown> | null, value: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown> | null, value: number) => {
     setPage(value);
   };
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
+
+  // Show loading until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>

@@ -31,6 +31,7 @@ interface OfficeInformation {
   youtube?: string;
   linkedin?: string;
   twitter?: string;
+  pinterest?: string;
 }
 
 const OfficeInfoRow = React.memo(({ office, onEdit, onDelete, onView, viewOnly }: {
@@ -160,7 +161,7 @@ const ViewOfficeDetails = ({ office, onClose }: { office: OfficeInformation | nu
               
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>Social Media</Typography>
               <Divider sx={{ mb: 3 }} />
-              {(office.facebook || office.instagram || office.youtube || office.linkedin || office.twitter) ? (
+              {(office.facebook || office.instagram || office.youtube || office.linkedin || office.twitter || office.pinterest) ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 4 }}>
                   {office.facebook && (
                     <Button 
@@ -225,6 +226,19 @@ const ViewOfficeDetails = ({ office, onClose }: { office: OfficeInformation | nu
                       sx={{ textTransform: 'none' }}
                     >
                       Twitter
+                    </Button>
+                  )}
+                  {office.pinterest && (
+                    <Button 
+                      variant="outlined" 
+                      color="error" 
+                      href={office.pinterest} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      startIcon={<span>📌</span>}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Pinterest
                     </Button>
                   )}
                 </Box>
@@ -511,7 +525,15 @@ const OfficeInfoForm = React.memo(({
                   fullWidth 
                   disabled={submitting || viewOnly}
                   placeholder="https://twitter.com/yourhandle"
-                  sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+                />
+                <TextField 
+                  label="Pinterest URL" 
+                  name="pinterest" 
+                  value={form.pinterest || ''} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  disabled={submitting || viewOnly}
+                  placeholder="https://pinterest.com/yourprofile"
                 />
               </Box>
             </Box>

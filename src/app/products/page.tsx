@@ -562,6 +562,11 @@ export default function ProductPage() {
         }
       }
       
+      console.log('Edit product - productTag processing:', {
+        original: product.productTag,
+        processed: productTag
+      });
+      
       // Generate slug from name if not exists
       const slug = product.slug || generateSlug(product.name);
       
@@ -624,6 +629,7 @@ export default function ProductPage() {
       };
       
       console.log('Form data to be set:', formData); // Debug log
+      console.log('Edit product - form productTag:', productTag); // Debug log for productTag
       setForm(formData);
       setEditId(product._id || null);
       
@@ -706,6 +712,7 @@ export default function ProductPage() {
     setEditableSubsuitableItems([]);
     setForm({
       name: "",
+      slug: "",
       category: "",
       substructure: "",
       content: "",
@@ -732,6 +739,21 @@ export default function ProductPage() {
       altvideo: "",
       videourl: "",
       videoalt: "",
+      purchasePrice: "",
+      salesPrice: "",
+      vendorFabricCode: "",
+      leadtime: [],
+      sku: "",
+      rating_value: "",
+      rating_count: "",
+      productTitle: "",
+      productTagline: "",
+      shortProductDescription: "",
+      fullProductDescription: "",
+      productTag: [],
+      ogType: "",
+      twitterCard: "summary_large_image",
+      ogImage_twitterimage: "",
       productquestion1: "",
       productquestion2: "",
       productquestion3: "",
@@ -1336,6 +1358,11 @@ export default function ProductPage() {
           productTag = selected.productTag.filter(Boolean) as string[];
         }
       }
+      
+      console.log('Copy product - productTag processing:', {
+        original: selected.productTag,
+        processed: productTag
+      });
 
       setForm({
         name: selected.name,
@@ -1395,6 +1422,8 @@ export default function ProductPage() {
         productanswer5: selected.productanswer5 || "",
         productanswer6: selected.productanswer6 || ""
       });
+      
+      console.log('Copy product - form set with productTag:', productTag);
       // Set image previews and load their dimensions
       const img1Url = getSafeImageUrl(selected.image1);
       const img2Url = getSafeImageUrl(selected.image2);
@@ -2720,11 +2749,13 @@ export default function ProductPage() {
                   />
                 )}
                 <Autocomplete
+                  key={`productTag-${JSON.stringify(form.productTag)}`}
                   multiple
                   freeSolo
                   options={productTagOptions}
                   value={form.productTag || []}
                   onChange={(_, newValue) => {
+                    console.log('ProductTag Autocomplete onChange:', newValue);
                     setForm(prev => ({ ...prev, productTag: newValue as string[] }));
                   }}
                   renderInput={(params) => (
@@ -3108,13 +3139,22 @@ export default function ProductPage() {
                       <Image
                         src={getImageUrl(selectedProduct.image1) || ""}
                         alt="Image 1"
-                        width={imgDims.image1?.[0] || 200}
-                        height={imgDims.image1?.[1] || 200}
-                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
+                        width={imgDims.image1?.[0] || 400}
+                        height={imgDims.image1?.[1] || 400}
+                        style={{ 
+                          borderRadius: '8px', 
+                          width: imgDims.image1 ? 'auto' : '400px',
+                          height: imgDims.image1 ? 'auto' : '400px',
+                          maxWidth: '100%', 
+                          maxHeight: '500px',
+                          objectFit: 'contain',
+                          display: 'block' 
+                        }}
+                        unoptimized
                       />
                       {imgDims.image1 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {imgDims.image1[0]} h: {imgDims.image1[1]}
+                          Original: {imgDims.image1[0]} × {imgDims.image1[1]}px
                         </Typography>
                       )}
                     </Box>
@@ -3128,13 +3168,22 @@ export default function ProductPage() {
                       <Image
                         src={getImageUrl(selectedProduct.image2) || ""}
                         alt="Image 2"
-                        width={imgDims.image2?.[0] || 200}
-                        height={imgDims.image2?.[1] || 200}
-                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
+                        width={imgDims.image2?.[0] || 400}
+                        height={imgDims.image2?.[1] || 400}
+                        style={{ 
+                          borderRadius: '8px', 
+                          width: imgDims.image2 ? 'auto' : '400px',
+                          height: imgDims.image2 ? 'auto' : '400px',
+                          maxWidth: '100%', 
+                          maxHeight: '500px',
+                          objectFit: 'contain',
+                          display: 'block' 
+                        }}
+                        unoptimized
                       />
                       {imgDims.image2 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {imgDims.image2[0]} h: {imgDims.image2[1]}
+                          Original: {imgDims.image2[0]} × {imgDims.image2[1]}px
                         </Typography>
                       )}
                     </Box>
@@ -3148,13 +3197,22 @@ export default function ProductPage() {
                       <Image
                         src={getImageUrl(selectedProduct.image3) || ""}
                         alt="Image 3"
-                        width={imgDims.image3?.[0] || 200}
-                        height={imgDims.image3?.[1] || 200}
-                        style={{ borderRadius: '8px', width: 'auto', height: 'auto', maxWidth: '100%', display: 'block' }}
+                        width={imgDims.image3?.[0] || 400}
+                        height={imgDims.image3?.[1] || 400}
+                        style={{ 
+                          borderRadius: '8px', 
+                          width: imgDims.image3 ? 'auto' : '400px',
+                          height: imgDims.image3 ? 'auto' : '400px',
+                          maxWidth: '100%', 
+                          maxHeight: '500px',
+                          objectFit: 'contain',
+                          display: 'block' 
+                        }}
+                        unoptimized
                       />
                       {imgDims.image3 && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                          w: {imgDims.image3[0]} h: {imgDims.image3[1]}
+                          Original: {imgDims.image3[0]} × {imgDims.image3[1]}px
                         </Typography>
                       )}
                     </Box>
